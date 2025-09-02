@@ -1,10 +1,8 @@
-[![✗](https://img.shields.io/badge/Release-v2.0.0-ffb600.svg?style=for-the-badge)](https://github.com/agustin-golmar/Flex-Bison-Compiler/releases)
+[![✗](https://img.shields.io/badge/Release-v1.0.0-ffb600.svg?style=for-the-badge)](https://github.com/Santiagodiazs/TLA_Plotter)
 
-[![✗](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml/badge.svg?branch=production)](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml)
+# Plotter
 
-# Flex-Bison-Compiler
-
-A base compiler example, developed with Flex and Bison.
+A Domain Specific Language intended to easily create SVG graphics, developed with Flex and Bison.
 
 * [Requirements](#requirements)
 * [Configuration](#configuration)
