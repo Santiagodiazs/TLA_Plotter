@@ -10,36 +10,9 @@
 #include "../../support/type/ModuleDestructor.h"
 #include "../../support/type/Token.h"
 #include "../../support/type/TokenLabel.h"
-#include "../syntactic-analysis/BisonParser.h"
 #include "../Frontend.h"
 
 /** Initialize module's internal state. */
 ModuleDestructor initializeFlexActionsModule();
-
-
-CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
-CompilationStatus EnterImportExpressionLexemeAction(FlexContext context);
-CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
-CompilationStatus EOFLexemeAction();
-CompilationStatus IgnoredLexemeAction();
-CompilationStatus IntegerLexemeAction();
-CompilationStatus LeaveImportExpressionLexemeAction();
-CompilationStatus LeaveMultilineCommentLexemeAction();
-CompilationStatus ParenthesisLexemeAction(TokenLabel label);
-CompilationStatus SubexpressionLexemeAction();
-CompilationStatus UnknownLexemeAction();
-
-// Acciones específicas del DSL
-CompilationStatus KeywordLexemeAction(TokenLabel label);
-CompilationStatus IdentifierLexemeAction();
-CompilationStatus StringLexemeAction();
-CompilationStatus DecimalLexemeAction();
-CompilationStatus DimensionsLexemeAction();
-CompilationStatus CoordinatesLexemeAction();
-CompilationStatus ColorLexemeAction(TokenLabel label);
-CompilationStatus BraceLexemeAction(TokenLabel label);
-CompilationStatus SemicolonLexemeAction();
-CompilationStatus CommaLexemeAction();
-CompilationStatus ColonLexemeAction();
 
 #endif

@@ -134,11 +134,6 @@ void destroyToken(Token * token) {
 			token->lexeme = NULL;
 		}
 		if (token->semanticValue != NULL) {
-			
-			if (token->semanticValue->string != NULL) {
-				free(token->semanticValue->string);
-				token->semanticValue->string = NULL;
-			}
 			free(token->semanticValue);
 			token->semanticValue = NULL;
 		}

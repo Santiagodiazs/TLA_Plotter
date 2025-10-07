@@ -28,16 +28,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 	signed int integer;
 	TokenLabel token;
-	char * string;
-	float decimal;
-	struct {
-		int width;
-		int height;
-	} dimensions;
-	struct {
-		int x;
-		int y;
-	} coordinates;
 
 	/** Non-terminals. */
 
@@ -74,63 +64,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %token <token> IGNORED
 %token <token> UNKNOWN
-
-// DSL Tokens - Scene and Structure
-%token <token> SCENE
-%token <token> DRAW
-%token <token> WITH
-%token <token> LAYER
-%token <token> GROUP
-%token <token> SYMBOL
-%token <token> USE
-%token <token> PALETTE
-%token <token> BACKGROUND
-
-// DSL Tokens - Figures
-%token <token> RECTANGLE
-%token <token> CIRCLE
-%token <token> LINE
-%token <token> ELLIPSE
-%token <token> POLYLINE
-%token <token> POLYGON
-
-// DSL Tokens - Properties
-%token <token> AT
-%token <token> FROM
-%token <token> TO
-%token <token> SIZE
-%token <token> RADIUS
-%token <token> WIDTH
-%token <token> HEIGHT
-%token <token> FILL
-%token <token> STROKE
-%token <token> STROKE_WIDTH
-%token <token> OPACITY
-%token <token> Z
-%token <token> ID
-
-// DSL Tokens - Transformations
-%token <token> TRANSLATE
-%token <token> ROTATE
-%token <token> SCALE
-
-// DSL Tokens - Colors
-%token <token> COLOR
-%token <token> HEX_COLOR
-%token <token> RGB_COLOR
-%token <token> RGBA_COLOR
-
-// DSL Tokens - Data Types
-%token <string> IDENTIFIER
-%token <string> STRING
-%token <decimal> DECIMAL
-%token <dimensions> DIMENSIONS
-%token <coordinates> COORDINATES
-
-// DSL Tokens - Delimiters
-%token <token> SEMICOLON
-%token <token> COMMA
-%token <token> COLON
 
 /** Non-terminals. */
 %type <constant> constant
