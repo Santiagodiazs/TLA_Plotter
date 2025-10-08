@@ -57,6 +57,11 @@ void destroyLexicalAnalyzer(LexicalAnalyzer * lexicalAnalyzer);
 void destroyToken(Token * token);
 
 /**
+ * Adds a token to the cleanup list for later destruction.
+ */
+void _addTokenToList(Token * token);
+
+/**
  * Enters to a new nested lexical-analyzer context.
  */
 void enterLexicalAnalyzerContext(LexicalAnalyzer * lexicalAnalyzer, FlexContext flexContext);

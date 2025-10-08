@@ -119,7 +119,7 @@ string				\"[^\"]*\"
 
 "color"								{ return KeywordLexemeAction(COLOR); }
 
-{identifier}						{ return IdentifierLexemeAction(); }
+{identifier}						{ printf("FLEX_IDENTIFIER_MATCHED\n"); return IdentifierLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {dimensions}						{ return DimensionsLexemeAction(); }
@@ -130,15 +130,16 @@ string				\"[^\"]*\"
 {rgba_color}						{ return ColorLexemeAction(RGBA_COLOR); }
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
-"{"									{ return BraceLexemeAction(OPEN_BRACE); }
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
+"{"									{ return BraceLexemeAction(OPEN_BRACE); }
 ";"									{ return SemicolonLexemeAction(); }
 ","									{ return CommaLexemeAction(); }
 ":"									{ return ColonLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
-.									{ return UnknownLexemeAction(); }
 
 <<EOF>>								{ return EOFLexemeAction(); }
+
+.									{ return UnknownLexemeAction(); }
 
 %%

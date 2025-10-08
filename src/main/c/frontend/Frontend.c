@@ -5,13 +5,54 @@
 static LexicalAnalyzer * _lexicalAnalyzer = NULL;
 static Logger * _logger = NULL;
 
-/** Shutdown module's internal state. */
+
+static Token ** _tokensList = NULL;
+static int _tokensCount = 0;
+static int _tokensCapacity = 0;
+
+/** Agregar token a la lista para limpieza posterior */
+void _addTokenToList(Token * token) {
+	if (_tokensList == NULL) {
+		_tokensCapacity = 10;
+		_tokensList = calloc(_tokensCapacity, sizeof(Token*));
+		_tokensCount = 0;
+	}
+	
+	if (_tokensCount >= _tokensCapacity) {
+		_tokensCapacity *= 2;
+		_tokensList = realloc(_tokensList, _tokensCapacity * sizeof(Token*));
+	}
+	
+	_tokensList[_tokensCount++] = token;
+}
+
+/** Limpiar todos los tokens de la lista */
+void _cleanupTokens() {
+	if (_logger != NULL) {
+		logDebugging(_logger, "Cleaning up %d tokens...", _tokensCount);
+	}
+	for (int i = 0; i < _tokensCount; i++) {
+		if (_tokensList[i] != NULL) {
+			destroyToken(_tokensList[i]);
+			_tokensList[i] = NULL; 
+		}
+	}
+	free(_tokensList);
+	_tokensList = NULL;
+	_tokensCount = 0;
+	_tokensCapacity = 0;
+}
+
+
 void _shutdownFrontendModule() {
 	if (_logger != NULL) {
 		logDebugging(_logger, "Destroying module: Frontend...");
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
+	
+	_cleanupTokens();
+	
 	_lexicalAnalyzer = NULL;
 }
 
@@ -134,6 +175,11 @@ void destroyToken(Token * token) {
 			token->lexeme = NULL;
 		}
 		if (token->semanticValue != NULL) {
+			
+			if (token->semanticValue->string != NULL) {
+				free(token->semanticValue->string);
+				token->semanticValue->string = NULL;
+			}
 			free(token->semanticValue);
 			token->semanticValue = NULL;
 		}
@@ -155,11 +201,50 @@ CompilationStatus executeLexicalAnalysis(LexicalAnalyzer * lexicalAnalyzer) {
 CompilationStatus executeSyntacticAnalysis() {
 	logDebugging(_logger, "Parsing...");
 	CompilationStatus status = IN_PROGRESS;
-	while (status == IN_PROGRESS) {
+	CompilationStatus lastStatus = IN_PROGRESS;
+	int errorCount = 0;
+	const int MAX_ERRORS = 3; 
+	
+	while (status == IN_PROGRESS && errorCount < MAX_ERRORS) {
 		status = executeLexicalAnalysis(_lexicalAnalyzer);
+		
+	
+		if (status == FAILED) {
+			logDebugging(_logger, "Parser returned FAILED, attempting to continue... (error %d/%d)", errorCount + 1, MAX_ERRORS);
+			lastStatus = status;
+			errorCount++;
+			
+			if (errorCount >= MAX_ERRORS) {
+				logDebugging(_logger, "Too many parser errors (%d), stopping", errorCount);
+				break;
+			}
+			
+			// Continuar procesando
+			status = IN_PROGRESS;
+		} else if (status == 4) { // YYPUSH_MORE 
+			// Continuar procesando
+		} else if (status == SUCCEEDED) {
+		logDebugging(_logger, "Reached EOF, parsing complete");
+		int eofResult = yypush_parse(
+			(yypstate *) _lexicalAnalyzer->parser,
+			0, 
+			NULL, 
+			(YYLTYPE *) _lexicalAnalyzer->location);
+		break;
 	}
+	}
+	
+	
+	if (status == IN_PROGRESS && lastStatus != IN_PROGRESS) {
+		status = lastStatus;
+	}
+	
 	logDebugging(_logger, "Compilation status: %s.", _compilationStatusAsString(status));
 	logDebugging(_logger, "Parsing is done.");
+	
+	
+	_cleanupTokens();
+	
 	return status;
 }
 
@@ -177,9 +262,14 @@ void pushInputBuffer(InputBuffer * inputBuffer) {
 }
 
 CompilationStatus pushToken(LexicalAnalyzer * lexicalAnalyzer, Token * token) {
-	return (CompilationStatus) yypush_parse(
+	
+	_addTokenToList(token);
+	
+	int result = yypush_parse(
 		(yypstate *) lexicalAnalyzer->parser,
 		token->label,
 		token->semanticValue,
 		(YYLTYPE *) lexicalAnalyzer->location);
+	
+	return (CompilationStatus) result;
 }

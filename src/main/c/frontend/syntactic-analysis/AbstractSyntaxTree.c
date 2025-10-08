@@ -53,7 +53,7 @@ void destroyFactor(Factor * factor) {
 			case CONSTANT:
 				destroyConstant(factor->constant);
 				break;
-			case EXPRESSION:
+			case EXPRESSION_FACTOR:
 				destroyExpression(factor->expression);
 				break;
 		}

@@ -12,7 +12,8 @@
  * @see https://www.gnu.org/software/bison/manual/html_node/Error-Reporting-Function.html
  * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
  */
-void yyerror(const YYLTYPE * location, const char * message) {}
+void yyerror(const YYLTYPE * location, const char * message) {
+}
 
 %}
 
@@ -20,7 +21,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %define api.pure full
 %define api.push-pull push
 %define api.value.union.name SemanticValue
-%define parse.error detailed
+%define parse.error verbose
+%start program
 %locations
 
 %union {
@@ -45,6 +47,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 	Expression * expression;
 	Factor * factor;
 	Program * program;
+	Scene * scene;
 }
 
 /**
@@ -137,6 +140,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type <expression> expression
 %type <factor> factor
 %type <program> program
+%type <scene> scene_declaration
 
 /**
  * Precedence and associativity.
@@ -151,7 +155,13 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: expression											{ $$ = ExpressionProgramSemanticAction($1); }
+program: scene_declaration									{ 
+		$$ = NULL; 
+	}
+	| error													{ 
+		yyerrok; 
+		$$ = NULL; 
+	}
 	;
 
 expression: expression[left] ADD expression[right]			{ $$ = ArithmeticExpressionSemanticAction($left, $right, ADDITION); }
@@ -166,6 +176,15 @@ factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSe
 	;
 
 constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
+	;
+
+
+scene_declaration: SCENE IDENTIFIER	{ 
+		$$ = NULL; 
+	}
+	| SCENE IDENTIFIER OPEN_BRACE CLOSE_BRACE	{ 
+		$$ = NULL; 
+	}
 	;
 
 %%

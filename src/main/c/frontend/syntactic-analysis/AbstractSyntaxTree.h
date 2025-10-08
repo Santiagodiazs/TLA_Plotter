@@ -16,11 +16,14 @@ ModuleDestructor initializeAbstractSyntaxTreeModule();
 
 typedef enum ExpressionType ExpressionType;
 typedef enum FactorType FactorType;
+typedef enum ProgramType ProgramType;
+typedef enum SceneType SceneType;
 
 typedef struct Constant Constant;
 typedef struct Expression Expression;
 typedef struct Factor Factor;
 typedef struct Program Program;
+typedef struct Scene Scene;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -36,7 +39,16 @@ enum ExpressionType {
 
 enum FactorType {
 	CONSTANT,
-	EXPRESSION
+	EXPRESSION_FACTOR
+};
+
+enum ProgramType {
+	EXPRESSION,
+	SCENE_PROGRAM
+};
+
+enum SceneType {
+	BASIC_SCENE
 };
 
 struct Constant {
@@ -63,7 +75,16 @@ struct Expression {
 };
 
 struct Program {
-	Expression * expression;
+	union {
+		Expression * expression;
+		Scene * scene;
+	};
+	ProgramType type;
+};
+
+struct Scene {
+	char * name;
+	SceneType type;
 };
 
 /**
@@ -74,5 +95,6 @@ void destroyConstant(Constant * constant);
 void destroyExpression(Expression * expression);
 void destroyFactor(Factor * factor);
 void destroyProgram(Program * program);
+void destroyScene(Scene * scene);
 
 #endif
