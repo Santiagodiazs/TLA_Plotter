@@ -115,6 +115,8 @@ Token * createToken(LexicalAnalyzer * lexicalAnalyzer, TokenLabel label) {
 	token->lexeme = (char *) calloc(token->length + 1, sizeof(char));
 	token->line = yyget_lineno(lexicalAnalyzer->scanner);
 	token->semanticValue = (SemanticValue *) calloc(1, sizeof(SemanticValue));
+	
+	token->semanticValue->string = NULL;
 	strncpy(token->lexeme, yyget_text(lexicalAnalyzer->scanner), token->length);
 	return token;
 }
@@ -175,7 +177,6 @@ void destroyToken(Token * token) {
 			token->lexeme = NULL;
 		}
 		if (token->semanticValue != NULL) {
-			
 			if (token->semanticValue->string != NULL) {
 				free(token->semanticValue->string);
 				token->semanticValue->string = NULL;

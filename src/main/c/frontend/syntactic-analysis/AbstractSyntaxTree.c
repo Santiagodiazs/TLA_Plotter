@@ -61,10 +61,27 @@ void destroyFactor(Factor * factor) {
 	}
 }
 
+void destroyScene(Scene * scene) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (scene != NULL) {
+		if (scene->name != NULL) {
+			free(scene->name);
+		}
+		free(scene);
+	}
+}
+
 void destroyProgram(Program * program) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (program != NULL) {
-		destroyExpression(program->expression);
+		switch (program->type) {
+			case EXPRESSION:
+				destroyExpression(program->expression);
+				break;
+			case SCENE_PROGRAM:
+				destroyScene(program->scene);
+				break;
+		}
 		free(program);
 	}
 }

@@ -84,7 +84,6 @@ Program * ExpressionProgramSemanticAction(Expression * expression) {
 	return program;
 }
 
-// DSL Semantic Actions 
 
 Scene * BasicSceneSemanticAction(const char * sceneName) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);

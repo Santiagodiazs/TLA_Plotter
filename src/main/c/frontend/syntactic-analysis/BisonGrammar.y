@@ -142,6 +142,21 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <program> program
 %type <scene> scene_declaration
 
+// Figure-related non-terminals
+%type <token> scene_content
+%type <token> figure_declaration
+%type <token> figure_with_id
+%type <token> figure_anonymous
+%type <token> figure_type
+%type <token> figure_properties
+%type <token> size_property
+%type <token> position_property
+%type <token> fill_property
+%type <token> stroke_property
+%type <token> dimensions_value
+%type <token> coordinates_value
+%type <token> color_value
+
 /**
  * Precedence and associativity.
  *
@@ -156,6 +171,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
 program: scene_declaration									{ 
+		$$ = SceneProgramSemanticAction($1); 
+	}
+	| INTEGER													{ 
 		$$ = NULL; 
 	}
 	| error													{ 
@@ -180,11 +198,96 @@ constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 
 
 scene_declaration: SCENE IDENTIFIER	{ 
-		$$ = NULL; 
+		$$ = BasicSceneSemanticAction($2); 
 	}
-	| SCENE IDENTIFIER OPEN_BRACE CLOSE_BRACE	{ 
-		$$ = NULL; 
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
+		$$ = BasicSceneSemanticAction($2); 
 	}
+	;
+
+scene_content: /* empty */
+	| scene_content figure_declaration
+	;
+
+figure_declaration: figure_with_id
+	| figure_anonymous
+	;
+
+figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE	{
+		$$ = NULL;
+	}
+	;
+
+figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
+		$$ = NULL;
+	}
+	;
+
+figure_type: RECTANGLE
+	| CIRCLE
+	| LINE
+	| ELLIPSE
+	| POLYLINE
+	| POLYGON
+	;
+
+figure_properties: /* empty */
+	| figure_properties size_property
+	| figure_properties position_property
+	| figure_properties fill_property
+	| figure_properties stroke_property
+	;
+
+size_property: SIZE dimensions_value	{
+		$$ = NULL;
+	}
+	| SIZE	{
+		$$ = NULL;
+	}
+	;
+
+position_property: AT coordinates_value	{
+		$$ = NULL;
+	}
+	| AT	{
+		$$ = NULL;
+	}
+	;
+
+fill_property: FILL color_value	{
+		$$ = NULL;
+	}
+	| FILL	{
+		$$ = NULL;
+	}
+	;
+
+stroke_property: STROKE color_value	{
+		$$ = NULL;
+	}
+	| STROKE	{
+		$$ = NULL;
+	}
+	// Temporalmente comentado para debuggear
+	// | STROKE_WIDTH INTEGER	{
+	//		$$ = NULL;
+	//	}
+	;
+
+dimensions_value: DIMENSIONS	{
+		$$ = NULL;
+	}
+	;
+
+coordinates_value: COORDINATES	{
+		$$ = NULL;
+	}
+	;
+
+color_value: HEX_COLOR
+	| RGB_COLOR
+	| RGBA_COLOR
+	| COLOR OPEN_PARENTHESIS INTEGER COMMA INTEGER COMMA INTEGER CLOSE_PARENTHESIS
 	;
 
 %%
