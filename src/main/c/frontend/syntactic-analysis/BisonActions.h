@@ -26,4 +26,15 @@ Program * ExpressionProgramSemanticAction(Expression * expression);
 Scene * BasicSceneSemanticAction(const char * sceneName);
 Program * SceneProgramSemanticAction(Scene * scene);
 
+// ============= DSL SEMANTIC ACTIONS =============
+Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties);
+Property * CreatePropertySemanticAction(PropertyType type);
+Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int y);
+Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height);
+Property * SetPropertyIntValueSemanticAction(Property * property, int value);
+Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
+Property * SetPropertyStringValueSemanticAction(Property * property, const char * value);
+Property * AddPropertyToListSemanticAction(Property * list, Property * newProperty);
+Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
+
 #endif

@@ -177,9 +177,12 @@ void destroyToken(Token * token) {
 			token->lexeme = NULL;
 		}
 		if (token->semanticValue != NULL) {
-			if (token->semanticValue->string != NULL) {
-				free(token->semanticValue->string);
-				token->semanticValue->string = NULL;
+			// Solo liberar string para tokens que realmente usan string
+			if (token->label == IDENTIFIER || token->label == STRING) {
+				if (token->semanticValue->string != NULL) {
+					free(token->semanticValue->string);
+					token->semanticValue->string = NULL;
+				}
 			}
 			free(token->semanticValue);
 			token->semanticValue = NULL;

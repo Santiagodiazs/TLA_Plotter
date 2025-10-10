@@ -1,0 +1,6 @@
+scene MiEscena {
+    draw circle sol at (300, 100) {
+        radius 50;
+        fill #FFFF00;
+    }
+}

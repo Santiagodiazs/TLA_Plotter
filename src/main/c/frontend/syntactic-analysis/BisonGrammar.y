@@ -48,6 +48,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	Factor * factor;
 	Program * program;
 	Scene * scene;
+	Figure * figure;
+	Property * property;
 }
 
 /**
@@ -153,9 +155,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <token> position_property
 %type <token> fill_property
 %type <token> stroke_property
-%type <token> dimensions_value
-%type <token> coordinates_value
-%type <token> color_value
+
+%type <token> draw_statement
 
 /**
  * Precedence and associativity.
@@ -207,10 +208,15 @@ scene_declaration: SCENE IDENTIFIER	{
 
 scene_content: /* empty */
 	| scene_content figure_declaration
+	| scene_content draw_statement
 	;
 
 figure_declaration: figure_with_id
 	| figure_anonymous
+	;
+
+draw_statement: DRAW figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE
+	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE
 	;
 
 figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE	{
@@ -236,58 +242,59 @@ figure_properties: /* empty */
 	| figure_properties position_property
 	| figure_properties fill_property
 	| figure_properties stroke_property
+	| figure_properties radius_property
+	| figure_properties from_to_property
+	| figure_properties stroke_width_property
+	| figure_properties opacity_property
 	;
 
-size_property: SIZE dimensions_value	{
-		$$ = NULL;
-	}
-	| SIZE	{
-		$$ = NULL;
-	}
+size_property: SIZE dimensions_value
+	| SIZE
 	;
 
-position_property: AT coordinates_value	{
-		$$ = NULL;
+position_property: AT coordinates_value {
+		printf("DEBUG: position_property with coordinates parsed\n");
 	}
-	| AT	{
-		$$ = NULL;
-	}
-	;
-
-fill_property: FILL color_value	{
-		$$ = NULL;
-	}
-	| FILL	{
-		$$ = NULL;
+	| AT {
+		printf("DEBUG: position_property without coordinates parsed\n");
 	}
 	;
 
-stroke_property: STROKE color_value	{
-		$$ = NULL;
-	}
-	| STROKE	{
-		$$ = NULL;
-	}
-	// Temporalmente comentado para debuggear
-	// | STROKE_WIDTH INTEGER	{
-	//		$$ = NULL;
-	//	}
+fill_property: FILL color_value
+	| FILL
 	;
 
-dimensions_value: DIMENSIONS	{
-		$$ = NULL;
+stroke_property: STROKE color_value
+	| STROKE
+	;
+
+radius_property: RADIUS INTEGER
+	;
+
+from_to_property: FROM coordinates_value
+	| TO coordinates_value
+	;
+
+stroke_width_property: STROKE_WIDTH INTEGER
+	;
+
+opacity_property: OPACITY DECIMAL
+	;
+
+dimensions_value: DIMENSIONS {
+		printf("DEBUG: dimensions_value parsed successfully\n");
 	}
 	;
 
-coordinates_value: COORDINATES	{
-		$$ = NULL;
+coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS {
+		printf("DEBUG: coordinates_value parsed successfully\n");
 	}
 	;
 
 color_value: HEX_COLOR
 	| RGB_COLOR
 	| RGBA_COLOR
-	| COLOR OPEN_PARENTHESIS INTEGER COMMA INTEGER COMMA INTEGER CLOSE_PARENTHESIS
+	| IDENTIFIER
 	;
 
 %%

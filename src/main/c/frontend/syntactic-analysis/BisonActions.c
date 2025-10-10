@@ -128,3 +128,142 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 	logDebugging(_logger, "Created program with scene");
 	return program;
 }
+
+// ============= DSL SEMANTIC ACTIONS =============
+
+Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Figure * figure = calloc(1, sizeof(Figure));
+	if (figure == NULL) {
+		return NULL;
+	}
+	
+	figure->type = type;
+	figure->properties = properties;
+	figure->next = NULL;
+	
+	if (id != NULL && strlen(id) > 0) {
+		figure->id = malloc(strlen(id) + 1);
+		if (figure->id != NULL) {
+			strcpy(figure->id, id);
+		}
+	} else {
+		figure->id = NULL;
+	}
+	
+	logDebugging(_logger, "Created figure of type %d", type);
+	return figure;
+}
+
+Property * CreatePropertySemanticAction(PropertyType type) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Property * property = calloc(1, sizeof(Property));
+	if (property == NULL) {
+		return NULL;
+	}
+	
+	property->type = type;
+	property->next = NULL;
+	
+	return property;
+}
+
+Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int y) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL) {
+		property->value.coordinates.x = x;
+		property->value.coordinates.y = y;
+	}
+	
+	return property;
+}
+
+Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL) {
+		property->value.dimensions.width = width;
+		property->value.dimensions.height = height;
+	}
+	
+	return property;
+}
+
+Property * SetPropertyIntValueSemanticAction(Property * property, int value) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL) {
+		property->value.intValue = value;
+	}
+	
+	return property;
+}
+
+Property * SetPropertyFloatValueSemanticAction(Property * property, float value) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL) {
+		property->value.floatValue = value;
+	}
+	
+	return property;
+}
+
+Property * SetPropertyStringValueSemanticAction(Property * property, const char * value) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL && value != NULL) {
+		property->value.stringValue = malloc(strlen(value) + 1);
+		if (property->value.stringValue != NULL) {
+			strcpy(property->value.stringValue, value);
+		}
+	}
+	
+	return property;
+}
+
+Property * AddPropertyToListSemanticAction(Property * list, Property * newProperty) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (newProperty == NULL) {
+		return list;
+	}
+	
+	if (list == NULL) {
+		return newProperty;
+	}
+	
+	// Find the end of the list and append the new property
+	Property * current = list;
+	while (current->next != NULL) {
+		current = current->next;
+	}
+	current->next = newProperty;
+	
+	return list;
+}
+
+Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (scene == NULL || figure == NULL) {
+		return scene;
+	}
+	
+	if (scene->figures == NULL) {
+		scene->figures = figure;
+	} else {
+		// Find the end of the list and append the new figure
+		Figure * current = scene->figures;
+		while (current->next != NULL) {
+			current = current->next;
+		}
+		current->next = figure;
+	}
+	
+	logDebugging(_logger, "Added figure to scene");
+	return scene;
+}

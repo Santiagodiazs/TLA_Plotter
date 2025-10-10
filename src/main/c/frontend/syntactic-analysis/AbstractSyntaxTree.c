@@ -67,6 +67,7 @@ void destroyScene(Scene * scene) {
 		if (scene->name != NULL) {
 			free(scene->name);
 		}
+		destroyFigure(scene->figures);
 		free(scene);
 	}
 }
@@ -83,5 +84,43 @@ void destroyProgram(Program * program) {
 				break;
 		}
 		free(program);
+	}
+}
+
+void destroyFigure(Figure * figure) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (figure != NULL) {
+		Figure * current = figure;
+		while (current != NULL) {
+			Figure * next = current->next;
+			
+			if (current->id != NULL) {
+				free(current->id);
+			}
+			destroyProperty(current->properties);
+			
+			free(current);
+			current = next;
+		}
+	}
+}
+
+void destroyProperty(Property * property) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (property != NULL) {
+		Property * current = property;
+		while (current != NULL) {
+			Property * next = current->next;
+			
+			// Liberar valores string si es necesario
+			if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
+				if (current->value.stringValue != NULL) {
+					free(current->value.stringValue);
+				}
+			}
+			
+			free(current);
+			current = next;
+		}
 	}
 }

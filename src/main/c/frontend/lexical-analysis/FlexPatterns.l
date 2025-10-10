@@ -122,7 +122,7 @@ string				\"[^\"]*\"
 {identifier}						{ printf("FLEX_IDENTIFIER_MATCHED\n"); return IdentifierLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
-{dimensions}						{ return IgnoredLexemeAction(); }
+{dimensions}						{ return DimensionsLexemeAction(); }
 {coordinates}						{ return CoordinatesLexemeAction(); }
 
 {hex_color}							{ return ColorLexemeAction(HEX_COLOR); }
