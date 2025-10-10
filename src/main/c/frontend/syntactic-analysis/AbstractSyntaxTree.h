@@ -73,7 +73,9 @@ enum PropertyType {
 	FILL_PROPERTY,
 	STROKE_PROPERTY,
 	STROKE_WIDTH_PROPERTY,
-	OPACITY_PROPERTY
+	OPACITY_PROPERTY,
+	SCALE_PROPERTY,
+	ROTATE_PROPERTY
 };
 
 struct Constant {
@@ -131,8 +133,12 @@ struct Property {
 			int width;
 			int height;
 		} dimensions;         // Para SIZE
+		struct {
+			float x;
+			float y;
+		} scale;              // Para SCALE
 		int intValue;         // Para RADIUS, STROKE_WIDTH
-		float floatValue;     // Para OPACITY
+		float floatValue;     // Para OPACITY, ROTATE (angle)
 		char * stringValue;   // Para FILL, STROKE (colores)
 	} value;
 	struct Property * next;   // Para lista enlazada

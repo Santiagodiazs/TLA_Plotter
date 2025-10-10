@@ -192,6 +192,17 @@ Property * SetPropertyDimensionsSemanticAction(Property * property, int width, i
 	return property;
 }
 
+Property * SetPropertyScaleSemanticAction(Property * property, float x, float y) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (property != NULL) {
+		property->value.scale.x = x;
+		property->value.scale.y = y;
+	}
+	
+	return property;
+}
+
 Property * SetPropertyIntValueSemanticAction(Property * property, int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	

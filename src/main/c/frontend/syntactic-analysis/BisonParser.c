@@ -191,9 +191,11 @@ enum yysymbol_kind_t
   YYSYMBOL_from_to_property = 74,          /* from_to_property  */
   YYSYMBOL_stroke_width_property = 75,     /* stroke_width_property  */
   YYSYMBOL_opacity_property = 76,          /* opacity_property  */
-  YYSYMBOL_dimensions_value = 77,          /* dimensions_value  */
-  YYSYMBOL_coordinates_value = 78,         /* coordinates_value  */
-  YYSYMBOL_color_value = 79                /* color_value  */
+  YYSYMBOL_scale_property = 77,            /* scale_property  */
+  YYSYMBOL_rotate_property = 78,           /* rotate_property  */
+  YYSYMBOL_dimensions_value = 79,          /* dimensions_value  */
+  YYSYMBOL_coordinates_value = 80,         /* coordinates_value  */
+  YYSYMBOL_color_value = 81                /* color_value  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -500,16 +502,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  7
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   98
+#define YYLAST   115
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  59
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  21
+#define YYNNTS  23
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  49
+#define YYNRULES  48
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  74
+#define YYNSTATES  92
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   313
@@ -564,11 +566,11 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   174,   174,   177,   180,   201,   204,   209,   210,   211,
-     214,   215,   218,   219,   222,   227,   232,   233,   234,   235,
-     236,   237,   240,   241,   242,   243,   244,   245,   246,   247,
-     248,   251,   252,   255,   258,   263,   264,   267,   268,   271,
-     274,   275,   278,   281,   284,   289,   294,   295,   296,   297
+       0,   182,   182,   185,   188,   209,   212,   224,   240,   241,
+     242,   245,   246,   249,   253,   259,   265,   271,   272,   273,
+     274,   275,   276,   279,   280,   281,   282,   283,   284,   285,
+     286,   287,   288,   289,   292,   299,   306,   313,   318,   325,
+     332,   337,   344,   351,   358,   365,   372,   379,   386
 };
 #endif
 
@@ -599,7 +601,8 @@ static const char *const yytname[] =
   "figure_properties", "size_property", "position_property",
   "fill_property", "stroke_property", "radius_property",
   "from_to_property", "stroke_width_property", "opacity_property",
-  "dimensions_value", "coordinates_value", "color_value", YY_NULLPTR
+  "scale_property", "rotate_property", "dimensions_value",
+  "coordinates_value", "color_value", YY_NULLPTR
 };
 
 static const char *
@@ -609,7 +612,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-48)
+#define YYPACT_NINF (-49)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -623,14 +626,16 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       2,   -48,   -48,   -47,    16,   -48,    13,   -48,   -48,    68,
-     -48,   -19,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-     -48,   -48,   -10,    -9,   -48,    15,   -48,    17,    -3,   -48,
-      12,   -48,   -48,    14,    14,    14,   -20,    36,   -36,   -36,
-      37,    -4,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-      28,   -48,    43,    51,   -48,   -48,   -48,   -48,   -48,   -48,
-     -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-      -2,    53,    50,   -48
+       1,   -49,   -49,   -48,     7,   -49,    -9,   -49,   -49,     3,
+      74,    10,   -49,    -7,   -49,   -49,   -49,   -49,   -49,   -49,
+     -49,   -49,   -49,   -49,    -4,   -43,     2,   -49,    14,    28,
+     -49,    29,    -5,   -49,    30,    11,   -49,   -49,    26,    26,
+      26,     0,    52,    12,    12,    61,    16,    58,    59,   -49,
+     -49,   -49,   -49,   -49,   -49,   -49,   -49,   -49,   -49,    27,
+      70,   -49,    43,    83,   -49,   -49,   -49,   -49,   -49,   -49,
+     -49,   -49,   -49,   -49,   -49,    84,    87,   -49,   -49,   -49,
+      35,    86,    37,    80,    92,   -49,    93,   -49,    91,   104,
+     -49,   -49
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -638,30 +643,32 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     4,     3,     0,     0,     2,     5,     1,     7,     0,
-       6,     0,    16,    17,    18,    19,    20,    21,     8,     9,
-      10,    11,     0,     0,    22,     0,    22,     0,     0,    22,
-       0,    22,    15,    34,     0,     0,    32,     0,    36,    38,
-       0,     0,    23,    24,    25,    26,    27,    28,    29,    30,
-       0,    13,     0,     0,    33,    40,    41,    44,    31,    39,
-      46,    47,    48,    49,    35,    37,    42,    43,    14,    12,
-       0,     0,     0,    45
+       0,     4,     3,     0,     0,     2,     5,     1,     8,     0,
+       0,     0,     6,     0,    17,    18,    19,    20,    21,    22,
+       9,    10,    11,    12,     0,     0,     0,    23,     0,     0,
+      23,     0,     0,    23,     0,     0,    23,    16,     0,     0,
+       0,     0,     0,     0,    38,     0,     0,     0,     0,    24,
+      25,    26,    27,    28,    29,    30,    31,    32,    33,     0,
+       0,    14,     0,     0,    35,    40,    41,    46,    34,    39,
+      48,    36,    37,    42,    43,     0,     0,    15,     8,    13,
+       0,     0,     0,     0,     0,    45,     0,     7,     0,     0,
+      47,    44
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,    47,    -7,
-     -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -14,
-      25
+     -49,   -49,   -49,    34,   -49,   -49,   -49,   -49,   100,   -25,
+     -49,   -49,   -49,   -49,   -49,   -49,   -49,   -49,   -49,   -49,
+     -49,   -30,    71
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     4,     5,     9,    18,    19,    20,    21,    22,    28,
-      42,    43,    44,    45,    46,    47,    48,    49,    58,    54,
-      64
+       0,     4,     5,    10,    20,    21,    22,    23,    24,    32,
+      49,    50,    51,    52,    53,    54,    55,    56,    57,    58,
+      68,    64,    71
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -669,64 +676,70 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      24,    26,    32,     1,     6,     2,    12,    13,    14,    15,
-      16,    17,    60,    61,    62,    63,     7,    51,     3,    30,
-      55,    56,    50,     8,    52,    29,    53,    31,    33,    34,
-      35,    36,    37,    68,    57,    38,    39,    40,    41,    59,
-      66,    25,    27,    33,    34,    35,    36,    37,    69,    67,
-      38,    39,    40,    41,    70,    71,    72,    73,    23,    33,
-      34,    35,    36,    37,    65,     0,    38,    39,    40,    41,
-       0,     0,     0,    10,    33,    34,    35,    36,    37,     0,
-       0,    38,    39,    40,    41,    11,     0,     0,     0,     0,
-       0,     0,     0,    12,    13,    14,    15,    16,    17
+      37,     8,     1,     6,     2,    35,    27,     7,    59,    65,
+      66,    62,    30,    25,    29,    11,    61,     3,    14,    15,
+      16,    17,    18,    19,    33,     9,    38,    39,    40,    41,
+      42,    34,    77,    43,    44,    45,    46,    60,    63,    36,
+      47,    48,    38,    39,    40,    41,    42,    28,    79,    43,
+      44,    45,    46,    31,    67,    69,    47,    48,    38,    39,
+      40,    41,    42,    70,    73,    43,    44,    45,    46,    74,
+      75,    76,    47,    48,    38,    39,    40,    41,    42,    12,
+      78,    43,    44,    45,    46,    87,    80,    81,    47,    48,
+      82,    13,    84,    85,    86,    88,    89,    13,    90,    14,
+      15,    16,    17,    18,    19,    14,    15,    16,    17,    18,
+      19,    91,    83,    26,     0,    72
 };
 
 static const yytype_int8 yycheck[] =
 {
-      10,    10,     5,     1,    51,     3,    25,    26,    27,    28,
-      29,    30,    48,    49,    50,    51,     0,     5,    16,    26,
-      34,    35,    29,    10,    31,    10,    12,    10,    31,    32,
-      33,    34,    35,     5,    54,    38,    39,    40,    41,     3,
-       3,    51,    51,    31,    32,    33,    34,    35,     5,    53,
-      38,    39,    40,    41,     3,    57,     3,     7,    11,    31,
-      32,    33,    34,    35,    39,    -1,    38,    39,    40,    41,
-      -1,    -1,    -1,     5,    31,    32,    33,    34,    35,    -1,
-      -1,    38,    39,    40,    41,    17,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    25,    26,    27,    28,    29,    30
+       5,    10,     1,    51,     3,    30,    10,     0,    33,    39,
+      40,    36,    10,     3,    57,    12,     5,    16,    25,    26,
+      27,    28,    29,    30,    10,    34,    31,    32,    33,    34,
+      35,     3,     5,    38,    39,    40,    41,     7,    12,    10,
+      45,    46,    31,    32,    33,    34,    35,    51,     5,    38,
+      39,    40,    41,    51,    54,     3,    45,    46,    31,    32,
+      33,    34,    35,    51,     3,    38,    39,    40,    41,    53,
+      12,    12,    45,    46,    31,    32,    33,    34,    35,     5,
+      10,    38,    39,    40,    41,     5,     3,     3,    45,    46,
+       3,    17,    57,     7,    57,     3,     3,    17,     7,    25,
+      26,    27,    28,    29,    30,    25,    26,    27,    28,    29,
+      30,     7,    78,    13,    -1,    44
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     1,     3,    16,    60,    61,    51,     0,    10,    62,
-       5,    17,    25,    26,    27,    28,    29,    30,    63,    64,
-      65,    66,    67,    67,    10,    51,    10,    51,    68,    10,
-      68,    10,     5,    31,    32,    33,    34,    35,    38,    39,
-      40,    41,    69,    70,    71,    72,    73,    74,    75,    76,
-      68,     5,    68,    12,    78,    78,    78,    54,    77,     3,
-      48,    49,    50,    51,    79,    79,     3,    53,     5,     5,
-       3,    57,     3,     7
+       0,     1,     3,    16,    60,    61,    51,     0,    10,    34,
+      62,    12,     5,    17,    25,    26,    27,    28,    29,    30,
+      63,    64,    65,    66,    67,     3,    67,    10,    51,    57,
+      10,    51,    68,    10,     3,    68,    10,     5,    31,    32,
+      33,    34,    35,    38,    39,    40,    41,    45,    46,    69,
+      70,    71,    72,    73,    74,    75,    76,    77,    78,    68,
+       7,     5,    68,    12,    80,    80,    80,    54,    79,     3,
+      51,    81,    81,     3,    53,    12,    12,     5,    10,     5,
+       3,     3,     3,    62,    57,     7,    57,     5,     3,     3,
+       7,     7
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    59,    60,    60,    60,    61,    61,    62,    62,    62,
-      63,    63,    64,    64,    65,    66,    67,    67,    67,    67,
-      67,    67,    68,    68,    68,    68,    68,    68,    68,    68,
-      68,    69,    69,    70,    70,    71,    71,    72,    72,    73,
-      74,    74,    75,    76,    77,    78,    79,    79,    79,    79
+       0,    59,    60,    60,    60,    61,    61,    61,    62,    62,
+      62,    63,    63,    64,    64,    65,    66,    67,    67,    67,
+      67,    67,    67,    68,    68,    68,    68,    68,    68,    68,
+      68,    68,    68,    68,    69,    70,    71,    72,    72,    73,
+      74,    74,    75,    76,    77,    78,    79,    80,    81
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     1,     1,     2,     5,     0,     2,     2,
-       1,     1,     6,     5,     5,     4,     1,     1,     1,     1,
-       1,     1,     0,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     1,     2,     1,     2,     1,     2,     1,     2,
-       2,     2,     2,     2,     1,     5,     1,     1,     1,     1
+       0,     2,     1,     1,     1,     2,     5,    11,     0,     2,
+       2,     1,     1,     6,     5,     5,     4,     1,     1,     1,
+       1,     1,     1,     0,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     1,     2,
+       2,     2,     2,     2,     6,     4,     1,     5,     1
 };
 
 
@@ -1686,96 +1699,393 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: scene_declaration  */
-#line 174 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 182 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                                                 { 
 		(yyval.program) = SceneProgramSemanticAction((yyvsp[0].scene)); 
 	}
-#line 1694 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1707 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 3: /* program: INTEGER  */
-#line 177 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 185 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                                                                         { 
 		(yyval.program) = NULL; 
 	}
-#line 1702 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1715 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 4: /* program: error  */
-#line 180 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 188 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                                                                 { 
 		yyerrok; 
 		(yyval.program) = NULL; 
 	}
-#line 1711 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1724 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 5: /* scene_declaration: SCENE IDENTIFIER  */
-#line 201 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 209 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                         { 
 		(yyval.scene) = BasicSceneSemanticAction((yyvsp[0].string)); 
 	}
-#line 1719 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1732 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 6: /* scene_declaration: SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE  */
-#line 204 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 212 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
-		(yyval.scene) = BasicSceneSemanticAction((yyvsp[-3].string)); 
+		(yyval.scene) = BasicSceneSemanticAction((yyvsp[-3].string));
+		if ((yyvsp[-1].scene) != NULL) {
+			(yyval.scene) = (yyvsp[-1].scene);  // Use the scene with figures
+			if ((yyval.scene) != NULL && (yyval.scene)->name == NULL) {
+				(yyval.scene)->name = malloc(strlen((yyvsp[-3].string)) + 1);
+				if ((yyval.scene)->name != NULL) {
+					strcpy((yyval.scene)->name, (yyvsp[-3].string));
+				}
+			}
+		}
 	}
-#line 1727 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1749 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 14: /* figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 222 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
-                                                                                {
-		(yyval.token) = NULL;
+  case 7: /* scene_declaration: SCENE IDENTIFIER SIZE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS OPEN_BRACE scene_content CLOSE_BRACE  */
+#line 224 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                                                                              {
+		printf("DEBUG: scene with size parsed - %s size(%d, %d)\n", (yyvsp[-9].string), (yyvsp[-6].integer), (yyvsp[-4].integer));
+		(yyval.scene) = BasicSceneSemanticAction((yyvsp[-9].string));
+		if ((yyvsp[-1].scene) != NULL) {
+			(yyval.scene) = (yyvsp[-1].scene);  // Use the scene with figures  
+			if ((yyval.scene) != NULL && (yyval.scene)->name == NULL) {
+				(yyval.scene)->name = malloc(strlen((yyvsp[-9].string)) + 1);
+				if ((yyval.scene)->name != NULL) {
+					strcpy((yyval.scene)->name, (yyvsp[-9].string));
+				}
+			}
+		}
+		// TODO: Agregar acción semántica para tamaño de escena
 	}
-#line 1735 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1768 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 15: /* figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 227 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+  case 8: /* scene_content: %empty  */
+#line 240 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.scene) = NULL; }
+#line 1774 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 9: /* scene_content: scene_content figure_declaration  */
+#line 241 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.scene) = AddFigureToSceneSemanticAction((yyvsp[-1].scene), (yyvsp[0].figure)); }
+#line 1780 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 10: /* scene_content: scene_content draw_statement  */
+#line 242 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.scene) = AddFigureToSceneSemanticAction((yyvsp[-1].scene), (yyvsp[0].figure)); }
+#line 1786 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 11: /* figure_declaration: figure_with_id  */
+#line 245 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.figure) = (yyvsp[0].figure); }
+#line 1792 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 12: /* figure_declaration: figure_anonymous  */
+#line 246 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.figure) = (yyvsp[0].figure); }
+#line 1798 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 13: /* draw_statement: DRAW figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE  */
+#line 249 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                                        {
+		printf("DEBUG: Draw statement with ID '%s'\n", (yyvsp[-3].string));
+		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-4].integer), (yyvsp[-3].string), (yyvsp[-1].property));
+	}
+#line 1807 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 14: /* draw_statement: DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE  */
+#line 253 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                         {
-		(yyval.token) = NULL;
+		printf("DEBUG: Draw statement anonymous figure\n");
+		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-3].integer), NULL, (yyvsp[-1].property));
 	}
-#line 1743 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1816 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 33: /* position_property: AT coordinates_value  */
-#line 255 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+  case 15: /* figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE  */
+#line 259 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                                {
+		printf("DEBUG: Creating figure with ID '%s' of type %d\n", (yyvsp[-3].string), (yyvsp[-4].integer));
+		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-4].integer), (yyvsp[-3].string), (yyvsp[-1].property));
+	}
+#line 1825 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 16: /* figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE  */
+#line 265 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                        {
+		printf("DEBUG: Creating anonymous figure of type %d\n", (yyvsp[-3].integer));
+		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-3].integer), NULL, (yyvsp[-1].property));
+	}
+#line 1834 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 17: /* figure_type: RECTANGLE  */
+#line 271 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                        { (yyval.integer) = RECTANGLE_FIGURE; }
+#line 1840 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 18: /* figure_type: CIRCLE  */
+#line 272 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                { (yyval.integer) = CIRCLE_FIGURE; }
+#line 1846 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 19: /* figure_type: LINE  */
+#line 273 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                { (yyval.integer) = LINE_FIGURE; }
+#line 1852 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 20: /* figure_type: ELLIPSE  */
+#line 274 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                { (yyval.integer) = ELLIPSE_FIGURE; }
+#line 1858 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 21: /* figure_type: POLYLINE  */
+#line 275 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                { (yyval.integer) = POLYLINE_FIGURE; }
+#line 1864 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 22: /* figure_type: POLYGON  */
+#line 276 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                { (yyval.integer) = POLYGON_FIGURE; }
+#line 1870 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 23: /* figure_properties: %empty  */
+#line 279 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = NULL; }
+#line 1876 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 24: /* figure_properties: figure_properties size_property  */
+#line 280 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1882 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 25: /* figure_properties: figure_properties position_property  */
+#line 281 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1888 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 26: /* figure_properties: figure_properties fill_property  */
+#line 282 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1894 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 27: /* figure_properties: figure_properties stroke_property  */
+#line 283 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1900 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 28: /* figure_properties: figure_properties radius_property  */
+#line 284 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1906 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 29: /* figure_properties: figure_properties from_to_property  */
+#line 285 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1912 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 30: /* figure_properties: figure_properties stroke_width_property  */
+#line 286 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1918 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 31: /* figure_properties: figure_properties opacity_property  */
+#line 287 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1924 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 32: /* figure_properties: figure_properties scale_property  */
+#line 288 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1930 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 33: /* figure_properties: figure_properties rotate_property  */
+#line 289 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                        { (yyval.property) = AddPropertyToListSemanticAction((yyvsp[-1].property), (yyvsp[0].property)); }
+#line 1936 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 34: /* size_property: SIZE dimensions_value  */
+#line 292 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                     {
+		printf("DEBUG: size_property with dimensions parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(SIZE_PROPERTY);
+		(yyval.property) = SetPropertyDimensionsSemanticAction((yyval.property), (yyvsp[0].dimensions).width, (yyvsp[0].dimensions).height);
+	}
+#line 1946 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 35: /* position_property: AT coordinates_value  */
+#line 299 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                         {
 		printf("DEBUG: position_property with coordinates parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(POSITION_PROPERTY);
+		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[0].coordinates).x, (yyvsp[0].coordinates).y);
 	}
-#line 1751 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1956 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 34: /* position_property: AT  */
-#line 258 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
-             {
-		printf("DEBUG: position_property without coordinates parsed\n");
+  case 36: /* fill_property: FILL color_value  */
+#line 306 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                {
+		printf("DEBUG: fill_property with color parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(FILL_PROPERTY);
+		(yyval.property) = SetPropertyStringValueSemanticAction((yyval.property), (yyvsp[0].string));
 	}
-#line 1759 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1966 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 44: /* dimensions_value: DIMENSIONS  */
-#line 284 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+  case 37: /* stroke_property: STROKE color_value  */
+#line 313 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                        {
+		printf("DEBUG: stroke_property with color parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(STROKE_PROPERTY);
+		(yyval.property) = SetPropertyStringValueSemanticAction((yyval.property), (yyvsp[0].string));
+	}
+#line 1976 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 38: /* stroke_property: STROKE  */
+#line 318 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                        {
+		printf("DEBUG: stroke_property without color parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(STROKE_PROPERTY);
+		(yyval.property) = SetPropertyStringValueSemanticAction((yyval.property), "black");
+	}
+#line 1986 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 39: /* radius_property: RADIUS INTEGER  */
+#line 325 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                {
+		printf("DEBUG: radius_property parsed: radius(%d)\n", (yyvsp[0].integer));
+		(yyval.property) = CreatePropertySemanticAction(RADIUS_PROPERTY);
+		(yyval.property) = SetPropertyIntValueSemanticAction((yyval.property), (yyvsp[0].integer));
+	}
+#line 1996 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 40: /* from_to_property: FROM coordinates_value  */
+#line 332 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                {
+		printf("DEBUG: from_property parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(FROM_PROPERTY);
+		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[0].coordinates).x, (yyvsp[0].coordinates).y);
+	}
+#line 2006 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 41: /* from_to_property: TO coordinates_value  */
+#line 337 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                {
+		printf("DEBUG: to_property parsed\n");
+		(yyval.property) = CreatePropertySemanticAction(TO_PROPERTY);
+		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[0].coordinates).x, (yyvsp[0].coordinates).y);
+	}
+#line 2016 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 42: /* stroke_width_property: STROKE_WIDTH INTEGER  */
+#line 344 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                {
+		printf("DEBUG: stroke_width_property parsed: stroke-width(%d)\n", (yyvsp[0].integer));
+		(yyval.property) = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+		(yyval.property) = SetPropertyIntValueSemanticAction((yyval.property), (yyvsp[0].integer));
+	}
+#line 2026 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 43: /* opacity_property: OPACITY DECIMAL  */
+#line 351 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                        {
+		printf("DEBUG: opacity_property parsed: opacity(%f)\n", (yyvsp[0].decimal));
+		(yyval.property) = CreatePropertySemanticAction(OPACITY_PROPERTY);
+		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (yyvsp[0].decimal));
+	}
+#line 2036 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 44: /* scale_property: SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS  */
+#line 358 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                               {
+		printf("DEBUG: scale_property parsed: scale(%d, %d)\n", (yyvsp[-3].integer), (yyvsp[-1].integer));
+		(yyval.property) = CreatePropertySemanticAction(SCALE_PROPERTY);
+		(yyval.property) = SetPropertyScaleSemanticAction((yyval.property), (float)(yyvsp[-3].integer), (float)(yyvsp[-1].integer));
+	}
+#line 2046 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 45: /* rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS  */
+#line 365 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                                                                   {
+		printf("DEBUG: rotate_property parsed: rotate(%d)\n", (yyvsp[-1].integer));
+		(yyval.property) = CreatePropertySemanticAction(ROTATE_PROPERTY);
+		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (float)(yyvsp[-1].integer));
+	}
+#line 2056 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 46: /* dimensions_value: DIMENSIONS  */
+#line 372 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                              {
 		printf("DEBUG: dimensions_value parsed successfully\n");
+		(yyval.dimensions).width = (yyvsp[0].dimensions).width;
+		(yyval.dimensions).height = (yyvsp[0].dimensions).height;
 	}
-#line 1767 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2066 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 45: /* coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS  */
-#line 289 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+  case 47: /* coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS  */
+#line 379 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                             {
 		printf("DEBUG: coordinates_value parsed successfully\n");
+		(yyval.coordinates).x = (yyvsp[-3].integer);
+		(yyval.coordinates).y = (yyvsp[-1].integer);
 	}
-#line 1775 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2076 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+    break;
+
+  case 48: /* color_value: IDENTIFIER  */
+#line 386 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+                        {
+		printf("DEBUG: color_value parsed: %s\n", (yyvsp[0].string));
+		(yyval.string) = (yyvsp[0].string);
+	}
+#line 2085 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
 
-#line 1779 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2089 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
 
       default: break;
     }
@@ -2020,5 +2330,5 @@ yypushreturn:
 #undef yyls
 #undef yylsp
 #undef yystacksize
-#line 300 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 392 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 
