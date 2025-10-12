@@ -260,7 +260,7 @@ CompilationStatus CoordinatesLexemeAction() {
 	}
 
 	int x = 0, y = 0;
-	if (sscanf(token->lexeme, " ( %d %*[,] %d ) ", &x, &y) != 2) {
+	if (sscanf(token->lexeme, " ( %d %*[, ] %d ) ", &x, &y) != 2) {
 		x = y = 0;
 	}
 	token->semanticValue->coordinates.x = x;

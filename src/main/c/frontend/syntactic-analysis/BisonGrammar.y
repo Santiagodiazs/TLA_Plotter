@@ -167,7 +167,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> scale_property
 %type <property> rotate_property
 %type <property> radius_property
-%type <property> from_to_property
+%type <property> from_property
+%type <property> to_property
 %type <property> stroke_width_property
 %type <property> opacity_property
 %type <property> draw_tail
@@ -440,8 +441,12 @@ property_item: size_property				{
 		printf("[DEBUG] property_item: radius_property\n");
 		$$ = $1; 
 	}
-	| from_to_property					{ 
-		printf("[DEBUG] property_item: from_to_property\n");
+	| from_property					{ 
+		printf("[DEBUG] property_item: from_property\n");
+		$$ = $1; 
+	}
+	| to_property					{ 
+		printf("[DEBUG] property_item: to_property\n");
 		$$ = $1; 
 	}
 	| stroke_width_property				{ 
@@ -502,12 +507,14 @@ radius_property: RADIUS INTEGER SEMICOLON	{
 	}
 	;
 
-from_to_property: FROM coordinates_value SEMICOLON	{
+from_property: FROM coordinates_value SEMICOLON	{
 		printf("DEBUG: from_property parsed\n");
 		$$ = CreatePropertySemanticAction(FROM_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
-	| TO coordinates_value SEMICOLON	{
+	;
+
+to_property: TO coordinates_value SEMICOLON	{
 		printf("DEBUG: to_property parsed\n");
 		$$ = CreatePropertySemanticAction(TO_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
@@ -549,10 +556,10 @@ dimensions_value: DIMENSIONS {
 	}
 	;
 
-coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS {
-		printf("DEBUG: coordinates_value parsed successfully\n");
-		$$.x = $2;
-		$$.y = $4;
+coordinates_value: COORDINATES {
+		printf("DEBUG: coordinates_value parsed successfully: (%d,%d)\n", $1.x, $1.y);
+		$$.x = $1.x;
+		$$.y = $1.y;
 	}
 	;
 

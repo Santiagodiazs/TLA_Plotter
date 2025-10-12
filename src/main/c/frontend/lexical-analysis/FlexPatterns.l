@@ -49,8 +49,6 @@ identifier			[a-zA-Z_][a-zA-Z0-9_]*
 integer				[0-9]+
 decimal				[0-9]+(\.[0-9]+)?
 dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
-coordinates			\({WS}{INT}{WS},{WS}{INT}{WS}\)
-
 
 WS					[ \t\r\n\f\v]*
 INT					[0-9]+
@@ -59,6 +57,7 @@ hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
 rgb_color			rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
 color_func			color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+coordinates			\({WS}{INT}{WS},{WS}{INT}{WS}\)
 string				\"[^\"]*\"
 
 %%
@@ -130,12 +129,12 @@ string				\"[^\"]*\"
 {rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
-{identifier}						{ return IdentifierLexemeAction(); }
+{coordinates}						{ return CoordinatesLexemeAction(); }
+{dimensions}						{ return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
-{dimensions}						{ return DimensionsLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
-{coordinates}						{ return CoordinatesLexemeAction(); }
+{identifier}						{ return IdentifierLexemeAction(); }
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
