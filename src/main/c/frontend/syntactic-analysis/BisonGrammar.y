@@ -171,6 +171,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> stroke_width_property
 %type <property> opacity_property
 %type <property> draw_tail
+%type <property> draw_tail_after_external
 %type <property> external_items
 %type <property> external_items_more
 %type <property> external_item
@@ -233,11 +234,11 @@ scene_declaration: SCENE IDENTIFIER	{
 			}
 		}
 	}
-	| SCENE IDENTIFIER SIZE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS OPEN_BRACE scene_content CLOSE_BRACE {
-		printf("DEBUG: scene with size parsed - %s size(%d, %d)\n", $2, $5, $7);
+	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
+		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
 		$$ = BasicSceneSemanticAction($2);
-		if ($10 != NULL) {
-			$$ = $10;  // Use the scene with figures  
+		if ($6 != NULL) {
+			$$ = $6;  // Use the scene with figures  
 			if ($$ != NULL && $$->name == NULL) {
 				$$->name = malloc(strlen($2) + 1);
 				if ($$->name != NULL) {
@@ -283,8 +284,22 @@ draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
 		printf("[DEBUG] draw_tail: internal properties only\n");
 		$$ = $2;
 	}
-	| external_items OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail: external + internal properties\n");
+	| external_items draw_tail_after_external	{
+		printf("[DEBUG] draw_tail: external + tail\n");
+		$$ = $2;
+	}
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
+		printf("[DEBUG] draw_tail: WITH syntax\n");
+		$$ = $3;
+	}
+	;
+
+draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
+		printf("[DEBUG] draw_tail_after_external: external + internal properties\n");
+		$$ = $2;
+	}
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
+		printf("[DEBUG] draw_tail_after_external: external + WITH syntax\n");
 		$$ = $3;
 	}
 	;

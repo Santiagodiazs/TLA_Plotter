@@ -114,6 +114,7 @@ string				\"[^\"]*\"
 "fill"								{ return KeywordLexemeAction(FILL); }
 "stroke"							{ return KeywordLexemeAction(STROKE); }
 "strokeWidth"						{ return KeywordLexemeAction(STROKE_WIDTH); }
+"stroke_width"						{ return KeywordLexemeAction(STROKE_WIDTH); }
 "opacity"							{ return KeywordLexemeAction(OPACITY); }
 "z"									{ return KeywordLexemeAction(Z); }
 "id"								{ return KeywordLexemeAction(ID); }
