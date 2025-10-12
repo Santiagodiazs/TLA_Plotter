@@ -54,9 +54,10 @@ coordinates			\([0-9]+,[0-9]+\)
 
 WS					[ \t\r\n\f\v]*
 INT					[0-9]+
+FLOAT				([0-9]+(\.[0-9]+)?|\.[0-9]+)
 hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
 rgb_color			rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}[0-9]+(\.[0-9]+)?{WS}\)
+rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
 color_func			color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 string				\"[^\"]*\"
 
