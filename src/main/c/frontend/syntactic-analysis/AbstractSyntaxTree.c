@@ -115,15 +115,47 @@ void destroyProperty(Property * property) {
 		while (current != NULL) {
 			Property * next = current->next;
 			
-			// Liberar valores string si es necesario
+			// Liberar valores color si es necesario
 			if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
-				if (current->value.stringValue != NULL) {
-					free(current->value.stringValue);
+				if (current->value.colorValue != NULL) {
+					destroyColor(current->value.colorValue);
 				}
 			}
 			
 			free(current);
 			current = next;
 		}
+	}
+}
+
+Color * createColor(ColorType type) {
+	logDebugging(_logger, "Creating color of type %d", type);
+	Color * color = calloc(1, sizeof(Color));
+	if (color != NULL) {
+		color->type = type;
+	}
+	return color;
+}
+
+void destroyColor(Color * color) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (color != NULL) {
+		switch (color->type) {
+			case NAMED_COLOR:
+				if (color->value.name != NULL) {
+					free(color->value.name);
+				}
+				break;
+			case HEX_COLOR_TYPE:
+				if (color->value.hex != NULL) {
+					free(color->value.hex);
+				}
+				break;
+			case RGB_COLOR_TYPE:
+			case RGBA_COLOR_TYPE:
+				
+				break;
+		}
+		free(color);
 	}
 }

@@ -51,6 +51,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	Scene * scene;
 	Figure * figure;
 	Property * property;
+	Color * color;
 }
 
 /**
@@ -64,6 +65,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %destructor { destroyConstant($$); } <constant>
 %destructor { destroyExpression($$); } <expression>
 %destructor { destroyFactor($$); } <factor>
+%destructor { destroyColor($$); } <color>
 
 /** Terminals. */
 %token <integer> INTEGER
@@ -152,6 +154,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <coordinates> coordinates_value
 %type <dimensions> dimensions_value
 %type <string> color_value
+%type <color> parsed_color_value
 %type <figure> figure_anonymous
 %type <integer> figure_type
 %type <property> figure_properties
@@ -261,12 +264,32 @@ scene_content: /* empty */				{
 		$$ = AddFigureToSceneSemanticAction($1, $2); 
 		printf("[DEBUG] scene_content: AddFigureToSceneSemanticAction completed\n");
 	}
-	| scene_content BACKGROUND color_value SEMICOLON {
+	| scene_content BACKGROUND parsed_color_value SEMICOLON {
 		printf("[DEBUG] scene_content: setting background color\n");
 		Scene* sc = $1 ? $1 : BasicSceneSemanticAction(NULL);
 		if (sc && !sc->backgroundColor && $3) {
-			sc->backgroundColor = malloc(strlen($3)+1);
-			if (sc->backgroundColor) strcpy(sc->backgroundColor, $3);
+			
+			char * colorStr = NULL;
+			switch ($3->type) {
+				case NAMED_COLOR:
+					colorStr = malloc(strlen($3->value.name) + 1);
+					if (colorStr) strcpy(colorStr, $3->value.name);
+					break;
+				case HEX_COLOR_TYPE:
+					colorStr = malloc(strlen($3->value.hex) + 1);
+					if (colorStr) strcpy(colorStr, $3->value.hex);
+					break;
+				case RGB_COLOR_TYPE:
+					colorStr = malloc(20);
+					if (colorStr) sprintf(colorStr, "rgb(%d,%d,%d)", $3->value.rgb.r, $3->value.rgb.g, $3->value.rgb.b);
+					break;
+				case RGBA_COLOR_TYPE:
+					colorStr = malloc(30);
+					if (colorStr) sprintf(colorStr, "rgba(%d,%d,%d,%.1f)", $3->value.rgba.r, $3->value.rgba.g, $3->value.rgba.b, $3->value.rgba.a);
+					break;
+			}
+			sc->backgroundColor = colorStr;
+			destroyColor($3); // Liberar el Color ya que lo convertimos a string
 		}
 		$$ = sc;
 	}
@@ -481,22 +504,23 @@ position_property: AT coordinates_value SEMICOLON {
 	}
 	;
 
-fill_property: FILL color_value SEMICOLON {
-		printf("DEBUG: fill_property with color parsed\n");
+fill_property: FILL parsed_color_value SEMICOLON {
+		printf("DEBUG: fill_property with parsed color\n");
 		$$ = CreatePropertySemanticAction(FILL_PROPERTY);
-		$$ = SetPropertyStringValueSemanticAction($$, $2);
+		$$ = SetPropertyColorSemanticAction($$, $2);
 	}
 	;
 
-stroke_property: STROKE color_value SEMICOLON	{
-		printf("DEBUG: stroke_property with color parsed\n");
+stroke_property: STROKE parsed_color_value SEMICOLON	{
+		printf("DEBUG: stroke_property with parsed color\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		$$ = SetPropertyStringValueSemanticAction($$, $2);
+		$$ = SetPropertyColorSemanticAction($$, $2);
 	}
 	| STROKE SEMICOLON	{
 		printf("DEBUG: stroke_property without color parsed\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		$$ = SetPropertyStringValueSemanticAction($$, "black");
+		Color * defaultColor = ParseNamedColor("black");
+		$$ = SetPropertyColorSemanticAction($$, defaultColor);
 	}
 	;
 
@@ -574,6 +598,24 @@ color_value: IDENTIFIER {
 	}
 	| RGBA_COLOR {
 		$$ = $1;
+	}
+	;
+
+parsed_color_value: IDENTIFIER {
+		printf("DEBUG: parsing named color: %s\n", $1);
+		$$ = ParseNamedColor($1);
+	}
+	| RGB_COLOR {
+		printf("DEBUG: parsing RGB color: %s\n", $1);
+		$$ = ParseRgbColor($1);
+	}
+	| HEX_COLOR {
+		printf("DEBUG: parsing HEX color: %s\n", $1);
+		$$ = ParseHexColor($1);
+	}
+	| RGBA_COLOR {
+		printf("DEBUG: parsing RGBA color: %s\n", $1);
+		$$ = ParseRgbaColor($1);
 	}
 	;
 

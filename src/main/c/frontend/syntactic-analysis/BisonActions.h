@@ -3,6 +3,7 @@
 
 #include "../../support/logging/Logger.h"
 #include "../../support/type/CompilerState.h"
+#include "../../support/type/CompilationStatus.h"
 #include "../../support/type/ModuleDestructor.h"
 #include "../../support/type/TokenLabel.h"
 #include "AbstractSyntaxTree.h"
@@ -24,7 +25,13 @@ Factor * ExpressionFactorSemanticAction(Expression * expression);
 Program * ExpressionProgramSemanticAction(Expression * expression);
 
 Scene * BasicSceneSemanticAction(const char * sceneName);
-Program * SceneProgramSemanticAction(Scene * scene);
+CompilationStatus ValidateFigureProperties(FigureType type, Property * properties);
+
+// ============= COLOR PARSING FUNCTIONS =============
+Color * ParseNamedColor(const char * name);
+Color * ParseHexColor(const char * hex);
+Color * ParseRgbColor(const char * rgb);
+Color * ParseRgbaColor(const char * rgba);
 
 // ============= DSL SEMANTIC ACTIONS =============
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties);
@@ -34,7 +41,7 @@ Property * SetPropertyDimensionsSemanticAction(Property * property, int width, i
 Property * SetPropertyScaleSemanticAction(Property * property, float x, float y);
 Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
-Property * SetPropertyStringValueSemanticAction(Property * property, const char * value);
+Property * SetPropertyColorSemanticAction(Property * property, Color * color);
 // REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
 

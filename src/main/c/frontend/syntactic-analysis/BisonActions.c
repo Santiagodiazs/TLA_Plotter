@@ -1,4 +1,5 @@
 #include "BisonActions.h"
+#include "../../support/type/CompilationStatus.h"
 
 /* MODULE INTERNAL STATE */
 
@@ -139,10 +140,124 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 	return program;
 }
 
+// ============= COLOR PARSING FUNCTIONS =============
+
+Color * ParseNamedColor(const char * name) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Color * color = createColor(NAMED_COLOR);
+	if (color != NULL && name != NULL) {
+		color->value.name = malloc(strlen(name) + 1);
+		if (color->value.name != NULL) {
+			strcpy(color->value.name, name);
+		}
+	}
+	return color;
+}
+
+Color * ParseHexColor(const char * hex) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Color * color = createColor(HEX_COLOR_TYPE);
+	if (color != NULL && hex != NULL) {
+		color->value.hex = malloc(strlen(hex) + 1);
+		if (color->value.hex != NULL) {
+			strcpy(color->value.hex, hex);
+		}
+	}
+	return color;
+}
+
+Color * ParseRgbColor(const char * rgb) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Color * color = createColor(RGB_COLOR_TYPE);
+	if (color != NULL && rgb != NULL) {
+		// Parsear "rgb(255,0,0)" -> r=255, g=0, b=0
+		int r, g, b;
+		if (sscanf(rgb, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
+			color->value.rgb.r = r;
+			color->value.rgb.g = g;
+			color->value.rgb.b = b;
+		}
+	}
+	return color;
+}
+
+Color * ParseRgbaColor(const char * rgba) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Color * color = createColor(RGBA_COLOR_TYPE);
+	if (color != NULL && rgba != NULL) {
+		// Parsear "rgba(255,0,0,1.0)" -> r=255, g=0, b=0, a=1.0
+		int r, g, b;
+		float a;
+		if (sscanf(rgba, "rgba(%d,%d,%d,%f)", &r, &g, &b, &a) == 4) {
+			color->value.rgba.r = r;
+			color->value.rgba.g = g;
+			color->value.rgba.b = b;
+			color->value.rgba.a = a;
+		}
+	}
+	return color;
+}
+
+// ============= SEMANTIC VALIDATION =============
+
+CompilationStatus ValidateFigureProperties(FigureType type, Property * properties) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (properties == NULL) {
+		return SUCCEEDED; 
+	}
+	
+	Property * current = properties;
+	while (current != NULL) {
+		switch (type) {
+			case CIRCLE_FIGURE:
+				if (current->type == SIZE_PROPERTY) {
+					fprintf(stderr, "ERROR: Circle figures cannot use 'size' property. Use 'radius' instead.\n");
+					return FAILED;
+				}
+				break;
+				
+			case LINE_FIGURE:
+				if (current->type == SIZE_PROPERTY) {
+					fprintf(stderr, "ERROR: Line figures cannot use 'size' property. Use 'from' and 'to' instead.\n");
+					return FAILED;
+				}
+				if (current->type == FILL_PROPERTY) {
+					fprintf(stderr, "ERROR: Line figures cannot use 'fill' property. Use 'stroke' instead.\n");
+					return FAILED;
+				}
+				break;
+				
+			case RECTANGLE_FIGURE:
+			case ELLIPSE_FIGURE:
+				if (current->type == RADIUS_PROPERTY) {
+					fprintf(stderr, "ERROR: Rectangle/Ellipse figures cannot use 'radius' property. Use 'size' instead.\n");
+					return FAILED;
+				}
+				break;
+				
+			default:
+				break;
+		}
+		current = current->next;
+	}
+	
+	return SUCCEEDED;
+}
+
 // ============= DSL SEMANTIC ACTIONS =============
 
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	// Validate properties for this figure type
+	if (ValidateFigureProperties(type, properties) == FAILED) {
+		return NULL; 
+	}
 	
 	Figure * figure = calloc(1, sizeof(Figure));
 	if (figure == NULL) {
@@ -224,14 +339,11 @@ Property * SetPropertyFloatValueSemanticAction(Property * property, float value)
 	return property;
 }
 
-Property * SetPropertyStringValueSemanticAction(Property * property, const char * value) {
+Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	if (property != NULL && value != NULL) {
-		property->value.stringValue = malloc(strlen(value) + 1);
-		if (property->value.stringValue != NULL) {
-			strcpy(property->value.stringValue, value);
-		}
+	if (property != NULL) {
+		property->value.colorValue = color;
 	}
 	
 	return property;

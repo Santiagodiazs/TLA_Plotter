@@ -20,6 +20,7 @@ typedef enum ProgramType ProgramType;
 typedef enum SceneType SceneType;
 typedef enum FigureType FigureType;
 typedef enum PropertyType PropertyType;
+typedef enum ColorType ColorType;
 
 typedef struct Constant Constant;
 typedef struct Expression Expression;
@@ -28,6 +29,7 @@ typedef struct Program Program;
 typedef struct Scene Scene;
 typedef struct Figure Figure;
 typedef struct Property Property;
+typedef struct Color Color;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -78,8 +80,30 @@ enum PropertyType {
 	ROTATE_PROPERTY
 };
 
+enum ColorType {
+	NAMED_COLOR,    // "red", "blue", etc.
+	HEX_COLOR_TYPE,      // "#FF0000", "#F00"
+	RGB_COLOR_TYPE,      // "rgb(255,0,0)"
+	RGBA_COLOR_TYPE      // "rgba(255,0,0,1.0)"
+};
+
 struct Constant {
 	int value;
+};
+
+struct Color {
+	ColorType type;
+	union {
+		char * name;          
+		char * hex;           
+		struct {
+			int r, g, b;      
+		} rgb;
+		struct {
+			int r, g, b;      
+			float a;
+		} rgba;
+	} value;
 };
 
 struct Factor {
@@ -140,7 +164,7 @@ struct Property {
 		} scale;              // Para SCALE
 		int intValue;         // Para RADIUS, STROKE_WIDTH
 		float floatValue;     // Para OPACITY, ROTATE (angle)
-		char * stringValue;   // Para FILL, STROKE (colores)
+		Color * colorValue;   // Para FILL, STROKE (colores)
 	} value;
 	struct Property * next;   // Para lista enlazada
 };
@@ -154,5 +178,8 @@ void destroyProgram(Program * program);
 void destroyScene(Scene * scene);
 void destroyFigure(Figure * figure);
 void destroyProperty(Property * property);
+void destroyColor(Color * color);
+
+Color * createColor(ColorType type);
 
 #endif
