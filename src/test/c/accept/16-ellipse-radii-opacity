@@ -1,0 +1,10 @@
+scene MiEscena {
+    draw ellipse ovalo1 at (150, 100); size 100 x 60 {
+        fill blue;
+        opacity 0.7;
+    }
+    draw ellipse ovalo2 at (300, 150); size 80 x 120 {
+        fill green;
+        opacity 0.5;
+    }
+}

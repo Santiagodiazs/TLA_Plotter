@@ -1,0 +1,8 @@
+scene MiEscena {
+    draw rectangle casa {
+        fill red;
+    }
+    draw circle sol {
+        fill yellow;
+    }
+}

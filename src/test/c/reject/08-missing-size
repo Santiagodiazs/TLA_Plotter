@@ -1,0 +1,5 @@
+scene MiEscena {
+    draw rectangle casa at (100, 200) {
+        fill red;
+    }
+}

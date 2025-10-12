@@ -122,9 +122,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 // DSL Tokens - Colors
 %token <token> COLOR
-%token <token> HEX_COLOR
-%token <token> RGB_COLOR
-%token <token> RGBA_COLOR
+%token <string> HEX_COLOR
+%token <string> RGB_COLOR
+%token <string> RGBA_COLOR
 
 // DSL Tokens - Data Types
 %token <string> IDENTIFIER
@@ -252,10 +252,6 @@ scene_declaration: SCENE IDENTIFIER	{
 scene_content: /* empty */				{ 
 		printf("[DEBUG] scene_content: empty\n");
 		$$ = NULL; 
-	}
-	| scene_content figure_declaration	{ 
-		printf("[DEBUG] scene_content: adding figure_declaration\n");
-		$$ = AddFigureToSceneSemanticAction($1, $2); 
 	}
 	| scene_content draw_statement		{ 
 		printf("[DEBUG] scene_content: adding draw_statement\n");
@@ -537,7 +533,15 @@ coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS {
 	;
 
 color_value: IDENTIFIER {
-		printf("DEBUG: color_value parsed: %s\n", $1);
+		$$ = $1;
+	}
+	| RGB_COLOR {
+		$$ = $1;
+	}
+	| HEX_COLOR {
+		$$ = $1;
+	}
+	| RGBA_COLOR {
 		$$ = $1;
 	}
 	;

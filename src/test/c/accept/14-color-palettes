@@ -1,0 +1,14 @@
+scene MiEscena {
+    draw rectangle casa {
+        fill red;
+    }
+    draw circle sol {
+        fill yellow;
+    }
+    draw rectangle puerta {
+        fill brown;
+    }
+    draw circle ventana {
+        fill sky_blue;
+    }
+}

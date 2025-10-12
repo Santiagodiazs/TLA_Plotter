@@ -234,8 +234,6 @@ CompilationStatus DimensionsLexemeAction() {
 		if (token) destroyToken(token);
 		return FAILED;
 	}
-
-	
 	const char *s = token->lexeme;
 	char *end = NULL;
 
@@ -286,10 +284,21 @@ CompilationStatus CoordinatesLexemeAction() {
 
 CompilationStatus ColorLexemeAction(TokenLabel label) {
 	Token * token = createToken(_lexicalAnalyzer, label);
+	if (!token || !token->lexeme || !token->semanticValue) {
+		if (token) destroyToken(token);
+		return FAILED;
+	}
+	
+	
 	token->semanticValue->string = strdup(token->lexeme);
+	if (!token->semanticValue->string) {
+		destroyToken(token);
+		return FAILED;
+	}
+	
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	return status;
+	destroyToken(token);                // típicamente IN_PROGRESS
 }
 
 CompilationStatus BraceLexemeAction(TokenLabel label) {

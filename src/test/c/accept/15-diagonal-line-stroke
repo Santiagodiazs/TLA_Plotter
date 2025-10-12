@@ -1,0 +1,6 @@
+scene MiEscena {
+    draw line diagonal at (50, 50); from (0, 0) to (200, 200) {
+        stroke red;
+        stroke_width 3;
+    }
+}

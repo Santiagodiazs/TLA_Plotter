@@ -1,0 +1,14 @@
+scene MiEscena {
+    draw rectangle casa1 {
+        fill red;
+        stroke blue;
+        stroke_width 2;
+        opacity 0.8;
+    }
+    draw rectangle casa2 {
+        fill green;
+        stroke red;
+        stroke_width 3;
+        opacity 0.6;
+    }
+}

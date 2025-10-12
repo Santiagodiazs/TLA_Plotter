@@ -50,10 +50,14 @@ integer				[0-9]+
 decimal				[0-9]+(\.[0-9]+)?
 dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 coordinates			\([0-9]+,[0-9]+\)
+
+
+WS					[ \t\r\n\f\v]*
+INT					[0-9]+
 hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
-rgb_color			rgb\([0-9]+,[0-9]+,[0-9]+\)
-rgba_color			rgba\([0-9]+,[0-9]+,[0-9]+,[0-9.]+\)
-color_func			color\([0-9]+,[0-9]+,[0-9]+\)
+rgb_color			rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}[0-9]+(\.[0-9]+)?{WS}\)
+color_func			color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 string				\"[^\"]*\"
 
 %%
@@ -119,17 +123,17 @@ string				\"[^\"]*\"
 
 "color"								{ return KeywordLexemeAction(COLOR); }
 
+{hex_color}							{ return ColorLexemeAction(HEX_COLOR); }
+{rgba_color}						{ return ColorLexemeAction(RGBA_COLOR); }
+{rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
+{color_func}						{ return ColorLexemeAction(COLOR); }
+
 {identifier}						{ return IdentifierLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {dimensions}						{ return DimensionsLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
 {coordinates}						{ return CoordinatesLexemeAction(); }
-
-{hex_color}							{ return ColorLexemeAction(HEX_COLOR); }
-{rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
-{rgba_color}						{ return ColorLexemeAction(RGBA_COLOR); }
-{color_func}						{ return ColorLexemeAction(COLOR); }
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
