@@ -59,6 +59,7 @@ CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label) {
 	Token * token = createToken(_lexicalAnalyzer, label);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -84,6 +85,7 @@ CompilationStatus EOFLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, 0);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -91,8 +93,8 @@ CompilationStatus IgnoredLexemeAction() {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, IGNORED);
 		_logTokenAction(__FUNCTION__, token);
-	
-		_addTokenToList(token);
+		// No necesitamos registrar para limpieza posterior en arquitectura PUSH
+		destroyToken(token);
 	}
 	return IN_PROGRESS;
 }
@@ -159,6 +161,7 @@ CompilationStatus ParenthesisLexemeAction(TokenLabel label) {
 	Token * token = createToken(_lexicalAnalyzer, label);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -183,6 +186,7 @@ CompilationStatus KeywordLexemeAction(TokenLabel label) {
 	Token * token = createToken(_lexicalAnalyzer, label);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -224,7 +228,7 @@ CompilationStatus DecimalLexemeAction() {
 	token->semanticValue->decimal = atof(token->lexeme);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-//  se destruye en _cleanupTokens
+	destroyToken(token);
 	return status;
 }
 
@@ -234,31 +238,13 @@ CompilationStatus DimensionsLexemeAction() {
 		if (token) destroyToken(token);
 		return FAILED;
 	}
-	const char *s = token->lexeme;
-	char *end = NULL;
-
-	long w = strtol(s, &end, 10);
-	if (end == s) { 
-		token->semanticValue->dimensions.width = 0; 
-		token->semanticValue->dimensions.height = 0; 
-	} else {
-		
-		while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
-		
-		if (*end != 'x' && *end != 'X') { 
-			token->semanticValue->dimensions.width = 0; 
-			token->semanticValue->dimensions.height = 0; 
-		} else {
-			end++;
-		
-			while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
-		
-			long h = strtol(end, &end, 10);
-			
-			token->semanticValue->dimensions.width  = (int) w;
-			token->semanticValue->dimensions.height = (int) h;
-		}
+	int w = 0, h = 0;
+	// Acepta espacios opcionales (ya que el lexeme los permite por la regla Flex)
+	if (sscanf(token->lexeme, " %d %*[*xX] %d ", &w, &h) != 2) {
+		w = h = 0;
 	}
+	token->semanticValue->dimensions.width  = w;
+	token->semanticValue->dimensions.height = h;
 
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
@@ -268,18 +254,22 @@ CompilationStatus DimensionsLexemeAction() {
 
 CompilationStatus CoordinatesLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, COORDINATES);
-	char * content = strdup(token->lexeme + 1); 
-	content[strlen(content) - 1] = '\0';
-	char * comma_pos = strchr(content, ',');
-	if (comma_pos != NULL) {
-		*comma_pos = '\0';
-		token->semanticValue->coordinates.x = atoi(content);
-		token->semanticValue->coordinates.y = atoi(comma_pos + 1);
+	if (!token || !token->semanticValue || !token->lexeme) {
+		if (token) destroyToken(token);
+		return FAILED;
 	}
-	free(content);
+
+	int x = 0, y = 0;
+	if (sscanf(token->lexeme, " ( %d %*[,] %d ) ", &x, &y) != 2) {
+		x = y = 0;
+	}
+	token->semanticValue->coordinates.x = x;
+	token->semanticValue->coordinates.y = y;
+
 	_logTokenAction(__FUNCTION__, token);
-	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	return status;
+	CompilationStatus st = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
+	return st;
 }
 
 CompilationStatus ColorLexemeAction(TokenLabel label) {
@@ -298,13 +288,15 @@ CompilationStatus ColorLexemeAction(TokenLabel label) {
 	
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	destroyToken(token);                // típicamente IN_PROGRESS
+	destroyToken(token);                // NO libera string; la liberará el AST
+	return status;
 }
 
 CompilationStatus BraceLexemeAction(TokenLabel label) {
 	Token * token = createToken(_lexicalAnalyzer, label);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -312,6 +304,7 @@ CompilationStatus SemicolonLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, SEMICOLON);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -319,7 +312,7 @@ CompilationStatus CommaLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, COMMA);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-//  se destruye en _cleanupTokens
+	destroyToken(token);
 	return status;
 }
 
@@ -327,6 +320,6 @@ CompilationStatus ColonLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, COLON);
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-//  se destruye en _cleanupTokens
+	destroyToken(token);
 	return status;
 }

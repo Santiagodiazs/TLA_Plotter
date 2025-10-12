@@ -29,18 +29,15 @@ void _addTokenToList(Token * token) {
 /** Limpiar todos los tokens de la lista */
 void _cleanupTokens() {
 	if (_logger != NULL) {
-		logDebugging(_logger, "Cleaning up %d tokens...", _tokensCount);
+		logDebugging(_logger, "cleanup: PUSH mode, no token wrappers to free");
 	}
-	for (int i = 0; i < _tokensCount; i++) {
-		if (_tokensList[i] != NULL) {
-			destroyToken(_tokensList[i]);
-			_tokensList[i] = NULL; 
-		}
+	
+	if (_tokensList != NULL) {
+		free(_tokensList);
+		_tokensList = NULL;
+		_tokensCount = 0;
+		_tokensCapacity = 0;
 	}
-	free(_tokensList);
-	_tokensList = NULL;
-	_tokensCount = 0;
-	_tokensCapacity = 0;
 }
 
 
@@ -177,13 +174,8 @@ void destroyToken(Token * token) {
 			token->lexeme = NULL;
 		}
 		if (token->semanticValue != NULL) {
-			// Solo liberar string para tokens que realmente usan string
-			if (token->label == IDENTIFIER || token->label == STRING) {
-				if (token->semanticValue->string != NULL) {
-					free(token->semanticValue->string);
-					token->semanticValue->string = NULL;
-				}
-			}
+			// NO liberar semanticValue->string aquí - Bison/AST son los dueños
+			// La cadena será liberada al destruir el AST (en destroyProperty, destroyFigure, etc.)
 			free(token->semanticValue);
 			token->semanticValue = NULL;
 		}
@@ -266,8 +258,8 @@ void pushInputBuffer(InputBuffer * inputBuffer) {
 }
 
 CompilationStatus pushToken(LexicalAnalyzer * lexicalAnalyzer, Token * token) {
-	
-	_addTokenToList(token);
+	// En arquitectura PUSH, no necesitamos registrar tokens para limpieza posterior
+	// Cada LexemeAction se encarga de destruir su token después de yypush_parse
 	
 	int result = yypush_parse(
 		(yypstate *) lexicalAnalyzer->parser,

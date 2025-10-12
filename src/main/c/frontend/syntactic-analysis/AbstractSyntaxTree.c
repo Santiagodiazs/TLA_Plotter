@@ -67,6 +67,9 @@ void destroyScene(Scene * scene) {
 		if (scene->name != NULL) {
 			free(scene->name);
 		}
+		if (scene->backgroundColor != NULL) {
+			free(scene->backgroundColor);
+		}
 		destroyFigure(scene->figures);
 		free(scene);
 	}

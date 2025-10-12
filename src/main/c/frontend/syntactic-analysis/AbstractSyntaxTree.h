@@ -112,14 +112,15 @@ struct Program {
 struct Scene {
 	char * name;
 	SceneType type;
-	Figure * figures;  // Lista de figuras en la escena
+	Figure * figures;  
+	char * backgroundColor; // opcional
 };
 
 struct Figure {
-	char * id;                // ID opcional de la figura
+	char * id;               
 	FigureType type;
-	Property * properties;    // Lista de propiedades
-	struct Figure * next;     // Para lista enlazada
+	Property * properties;    
+	struct Figure * next;     
 };
 
 struct Property {
@@ -144,9 +145,7 @@ struct Property {
 	struct Property * next;   // Para lista enlazada
 };
 
-/**
- * Node recursive super-duper-trambolik-destructors.
- */
+
 
 void destroyConstant(Constant * constant);
 void destroyExpression(Expression * expression);

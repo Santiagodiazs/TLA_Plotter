@@ -49,7 +49,7 @@ identifier			[a-zA-Z_][a-zA-Z0-9_]*
 integer				[0-9]+
 decimal				[0-9]+(\.[0-9]+)?
 dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
-coordinates			\([0-9]+,[0-9]+\)
+coordinates			\({WS}{INT}{WS},{WS}{INT}{WS}\)
 
 
 WS					[ \t\r\n\f\v]*

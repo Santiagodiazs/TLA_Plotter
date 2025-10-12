@@ -256,9 +256,18 @@ scene_content: /* empty */				{
 	}
 	| scene_content draw_statement		{ 
 		printf("[DEBUG] scene_content: adding draw_statement\n");
-		printf("[DEBUG] scene_content: scene=%p, figure=%p\n", $1, $2);
+		printf("[DEBUG] scene_content: scene=%p, figure=%p\n", (void*)$1, (void*)$2);
 		$$ = AddFigureToSceneSemanticAction($1, $2); 
 		printf("[DEBUG] scene_content: AddFigureToSceneSemanticAction completed\n");
+	}
+	| scene_content BACKGROUND color_value SEMICOLON {
+		printf("[DEBUG] scene_content: setting background color\n");
+		Scene* sc = $1 ? $1 : BasicSceneSemanticAction(NULL);
+		if (sc && !sc->backgroundColor && $3) {
+			sc->backgroundColor = malloc(strlen($3)+1);
+			if (sc->backgroundColor) strcpy(sc->backgroundColor, $3);
+		}
+		$$ = sc;
 	}
 	;
 
