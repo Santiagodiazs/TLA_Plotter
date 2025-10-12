@@ -1,0 +1,3 @@
+scene MiEscena {
+    draw circle sol {}
+}

@@ -35,7 +35,7 @@ Property * SetPropertyScaleSemanticAction(Property * property, float x, float y)
 Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
 Property * SetPropertyStringValueSemanticAction(Property * property, const char * value);
-Property * AddPropertyToListSemanticAction(Property * list, Property * newProperty);
+// REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
 
 #endif

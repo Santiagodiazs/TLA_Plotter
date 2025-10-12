@@ -48,7 +48,7 @@ whitespace			[[:space:]]+
 identifier			[a-zA-Z_][a-zA-Z0-9_]*
 integer				[0-9]+
 decimal				[0-9]+(\.[0-9]+)?
-dimensions			[0-9]+x[0-9]+
+dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 coordinates			\([0-9]+,[0-9]+\)
 hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
 rgb_color			rgb\([0-9]+,[0-9]+,[0-9]+\)
@@ -119,10 +119,11 @@ string				\"[^\"]*\"
 
 "color"								{ return KeywordLexemeAction(COLOR); }
 
-{identifier}						{ printf("FLEX_IDENTIFIER_MATCHED\n"); return IdentifierLexemeAction(); }
+{identifier}						{ return IdentifierLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {dimensions}						{ return DimensionsLexemeAction(); }
+{integer}							{ return IntegerLexemeAction(); }
 {coordinates}						{ return CoordinatesLexemeAction(); }
 
 {hex_color}							{ return ColorLexemeAction(HEX_COLOR); }

@@ -22,6 +22,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %define api.push-pull push
 %define api.value.union.name SemanticValue
 %define parse.error verbose
+%define parse.trace
 %start program
 %locations
 
@@ -154,6 +155,10 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <figure> figure_anonymous
 %type <integer> figure_type
 %type <property> figure_properties
+%type <property> external_property_list
+%type <property> external_property_item
+%type <property> property_list
+%type <property> property_item
 %type <property> size_property
 %type <property> position_property
 %type <property> fill_property
@@ -165,6 +170,12 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> from_to_property
 %type <property> stroke_width_property
 %type <property> opacity_property
+%type <property> draw_tail
+%type <property> external_items
+%type <property> external_items_more
+%type <property> external_item
+%type <property> position_item
+%type <property> size_item
 
 /**
  * Precedence and associativity.
@@ -174,6 +185,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
  */
 %left ADD SUB
 %left MUL DIV
+%left SEMICOLON
 
 %%
 
@@ -237,22 +249,91 @@ scene_declaration: SCENE IDENTIFIER	{
 	}
 	;
 
-scene_content: /* empty */				{ $$ = NULL; }
-	| scene_content figure_declaration	{ $$ = AddFigureToSceneSemanticAction($1, $2); }
-	| scene_content draw_statement		{ $$ = AddFigureToSceneSemanticAction($1, $2); }
+scene_content: /* empty */				{ 
+		printf("[DEBUG] scene_content: empty\n");
+		$$ = NULL; 
+	}
+	| scene_content figure_declaration	{ 
+		printf("[DEBUG] scene_content: adding figure_declaration\n");
+		$$ = AddFigureToSceneSemanticAction($1, $2); 
+	}
+	| scene_content draw_statement		{ 
+		printf("[DEBUG] scene_content: adding draw_statement\n");
+		printf("[DEBUG] scene_content: scene=%p, figure=%p\n", $1, $2);
+		$$ = AddFigureToSceneSemanticAction($1, $2); 
+		printf("[DEBUG] scene_content: AddFigureToSceneSemanticAction completed\n");
+	}
 	;
 
 figure_declaration: figure_with_id		{ $$ = $1; }
 	| figure_anonymous				{ $$ = $1; }
 	;
 
-draw_statement: DRAW figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE	{
+draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
 		printf("DEBUG: Draw statement with ID '%s'\n", $3);
-		$$ = CreateFigureSemanticAction($2, $3, $5);
+		printf("[DEBUG] draw_statement: About to call CreateFigureSemanticAction\n");
+		printf("[DEBUG] draw_statement: type=%d, id='%s', tail=%p\n", $2, $3, $4);
+		$$ = CreateFigureSemanticAction($2, $3, $4);
+		printf("[DEBUG] draw_statement: CreateFigureSemanticAction completed\n");
+		printf("[DEBUG] draw_statement: Figure created successfully\n");
 	}
 	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
 		printf("DEBUG: Draw statement anonymous figure\n");
 		$$ = CreateFigureSemanticAction($2, NULL, $4);
+	}
+	;
+
+draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
+		printf("[DEBUG] draw_tail: internal properties only\n");
+		$$ = $2;
+	}
+	| external_items OPEN_BRACE figure_properties CLOSE_BRACE	{
+		printf("[DEBUG] draw_tail: external + internal properties\n");
+		$$ = $3;
+	}
+	;
+
+external_items: external_item external_items_more	{
+		printf("[DEBUG] external_items: head + more\n");
+		printf("[DBG] link head %p -> %p\n", (void*)$1, (void*)$2);
+		$1->next = $2;
+		$$ = $1;
+	}
+	;
+
+external_items_more: SEMICOLON external_item external_items_more	{
+		printf("[DEBUG] external_items_more: semicolon + item + more\n");
+		printf("[DBG] link mid %p -> %p\n", (void*)$2, (void*)$3);
+		$2->next = $3;
+		$$ = $2;
+	}
+	| /* empty */	{
+		printf("[DEBUG] external_items_more: empty\n");
+		$$ = NULL;
+	}
+	;
+
+external_item: position_item				{
+		printf("[DEBUG] external_item: position_item\n");
+		$$ = $1;
+	}
+	| size_item						{
+		printf("[DEBUG] external_item: size_item\n");
+		$$ = $1;
+	}
+	;
+
+position_item: AT coordinates_value			{
+		printf("[DEBUG] position_item: AT coordinates\n");
+		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
+		$$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y);
+	}
+	;
+
+size_item: SIZE dimensions_value				{
+		printf("[DEBUG] size_item: SIZE dimensions\n");
+		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
+		$$ = SetPropertyDimensionsSemanticAction(prop, $2.width, $2.height);
 	}
 	;
 
@@ -276,93 +357,165 @@ figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
 	| POLYGON		{ $$ = POLYGON_FIGURE; }
 	;
 
-figure_properties: /* empty */				{ $$ = NULL; }
-	| figure_properties size_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties position_property	{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties fill_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties stroke_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties radius_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties from_to_property	{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties stroke_width_property	{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties opacity_property	{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties scale_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
-	| figure_properties rotate_property		{ $$ = AddPropertyToListSemanticAction($1, $2); }
+figure_properties: /* empty */				{ 
+		printf("[DEBUG] figure_properties: empty\n");
+		$$ = NULL; 
+	}
+	| property_list						{ 
+		printf("[DEBUG] figure_properties: property_list=%p\n", $1);
+		$$ = $1; 
+	}
 	;
 
-size_property: SIZE dimensions_value {
+
+external_property_list: external_property_item		{ 
+		printf("[DEBUG] external_property_list: single property\n");
+		$$ = $1; 
+	}
+	| external_property_item external_property_list	{ 
+		printf("[DEBUG] external_property_list: linking property to list\n");
+		$1->next = $2;
+		$$ = $1; 
+	}
+	;
+
+external_property_item: position_property		{ 
+		printf("[DEBUG] external_property_item: position_property\n");
+		$$ = $1; 
+	}
+	| size_property					{ 
+		printf("[DEBUG] external_property_item: size_property\n");
+		$$ = $1; 
+	}
+	;
+
+property_list: property_item				{ 
+		printf("[DEBUG] property_list: single property\n");
+		$$ = $1; 
+	}
+	| property_item property_list			{ 
+		printf("[DEBUG] property_list: linking property to list\n");
+		$1->next = $2; 
+		$$ = $1; 
+	}
+	;
+
+property_item: size_property				{ 
+		printf("[DEBUG] property_item: size_property\n");
+		$$ = $1; 
+	}
+	| position_property					{ 
+		printf("[DEBUG] property_item: position_property\n");
+		$$ = $1; 
+	}
+	| fill_property						{ 
+		printf("[DEBUG] property_item: fill_property\n");
+		$$ = $1; 
+	}
+	| stroke_property					{ 
+		printf("[DEBUG] property_item: stroke_property\n");
+		$$ = $1; 
+	}
+	| radius_property					{ 
+		printf("[DEBUG] property_item: radius_property\n");
+		$$ = $1; 
+	}
+	| from_to_property					{ 
+		printf("[DEBUG] property_item: from_to_property\n");
+		$$ = $1; 
+	}
+	| stroke_width_property				{ 
+		printf("[DEBUG] property_item: stroke_width_property\n");
+		$$ = $1; 
+	}
+	| opacity_property					{ 
+		printf("[DEBUG] property_item: opacity_property\n");
+		$$ = $1; 
+	}
+	| scale_property					{ 
+		printf("[DEBUG] property_item: scale_property\n");
+		$$ = $1; 
+	}
+	| rotate_property					{ 
+		printf("[DEBUG] property_item: rotate_property\n");
+		$$ = $1; 
+	}
+	;
+
+size_property: SIZE dimensions_value SEMICOLON {
 		printf("DEBUG: size_property with dimensions parsed\n");
 		$$ = CreatePropertySemanticAction(SIZE_PROPERTY);
 		$$ = SetPropertyDimensionsSemanticAction($$, $2.width, $2.height);
 	}
 	;
 
-position_property: AT coordinates_value {
+position_property: AT coordinates_value SEMICOLON {
 		printf("DEBUG: position_property with coordinates parsed\n");
 		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
 	;
 
-fill_property: FILL color_value {
+fill_property: FILL color_value SEMICOLON {
 		printf("DEBUG: fill_property with color parsed\n");
 		$$ = CreatePropertySemanticAction(FILL_PROPERTY);
 		$$ = SetPropertyStringValueSemanticAction($$, $2);
 	}
 	;
 
-stroke_property: STROKE color_value	{
+stroke_property: STROKE color_value SEMICOLON	{
 		printf("DEBUG: stroke_property with color parsed\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
 		$$ = SetPropertyStringValueSemanticAction($$, $2);
 	}
-	| STROKE	{
+	| STROKE SEMICOLON	{
 		printf("DEBUG: stroke_property without color parsed\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
 		$$ = SetPropertyStringValueSemanticAction($$, "black");
 	}
 	;
 
-radius_property: RADIUS INTEGER	{
+radius_property: RADIUS INTEGER SEMICOLON	{
 		printf("DEBUG: radius_property parsed: radius(%d)\n", $2);
 		$$ = CreatePropertySemanticAction(RADIUS_PROPERTY);
 		$$ = SetPropertyIntValueSemanticAction($$, $2);
 	}
 	;
 
-from_to_property: FROM coordinates_value	{
+from_to_property: FROM coordinates_value SEMICOLON	{
 		printf("DEBUG: from_property parsed\n");
 		$$ = CreatePropertySemanticAction(FROM_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
-	| TO coordinates_value	{
+	| TO coordinates_value SEMICOLON	{
 		printf("DEBUG: to_property parsed\n");
 		$$ = CreatePropertySemanticAction(TO_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
 	;
 
-stroke_width_property: STROKE_WIDTH INTEGER	{
+stroke_width_property: STROKE_WIDTH INTEGER SEMICOLON	{
 		printf("DEBUG: stroke_width_property parsed: stroke-width(%d)\n", $2);
 		$$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
 		$$ = SetPropertyIntValueSemanticAction($$, $2);
 	}
 	;
 
-opacity_property: OPACITY DECIMAL	{
+opacity_property: OPACITY DECIMAL SEMICOLON	{
 		printf("DEBUG: opacity_property parsed: opacity(%f)\n", $2);
 		$$ = CreatePropertySemanticAction(OPACITY_PROPERTY);
 		$$ = SetPropertyFloatValueSemanticAction($$, $2);
 	}
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS {
+scale_property: SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
 		printf("DEBUG: scale_property parsed: scale(%d, %d)\n", $3, $5);
 		$$ = CreatePropertySemanticAction(SCALE_PROPERTY);
 		$$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$5);
 	}
 	;
 
-rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS {
+rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
 		printf("DEBUG: rotate_property parsed: rotate(%d)\n", $3);
 		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
 		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);

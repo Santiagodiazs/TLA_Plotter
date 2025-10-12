@@ -230,21 +230,42 @@ CompilationStatus DecimalLexemeAction() {
 
 CompilationStatus DimensionsLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, DIMENSIONS);
-	
-	
-	int parsed = sscanf(token->lexeme, "%dx%d", 
-		&token->semanticValue->dimensions.width, 
-		&token->semanticValue->dimensions.height);
-	
-	if (parsed != 2) {
-		
-		token->semanticValue->dimensions.width = 0;
-		token->semanticValue->dimensions.height = 0;
+	if (!token || !token->lexeme || !token->semanticValue) {
+		if (token) destroyToken(token);
+		return FAILED;
 	}
+
 	
+	const char *s = token->lexeme;
+	char *end = NULL;
+
+	long w = strtol(s, &end, 10);
+	if (end == s) { 
+		token->semanticValue->dimensions.width = 0; 
+		token->semanticValue->dimensions.height = 0; 
+	} else {
+		
+		while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
+		
+		if (*end != 'x' && *end != 'X') { 
+			token->semanticValue->dimensions.width = 0; 
+			token->semanticValue->dimensions.height = 0; 
+		} else {
+			end++;
+		
+			while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
+		
+			long h = strtol(end, &end, 10);
+			
+			token->semanticValue->dimensions.width  = (int) w;
+			token->semanticValue->dimensions.height = (int) h;
+		}
+	}
+
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	return status;
+	destroyToken(token);         
+	return status;               
 }
 
 CompilationStatus CoordinatesLexemeAction() {

@@ -13,7 +13,11 @@
  * parse anything inside this project instead of using Flex and Bison, I will
  * find you, and I will kill you (Bryan Mills; "Taken", 2008).
  */
-const int main(const int length, const char ** arguments) {
+int main(const int length, const char ** arguments) {
+	// Debug de Bison desactivado temporalmente
+	extern int yydebug;
+	yydebug = 0;
+	
 	LexicalAnalyzer * lexicalAnalyzer = createLexicalAnalyzer();
 	Logger * logger = createLogger("EntryPoint");
 	for (int k = 0; k < length; ++k) {

@@ -39,7 +39,7 @@
 # define YY_YY_SRC_MAIN_C_FRONTEND_SYNTACTIC_ANALYSIS_BISONPARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -119,7 +119,7 @@ extern int yydebug;
 #line 23 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 union SemanticValue
 {
-#line 28 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 29 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 
 	/** Terminals. */
 

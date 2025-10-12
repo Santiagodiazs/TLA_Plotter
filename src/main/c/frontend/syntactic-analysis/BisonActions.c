@@ -34,7 +34,17 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 	logDebugging(_logger, "%s", functionName);
 }
 
-/* PUBLIC FUNCTIONS */
+/* HELPER FUNCTIONS */
+
+static inline Property* new_property(PropertyType type) {
+	Property* p = calloc(1, sizeof(Property));
+	if (p == NULL) {
+		return NULL;
+	}
+	p->type = type;
+	p->next = NULL;  
+	return p;
+}
 
 Constant * IntegerConstantSemanticAction(const int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -158,16 +168,7 @@ Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property *
 
 Property * CreatePropertySemanticAction(PropertyType type) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Property * property = calloc(1, sizeof(Property));
-	if (property == NULL) {
-		return NULL;
-	}
-	
-	property->type = type;
-	property->next = NULL;
-	
-	return property;
+	return new_property(type);
 }
 
 Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int y) {
@@ -236,26 +237,7 @@ Property * SetPropertyStringValueSemanticAction(Property * property, const char 
 	return property;
 }
 
-Property * AddPropertyToListSemanticAction(Property * list, Property * newProperty) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (newProperty == NULL) {
-		return list;
-	}
-	
-	if (list == NULL) {
-		return newProperty;
-	}
-	
-	// Find the end of the list and append the new property
-	Property * current = list;
-	while (current->next != NULL) {
-		current = current->next;
-	}
-	current->next = newProperty;
-	
-	return list;
-}
+
 
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -267,10 +249,19 @@ Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	if (scene->figures == NULL) {
 		scene->figures = figure;
 	} else {
-		// Find the end of the list and append the new figure
+		
 		Figure * current = scene->figures;
+		size_t guard = 0;
 		while (current->next != NULL) {
+			if (current->next == current) { 
+				fprintf(stderr, "[BUG] ciclo en figuras de escena\n"); 
+				abort(); 
+			}
 			current = current->next;
+			if (++guard > 1000000) { 
+				fprintf(stderr, "[BUG] lista de figuras interminable\n"); 
+				abort(); 
+			}
 		}
 		current->next = figure;
 	}
