@@ -42,6 +42,9 @@ Property * SetPropertyScaleSemanticAction(Property * property, float x, float y)
 Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
 Property * SetPropertyColorSemanticAction(Property * property, Color * color);
+Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y);
+void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead);
+void AppendTransform(Figure *figure, Transform *t);
 // REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
 
 // ============= SCENE SEMANTIC ACTIONS =============

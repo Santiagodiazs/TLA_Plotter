@@ -3,6 +3,8 @@
 #include "../../support/type/TokenLabel.h"
 #include "AbstractSyntaxTree.h"
 #include "BisonActions.h"
+#include <stdio.h>
+#include <string.h>
 
 // Declarar logger externo para usar en la gramática
 extern Logger * _logger;
@@ -186,6 +188,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> external_item
 %type <property> position_item
 %type <property> size_item
+%type <property> translate_property
+%type <property> transform_item
+%type <property> transform_list
 
 /**
  * Precedence and associativity.
@@ -442,6 +447,17 @@ property_list: property_item				{
 	}
 	;
 
+transform_item
+        : scale_property
+        | rotate_property
+        | translate_property
+        ;
+
+transform_list
+        : transform_item                    { $$ = $1; }
+        | transform_item transform_list     { $1->next = $2; $$ = $1; }
+        ;
+
 property_item: size_property				{ 
 		printf("[DEBUG] property_item: size_property\n");
 		$$ = $1; 
@@ -486,6 +502,10 @@ property_item: size_property				{
 		printf("[DEBUG] property_item: rotate_property\n");
 		$$ = $1; 
 	}
+    | translate_property {
+        printf("[DEBUG] property_item: translate_property\n");
+        $$ = $1;
+    }
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
@@ -557,12 +577,29 @@ opacity_property: OPACITY DECIMAL SEMICOLON	{
 	}
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		printf("DEBUG: scale_property parsed: scale(%d, %d)\n", $3, $5);
-		$$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-		$$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$5);
-	}
-	;
+scale_property
+    : SCALE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON {
+        printf("DEBUG: scale_property parsed: scale(%f)\n", $3);
+        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
+        $$ = SetPropertyScaleSemanticAction($$, $3, $3);
+    }
+    | SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
+        printf("DEBUG: scale_property parsed: scale(%d)\n", $3);
+        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
+        $$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$3);
+    }
+    | SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON {
+        printf("DEBUG: scale_property parsed: scale(%f, %f)\n", $3, $5);
+        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
+        $$ = SetPropertyScaleSemanticAction($$, $3, $5);
+    }
+    | SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
+        printf("DEBUG: scale_property parsed: scale(%d, %d)\n", $3, $5);
+        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
+        $$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$5);
+    }
+    ;
+
 
 rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
 		printf("DEBUG: rotate_property parsed: rotate(%d)\n", $3);
@@ -584,6 +621,13 @@ coordinates_value: COORDINATES {
 		$$.y = $1.y;
 	}
 	;
+
+translate_property: TRANSLATE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
+        printf("DEBUG: translate_property parsed: translate(%d, %d)\n", $3, $5);
+        $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
+        $$ = SetPropertyTranslateSemanticAction($$, $3, $5);
+    }
+    ;
 
 color_value: IDENTIFIER {
 		$$ = $1;

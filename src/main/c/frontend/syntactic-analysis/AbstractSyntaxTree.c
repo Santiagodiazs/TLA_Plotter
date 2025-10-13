@@ -124,7 +124,12 @@ void destroyFigure(Figure * figure) {
 				free(current->id);
 			}
 			destroyProperty(current->properties);
-			
+
+			if (current->transforms) {
+                destroyTransform(current->transforms);
+                current->transforms = NULL;
+            }
+
 			free(current);
 			current = next;
 		}
@@ -219,3 +224,38 @@ void destroyLayer(Layer * layer) {
 		}
 	}
 }
+
+Transform * createTransformScale(float sx, float sy) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_SCALE;
+	t->value.scale.sx = sx;
+	t->value.scale.sy = sy;
+	return t;
+}
+
+Transform * createTransformRotate(float degrees) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_ROTATE;
+	t->value.rotate.degrees = degrees;
+	return t;
+}
+
+Transform * createTransformTranslate(float tx, float ty) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_TRANSLATE;
+	t->value.translate.tx = tx;
+	t->value.translate.ty = ty;
+	return t;
+}
+
+void destroyTransform(Transform *t) {
+	while (t) {
+		Transform *next = t->next;
+		free(t);
+		t = next;
+	}
+}
+

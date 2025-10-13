@@ -270,6 +270,9 @@ Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property *
 	figure->type = type;
 	figure->properties = properties;
 	figure->next = NULL;
+	figure->transforms = NULL;
+
+	ApplyTransformPropertiesToFigure(figure, &figure->properties);
 	
 	if (id != NULL && strlen(id) > 0) {
 		figure->id = malloc(strlen(id) + 1);
@@ -350,6 +353,76 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	}
 	
 	return property;
+}
+
+Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property != NULL) {
+        property->value.coordinates.x = x;
+        property->value.coordinates.y = y;
+    }
+    return property;
+}
+
+void AppendTransform(Figure *figure, Transform *t) {
+    if (!figure || !t) return;
+    if (!figure->transforms) {
+        figure->transforms = t;
+        return;
+    }
+    Transform *it = figure->transforms;
+    while (it->next) it = it->next;
+    it->next = t;
+}
+
+void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!figure || !propertiesHead || !*propertiesHead) return;
+
+    Property *prev = NULL;
+    Property *cur = *propertiesHead;
+
+    while (cur) {
+        int removeNode = 0;
+
+        switch (cur->type) {
+            case SCALE_PROPERTY: {
+                Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.y);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            case ROTATE_PROPERTY: {
+                Transform *t = createTransformRotate(cur->value.floatValue);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            case TRANSLATE_PROPERTY: {
+                int tx = cur->value.coordinates.x;
+                int ty = cur->value.coordinates.y;
+                Transform *t = createTransformTranslate((float)tx, (float)ty);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            default:
+                break;
+        }
+
+        if (removeNode) {
+            Property *toFree = cur;
+            if (prev) prev->next = cur->next;
+            else *propertiesHead = cur->next;
+            cur = cur->next;
+
+            toFree->next = NULL;
+            destroyProperty(toFree);  // ya no es propiedad "visible"
+        } else {
+            prev = cur;
+            cur = cur->next;
+        }
+    }
 }
 
 

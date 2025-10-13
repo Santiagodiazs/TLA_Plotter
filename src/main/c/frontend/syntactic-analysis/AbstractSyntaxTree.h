@@ -80,7 +80,8 @@ enum PropertyType {
 	STROKE_WIDTH_PROPERTY,
 	OPACITY_PROPERTY,
 	SCALE_PROPERTY,
-	ROTATE_PROPERTY
+	ROTATE_PROPERTY,
+	TRANSLATE_PROPERTY
 };
 
 enum ColorType {
@@ -89,6 +90,28 @@ enum ColorType {
 	RGB_COLOR_TYPE,      // "rgb(255,0,0)"
 	RGBA_COLOR_TYPE      // "rgba(255,0,0,1.0)"
 };
+
+typedef enum {
+	TRANSFORM_SCALE,
+	TRANSFORM_ROTATE,
+	TRANSFORM_TRANSLATE
+} TransformType;
+
+typedef struct Transform Transform;
+struct Transform {
+	TransformType type;
+	union {
+		struct { float sx, sy; } scale;
+		struct { float degrees; } rotate;
+		struct { float tx, ty; } translate;
+	} value;
+	Transform *next;
+};
+
+Transform * createTransformScale(float sx, float sy);
+Transform * createTransformRotate(float degrees);
+Transform * createTransformTranslate(float tx, float ty);
+void destroyTransform(Transform *t);
 
 struct Constant {
 	int value;
@@ -157,7 +180,8 @@ struct Figure {
 	char * id;               
 	FigureType type;
 	Property * properties;    
-	struct Figure * next;     
+	struct Figure * next;
+	Transform *transforms;   // lista de transforms (scale/rotate/translate)
 };
 
 struct Property {
