@@ -141,6 +141,12 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 	}
 	
 	program->scene = scene;
+
+	if (program->scene && ValidateLayerZLevel(program->scene) == FAILED) {
+        destroyProgram(program);
+        return NULL;
+    }
+
 	program->type = SCENE_PROGRAM; 
 	
 	if (_compilerState != NULL) {
@@ -266,6 +272,25 @@ CompilationStatus ValidateFigureProperties(FigureType type, Property * propertie
 	}
 	
 	return SUCCEEDED;
+}
+
+CompilationStatus ValidateLayerZLevel(const Scene *scene) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene) return SUCCEEDED;
+
+    for (Layer *a = scene->layers; a; a = a->next) {
+        for (Layer *b = a->next; b; b = b->next) {
+            if (a->zLevel == b->zLevel) {
+                const char *na = (a->name ? a->name : "<unnamed>");
+                const char *nb = (b->name ? b->name : "<unnamed>");
+                fprintf(stderr,
+                        "ERROR: Duplicate layer z-level %d detected between '%s' and '%s'.\n",
+                        a->zLevel, na, nb);
+                return FAILED;
+            }
+        }
+    }
+    return SUCCEEDED;
 }
 
 // ============= DSL SEMANTIC ACTIONS =============
@@ -585,25 +610,24 @@ Scene * SceneWithLayerDecl(const char * name, int zLevel) {
 	return scene;
 }
 
-Scene * SceneWithLayerBlock(const char * name, Scene * blockContent) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Scene * scene = BasicSceneSemanticAction(NULL);
-	if (scene && name) {
-		Layer * layer = createLayer(name, 0); // z-level por defecto
-		if (layer && blockContent) {
-			layer->figures = blockContent->figures;
-			blockContent->figures = NULL; // Evitar ciclo
-		}
-		scene->layers = layer;
-		
-		// Limpiar el contenido del bloque
-		if (blockContent) {
-			destroyScene(blockContent);
-		}
-		logDebugging(_logger, "Created scene with layer block '%s'", name);
-	}
-	return scene;
+Scene * SceneWithLayerBlock(const char * name, int zLevel, Scene * blockContent) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+
+    Scene * scene = BasicSceneSemanticAction(NULL);
+    if (scene && name) {
+        Layer * layer = createLayer(name, zLevel);
+        if (layer && blockContent) {
+            layer->figures = blockContent->figures;
+            blockContent->figures = NULL;
+        }
+        scene->layers = layer;
+
+        if (blockContent) {
+            destroyScene(blockContent);
+        }
+        logDebugging(_logger, "Created scene with layer block '%s' z=%d", name, zLevel);
+    }
+    return scene;
 }
 
 Scene * MergeSceneContent(Scene * acc, Scene * item) {
@@ -646,7 +670,11 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		}
 		item->layers = NULL;
 	}
-	
+
+	if (ValidateLayerZLevel(acc) == FAILED) {
+    	    printf(stderr, "ERROR: Scene has duplicate layer z-levels.\n");
+    }
+
 	destroyScene(item);
 	return acc;
 }

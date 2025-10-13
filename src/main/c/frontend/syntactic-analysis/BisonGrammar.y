@@ -285,16 +285,11 @@ scene_item: draw_statement		{
 		printf("[DEBUG] scene_item: background\n");
 		$$ = SceneWithBackground($2);
 	}
-	| LAYER layer_name Z INTEGER SEMICOLON {
-		printf("[DEBUG] scene_item: layer declaration\n");
-		$$ = SceneWithLayerDecl($2, $4);
-		free($2); // Liberar el string del layer_name
-	}
-	| LAYER layer_name OPEN_BRACE scene_content CLOSE_BRACE {
-		printf("[DEBUG] scene_item: layer block\n");
-		$$ = SceneWithLayerBlock($2, $4);
-		free($2); // Liberar el nombre
-	}
+	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE {
+        printf("[DEBUG] scene_item: layer block with z\n");
+        $$ = SceneWithLayerBlock($2, $4, $6);
+        free($2);
+    }
     | PALETTE OPEN_BRACE palette_list CLOSE_BRACE {
         printf("[DEBUG] scene_item: palette block\n");
         $$ = SceneWithPaletteBlock($3);

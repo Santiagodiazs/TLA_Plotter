@@ -26,6 +26,7 @@ Program * ExpressionProgramSemanticAction(Expression * expression);
 
 Scene * BasicSceneSemanticAction(const char * sceneName);
 CompilationStatus ValidateFigureProperties(FigureType type, Property * properties);
+CompilationStatus ValidateLayerZLevel(const Scene *scene);
 
 // ============= COLOR PARSING FUNCTIONS =============
 Color * ParseNamedColor(const char * name);
@@ -60,7 +61,7 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries);
 Scene * SceneFromFigure(Figure * figure);
 Scene * SceneWithBackground(Color * color);
 Scene * SceneWithLayerDecl(const char * name, int zLevel);
-Scene * SceneWithLayerBlock(const char * name, Scene * blockContent);
+Scene * SceneWithLayerBlock(const char * name, int zLevel, Scene * blockContent);
 Scene * MergeSceneContent(Scene * acc, Scene * item);
 
 // ============= PROGRAM SEMANTIC ACTIONS =============
