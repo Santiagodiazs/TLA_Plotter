@@ -30,6 +30,7 @@ typedef struct Scene Scene;
 typedef struct Figure Figure;
 typedef struct Property Property;
 typedef struct Color Color;
+typedef struct Layer Layer;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -106,6 +107,13 @@ struct Color {
 	} value;
 };
 
+struct Layer {
+	char * name;
+	int zLevel;
+	Figure * figures;  // Lista de figuras en este layer
+	struct Layer * next; // Lista enlazada de layers
+};
+
 struct Factor {
 	union {
 		Constant * constant;
@@ -138,6 +146,7 @@ struct Scene {
 	SceneType type;
 	Figure * figures;  
 	char * backgroundColor; // opcional
+	Layer * layers; // Lista de layers
 };
 
 struct Figure {
@@ -179,7 +188,10 @@ void destroyScene(Scene * scene);
 void destroyFigure(Figure * figure);
 void destroyProperty(Property * property);
 void destroyColor(Color * color);
-
 Color * createColor(ColorType type);
+
+// Layer functions
+Layer * createLayer(const char * name, int zLevel);
+void destroyLayer(Layer * layer);
 
 #endif

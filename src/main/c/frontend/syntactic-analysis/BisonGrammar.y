@@ -4,6 +4,9 @@
 #include "AbstractSyntaxTree.h"
 #include "BisonActions.h"
 
+// Declarar logger externo para usar en la gramática
+extern Logger * _logger;
+
 /**
  * The error reporting function for Bison parser.
  *
@@ -21,8 +24,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %define api.pure full
 %define api.push-pull push
 %define api.value.union.name SemanticValue
-%define parse.error verbose
 %define parse.trace
+%define parse.error verbose
 %start program
 %locations
 
@@ -149,6 +152,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 // Figure-related non-terminals
 %type <scene> scene_content
+%type <scene> scene_item
+%type <figure> draw_statement
+%type <string> layer_name
 %type <figure> figure_declaration
 %type <figure> figure_with_id
 %type <coordinates> coordinates_value
@@ -166,7 +172,6 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> position_property
 %type <property> fill_property
 %type <property> stroke_property
-%type <figure> draw_statement
 %type <property> scale_property
 %type <property> rotate_property
 %type <property> radius_property
@@ -258,41 +263,34 @@ scene_content: /* empty */				{
 		printf("[DEBUG] scene_content: empty\n");
 		$$ = NULL; 
 	}
-	| scene_content draw_statement		{ 
-		printf("[DEBUG] scene_content: adding draw_statement\n");
-		printf("[DEBUG] scene_content: scene=%p, figure=%p\n", (void*)$1, (void*)$2);
-		$$ = AddFigureToSceneSemanticAction($1, $2); 
-		printf("[DEBUG] scene_content: AddFigureToSceneSemanticAction completed\n");
+	| scene_content scene_item		{ 
+		printf("[DEBUG] scene_content: merging scene_item\n");
+		$$ = MergeSceneContent($1, $2); 
 	}
-	| scene_content BACKGROUND parsed_color_value SEMICOLON {
-		printf("[DEBUG] scene_content: setting background color\n");
-		Scene* sc = $1 ? $1 : BasicSceneSemanticAction(NULL);
-		if (sc && !sc->backgroundColor && $3) {
-			
-			char * colorStr = NULL;
-			switch ($3->type) {
-				case NAMED_COLOR:
-					colorStr = malloc(strlen($3->value.name) + 1);
-					if (colorStr) strcpy(colorStr, $3->value.name);
-					break;
-				case HEX_COLOR_TYPE:
-					colorStr = malloc(strlen($3->value.hex) + 1);
-					if (colorStr) strcpy(colorStr, $3->value.hex);
-					break;
-				case RGB_COLOR_TYPE:
-					colorStr = malloc(20);
-					if (colorStr) sprintf(colorStr, "rgb(%d,%d,%d)", $3->value.rgb.r, $3->value.rgb.g, $3->value.rgb.b);
-					break;
-				case RGBA_COLOR_TYPE:
-					colorStr = malloc(30);
-					if (colorStr) sprintf(colorStr, "rgba(%d,%d,%d,%.1f)", $3->value.rgba.r, $3->value.rgba.g, $3->value.rgba.b, $3->value.rgba.a);
-					break;
-			}
-			sc->backgroundColor = colorStr;
-			destroyColor($3); // Liberar el Color ya que lo convertimos a string
-		}
-		$$ = sc;
+	;
+
+scene_item: draw_statement		{ 
+		printf("[DEBUG] scene_item: draw_statement\n");
+		$$ = SceneFromFigure($1); 
 	}
+	| BACKGROUND parsed_color_value SEMICOLON {
+		printf("[DEBUG] scene_item: background\n");
+		$$ = SceneWithBackground($2);
+	}
+	| LAYER layer_name Z INTEGER SEMICOLON {
+		printf("[DEBUG] scene_item: layer declaration\n");
+		$$ = SceneWithLayerDecl($2, $4);
+		free($2); // Liberar el string del layer_name
+	}
+	| LAYER layer_name OPEN_BRACE scene_content CLOSE_BRACE {
+		printf("[DEBUG] scene_item: layer block\n");
+		$$ = SceneWithLayerBlock($2, $4);
+		free($2); // Liberar el nombre
+	}
+	;
+
+layer_name: IDENTIFIER { $$ = $1; }
+	| BACKGROUND { $$ = strdup("background"); }
 	;
 
 figure_declaration: figure_with_id		{ $$ = $1; }

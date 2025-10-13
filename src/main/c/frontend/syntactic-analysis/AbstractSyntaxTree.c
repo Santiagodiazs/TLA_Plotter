@@ -71,6 +71,7 @@ void destroyScene(Scene * scene) {
 			free(scene->backgroundColor);
 		}
 		destroyFigure(scene->figures);
+		destroyLayer(scene->layers); // Destruir layers
 		free(scene);
 	}
 }
@@ -157,5 +158,42 @@ void destroyColor(Color * color) {
 				break;
 		}
 		free(color);
+	}
+}
+
+// ============= LAYER FUNCTIONS =============
+
+Layer * createLayer(const char * name, int zLevel) {
+	logDebugging(_logger, "Creating layer with name '%s' and z-level %d", name ? name : "NULL", zLevel);
+	Layer * layer = calloc(1, sizeof(Layer));
+	if (layer != NULL) {
+		layer->zLevel = zLevel;
+		layer->figures = NULL;
+		layer->next = NULL;
+		layer->name = name ? strdup(name) : NULL;
+	}
+	return layer;
+}
+
+void destroyLayer(Layer * layer) {
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+	if (layer != NULL) {
+		Layer * current = layer;
+		while (current != NULL) {
+			Layer * next = current->next;
+			
+			// Liberar nombre
+			if (current->name != NULL) {
+				free(current->name);
+			}
+			
+			// Liberar figuras
+			if (current->figures != NULL) {
+				destroyFigure(current->figures);
+			}
+			
+			free(current);
+			current = next;
+		}
 	}
 }

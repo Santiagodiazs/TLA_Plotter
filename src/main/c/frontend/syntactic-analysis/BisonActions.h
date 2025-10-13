@@ -43,6 +43,21 @@ Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
 Property * SetPropertyColorSemanticAction(Property * property, Color * color);
 // REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
+
+// ============= SCENE SEMANTIC ACTIONS =============
+Scene * BasicSceneSemanticAction(const char * name);
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
+Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel);
+Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent);
+
+// ============= NEW SCENE HELPER FUNCTIONS =============
+Scene * SceneFromFigure(Figure * figure);
+Scene * SceneWithBackground(Color * color);
+Scene * SceneWithLayerDecl(const char * name, int zLevel);
+Scene * SceneWithLayerBlock(const char * name, Scene * blockContent);
+Scene * MergeSceneContent(Scene * acc, Scene * item);
+
+// ============= PROGRAM SEMANTIC ACTIONS =============
+Program * SceneProgramSemanticAction(Scene * scene);
 
 #endif

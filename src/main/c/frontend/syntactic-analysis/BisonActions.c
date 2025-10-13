@@ -4,7 +4,7 @@
 /* MODULE INTERNAL STATE */
 
 static CompilerState * _compilerState = NULL;
-static Logger * _logger = NULL;
+Logger * _logger = NULL;
 
 /** Shutdown module's internal state. */
 void _shutdownBisonActionsModule() {
@@ -105,6 +105,9 @@ Scene * BasicSceneSemanticAction(const char * sceneName) {
 	}
 	
 	scene->type = BASIC_SCENE;
+	scene->figures = NULL;
+	scene->backgroundColor = NULL;
+	scene->layers = NULL; // Inicializar layers
 	
 	if (sceneName != NULL && strlen(sceneName) > 0) {
 		scene->name = malloc(strlen(sceneName) + 1);
@@ -379,5 +382,207 @@ Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	}
 	
 	logDebugging(_logger, "Added figure to scene");
+	return scene;
+}
+
+// ============= NEW SCENE HELPER FUNCTIONS =============
+
+Scene * SceneFromFigure(Figure * figure) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Scene * scene = BasicSceneSemanticAction(NULL);
+	if (scene && figure) {
+		scene->figures = figure;
+		logDebugging(_logger, "Created scene from figure");
+	}
+	return scene;
+}
+
+Scene * SceneWithBackground(Color * color) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Scene * scene = BasicSceneSemanticAction(NULL);
+	if (scene && color) {
+		// Convertir Color a string para mantener compatibilidad con backgroundColor
+		char * colorStr = NULL;
+		switch (color->type) {
+			case NAMED_COLOR:
+				colorStr = malloc(strlen(color->value.name) + 1);
+				if (colorStr) strcpy(colorStr, color->value.name);
+				break;
+			case HEX_COLOR_TYPE:
+				colorStr = malloc(strlen(color->value.hex) + 1);
+				if (colorStr) strcpy(colorStr, color->value.hex);
+				break;
+			case RGB_COLOR_TYPE:
+				colorStr = malloc(20);
+				if (colorStr) sprintf(colorStr, "rgb(%d,%d,%d)", color->value.rgb.r, color->value.rgb.g, color->value.rgb.b);
+				break;
+			case RGBA_COLOR_TYPE:
+				colorStr = malloc(30);
+				if (colorStr) sprintf(colorStr, "rgba(%d,%d,%d,%.1f)", color->value.rgba.r, color->value.rgba.g, color->value.rgba.b, color->value.rgba.a);
+				break;
+		}
+		scene->backgroundColor = colorStr;
+		destroyColor(color);
+		logDebugging(_logger, "Created scene with background");
+	}
+	return scene;
+}
+
+Scene * SceneWithLayerDecl(const char * name, int zLevel) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Scene * scene = BasicSceneSemanticAction(NULL);
+	if (scene && name) {
+		Layer * layer = createLayer(name, zLevel);
+		if (layer) {
+			scene->layers = layer;
+			logDebugging(_logger, "Created scene with layer declaration '%s' z=%d", name, zLevel);
+		}
+	}
+	return scene;
+}
+
+Scene * SceneWithLayerBlock(const char * name, Scene * blockContent) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Scene * scene = BasicSceneSemanticAction(NULL);
+	if (scene && name) {
+		Layer * layer = createLayer(name, 0); // z-level por defecto
+		if (layer && blockContent) {
+			layer->figures = blockContent->figures;
+			blockContent->figures = NULL; // Evitar ciclo
+		}
+		scene->layers = layer;
+		
+		// Limpiar el contenido del bloque
+		if (blockContent) {
+			destroyScene(blockContent);
+		}
+		logDebugging(_logger, "Created scene with layer block '%s'", name);
+	}
+	return scene;
+}
+
+Scene * MergeSceneContent(Scene * acc, Scene * item) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (!acc) return item;
+	if (!item) return acc;
+	
+	logDebugging(_logger, "Merging scene content - simplified version");
+	
+	// Versión simplificada: solo merge básico
+	if (item->backgroundColor) {
+		if (acc->backgroundColor) {
+			free(acc->backgroundColor);
+		}
+		acc->backgroundColor = item->backgroundColor;
+		item->backgroundColor = NULL;
+	}
+	
+	if (item->figures) {
+		if (!acc->figures) {
+			acc->figures = item->figures;
+		} else {
+			// Concatenar al final
+			Figure * last = acc->figures;
+			while (last->next) last = last->next;
+			last->next = item->figures;
+		}
+		item->figures = NULL;
+	}
+	
+	if (item->layers) {
+		if (!acc->layers) {
+			acc->layers = item->layers;
+		} else {
+			// Concatenar al final
+			Layer * last = acc->layers;
+			while (last->next) last = last->next;
+			last->next = item->layers;
+		}
+		item->layers = NULL;
+	}
+	
+	destroyScene(item);
+	return acc;
+}
+
+// ============= SCENE SEMANTIC ACTIONS =============
+
+Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (scene == NULL || layerName == NULL) {
+		return scene;
+	}
+	
+	// Validar layerName
+	if (!layerName || !*layerName) {
+		logWarning(_logger, "Empty layer name ignored");
+		return scene;
+	}
+	
+	// Buscar si el layer ya existe
+	Layer * current = scene->layers;
+	while (current != NULL) {
+		if (current->name && strcmp(current->name, layerName) == 0) {
+			// Layer existe, actualizar z-level
+			logDebugging(_logger, "Updating existing layer '%s' z-level from %d to %d", layerName, current->zLevel, zLevel);
+			current->zLevel = zLevel;
+			return scene;
+		}
+		current = current->next;
+	}
+	
+	// Layer no existe, crear nuevo
+	Layer * newLayer = createLayer(layerName, zLevel);
+	if (newLayer != NULL) {
+		// Agregar al inicio de la lista
+		newLayer->next = scene->layers;
+		scene->layers = newLayer;
+		logDebugging(_logger, "Created new layer '%s' with z-level %d", layerName, zLevel);
+	}
+	
+	return scene;
+}
+
+Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	if (scene == NULL || layerName == NULL || blockContent == NULL) {
+		return scene;
+	}
+	
+	// Buscar el layer
+	Layer * current = scene->layers;
+	while (current != NULL) {
+		if (current->name && strcmp(current->name, layerName) == 0) {
+			
+			Figure * blockFigures = blockContent->figures;
+			if (blockFigures != NULL) {
+				
+				Figure * lastFigure = current->figures;
+				if (lastFigure == NULL) {
+					current->figures = blockFigures;
+				} else {
+					while (lastFigure->next != NULL) {
+						lastFigure = lastFigure->next;
+					}
+					lastFigure->next = blockFigures;
+				}
+				logDebugging(_logger, "Attached figures to layer '%s'", layerName);
+			}
+			break;
+		}
+		current = current->next;
+	}
+	
+	
+	blockContent->figures = NULL;
+	destroyScene(blockContent);
+	
 	return scene;
 }
