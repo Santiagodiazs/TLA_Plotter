@@ -32,6 +32,7 @@ Color * ParseNamedColor(const char * name);
 Color * ParseHexColor(const char * hex);
 Color * ParseRgbColor(const char * rgb);
 Color * ParseRgbaColor(const char * rgba);
+Color * LookupPaletteColor(const char *name);
 
 // ============= DSL SEMANTIC ACTIONS =============
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties);
@@ -45,6 +46,7 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color);
 Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y);
 void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead);
 void AppendTransform(Figure *figure, Transform *t);
+PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color);
 // REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
 
 // ============= SCENE SEMANTIC ACTIONS =============
@@ -52,6 +54,7 @@ Scene * BasicSceneSemanticAction(const char * name);
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
 Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel);
 Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent);
+Scene * SceneWithPaletteBlock(PaletteEntry *entries);
 
 // ============= NEW SCENE HELPER FUNCTIONS =============
 Scene * SceneFromFigure(Figure * figure);

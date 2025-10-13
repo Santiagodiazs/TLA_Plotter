@@ -57,6 +57,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	Figure * figure;
 	Property * property;
 	Color * color;
+	PaletteEntry * palette_entry;
 }
 
 /**
@@ -153,6 +154,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <scene> scene_declaration
 
 // Figure-related non-terminals
+%type <palette_entry> palette_item
+%type <palette_entry> palette_list
 %type <scene> scene_content
 %type <scene> scene_item
 %type <figure> draw_statement
@@ -292,6 +295,10 @@ scene_item: draw_statement		{
 		$$ = SceneWithLayerBlock($2, $4);
 		free($2); // Liberar el nombre
 	}
+    | PALETTE OPEN_BRACE palette_list CLOSE_BRACE {
+        printf("[DEBUG] scene_item: palette block\n");
+        $$ = SceneWithPaletteBlock($3);
+    }
 	;
 
 layer_name: IDENTIFIER { $$ = $1; }
@@ -413,6 +420,18 @@ figure_properties: /* empty */				{
 		$$ = $1; 
 	}
 	;
+
+	palette_item
+        : IDENTIFIER COLON parsed_color_value SEMICOLON {
+            printf("DEBUG: palette_item %s\n", $1);
+            $$ = CreatePaletteEntrySemanticAction($1, $3);
+        }
+        ;
+
+    palette_list
+        : palette_item                      { $$ = $1; }
+        | palette_item palette_list         { $1->next = $2; $$ = $1; }
+        ;
 
 
 external_property_list: external_property_item		{ 

@@ -74,6 +74,7 @@ void destroyScene(Scene * scene) {
 		destroyLayer(scene->layers); // Destruir layers
 		if (scene->symbols) destroySymbol(scene->symbols);
 		if (scene->uses) destroyUseInstance(scene->uses);
+		if (scene->palette) destroyPalette(scene->palette);
 		free(scene);
 	}
 }
@@ -258,4 +259,26 @@ void destroyTransform(Transform *t) {
 		t = next;
 	}
 }
+
+PaletteEntry * createPaletteEntry(const char *name, Color *color) {
+    logDebugging(_logger, "Creating palette entry '%s'", name ? name : "(null)");
+    PaletteEntry *e = calloc(1, sizeof(PaletteEntry));
+    if (!e) return NULL;
+    e->name = name ? strdup(name) : NULL;
+    e->color = color;   // toma propiedad (ownership) del Color*
+    e->next = NULL;
+    return e;
+}
+
+void destroyPalette(PaletteEntry *head) {
+    logDebugging(_logger, "Destroying palette");
+    while (head) {
+        PaletteEntry *next = head->next;
+        if (head->name) free(head->name);
+        if (head->color) destroyColor(head->color);
+        free(head);
+        head = next;
+    }
+}
+
 

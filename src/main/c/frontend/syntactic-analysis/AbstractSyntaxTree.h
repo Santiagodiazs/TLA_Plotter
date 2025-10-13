@@ -33,6 +33,8 @@ typedef struct Color Color;
 typedef struct Layer Layer;
 typedef struct Symbol Symbol;
 typedef struct UseInstance UseInstance;
+typedef struct PaletteEntry PaletteEntry;
+typedef struct Transform Transform;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -97,7 +99,6 @@ typedef enum {
 	TRANSFORM_TRANSLATE
 } TransformType;
 
-typedef struct Transform Transform;
 struct Transform {
 	TransformType type;
 	union {
@@ -107,6 +108,15 @@ struct Transform {
 	} value;
 	Transform *next;
 };
+
+struct PaletteEntry {
+    char *name;        // nombre lógico (ej. "trunk")
+    Color *color;      // color resuelto asociado
+    struct PaletteEntry *next;
+};
+
+PaletteEntry * createPaletteEntry(const char *name, Color *color);
+void destroyPalette(PaletteEntry *head);
 
 Transform * createTransformScale(float sx, float sy);
 Transform * createTransformRotate(float degrees);
@@ -173,6 +183,7 @@ struct Scene {
 	char * backgroundColor; // opcional
 	Layer * layers; // Lista de layers
 	Symbol * symbols;          // lista de símbolos declarados
+	PaletteEntry *palette;   // lista de entradas de paleta
   UseInstance * uses; 			// lista de uses en esta escena
 };
 

@@ -1,9 +1,12 @@
 #include "BisonActions.h"
 #include "../../support/type/CompilationStatus.h"
+#include <string.h>
+#include <stdio.h>
 
 /* MODULE INTERNAL STATE */
 
 static CompilerState * _compilerState = NULL;
+static Scene * _currentScene = NULL;
 Logger * _logger = NULL;
 
 /** Shutdown module's internal state. */
@@ -105,9 +108,14 @@ Scene * BasicSceneSemanticAction(const char * sceneName) {
 	}
 	
 	scene->type = BASIC_SCENE;
-	scene->figures = NULL;
-	scene->backgroundColor = NULL;
-	scene->layers = NULL; // Inicializar layers
+    scene->figures = NULL;
+    scene->backgroundColor = NULL;
+    scene->layers = NULL;
+    scene->symbols = NULL;
+    scene->uses = NULL;
+    scene->palette = NULL;
+    _currentScene = scene;
+
 	
 	if (sceneName != NULL && strlen(sceneName) > 0) {
 		scene->name = malloc(strlen(sceneName) + 1);
@@ -147,7 +155,8 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 
 Color * ParseNamedColor(const char * name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
+	Color *pal = LookupPaletteColor(name);
+    if (pal) return pal;
 	Color * color = createColor(NAMED_COLOR);
 	if (color != NULL && name != NULL) {
 		color->value.name = malloc(strlen(name) + 1);
@@ -203,6 +212,13 @@ Color * ParseRgbaColor(const char * rgba) {
 		}
 	}
 	return color;
+}
+
+PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    PaletteEntry *e = createPaletteEntry(name, color);
+    if (name) free(name);
+    return e;
 }
 
 // ============= SEMANTIC VALIDATION =============
@@ -470,6 +486,58 @@ Scene * SceneFromFigure(Figure * figure) {
 	}
 	return scene;
 }
+
+
+Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!_currentScene) {
+        // Si no hay escena actual, podés crear una básica o retornar NULL.
+        // _currentScene = BasicSceneSemanticAction(NULL);
+        return NULL;
+    }
+    if (!entries) return _currentScene;
+
+    // Append tal cual: la resolución por nombre tomará la última coincidencia
+    if (_currentScene->palette == NULL) {
+        _currentScene->palette = entries;
+    } else {
+        PaletteEntry *tail = _currentScene->palette;
+        while (tail->next) tail = tail->next;
+        tail->next = entries;
+    }
+    return _currentScene;
+}
+
+Color * LookupPaletteColor(const char *name) {
+    if (!_currentScene || !name) return NULL;
+    Color *found = NULL;
+    for (PaletteEntry *it = _currentScene->palette; it; it = it->next) {
+        if (it->name && strcmp(it->name, name) == 0 && it->color) {
+            found = it->color; // no retornes directamente; hacé copia profunda
+        }
+    }
+    if (!found) return NULL;
+
+    // copia profunda de Color
+    Color *copy = createColor(found->type);
+    if (!copy) return NULL;
+    switch (found->type) {
+        case NAMED_COLOR:
+            copy->value.name = found->value.name ? strdup(found->value.name) : NULL;
+            break;
+        case HEX_COLOR_TYPE:
+            copy->value.hex = found->value.hex ? strdup(found->value.hex) : NULL;
+            break;
+        case RGB_COLOR_TYPE:
+            copy->value.rgb = found->value.rgb;
+            break;
+        case RGBA_COLOR_TYPE:
+            copy->value.rgba = found->value.rgba;
+            break;
+    }
+    return copy;
+}
+
 
 Scene * SceneWithBackground(Color * color) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
