@@ -41,6 +41,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	struct {
 		int width;
 		int height;
+		UnitType widthUnit;
+        UnitType heightUnit;
 	} dimensions;
 	struct {
 		int x;
@@ -523,11 +525,13 @@ property_item: size_property				{
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
-		printf("DEBUG: size_property with dimensions parsed\n");
-		$$ = CreatePropertySemanticAction(SIZE_PROPERTY);
-		$$ = SetPropertyDimensionsSemanticAction($$, $2.width, $2.height);
-	}
-	;
+        printf("DEBUG: size_property with dimensions+units parsed\n");
+        $$ = CreatePropertySemanticAction(SIZE_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 $2.width,  $2.widthUnit,
+                 $2.height, $2.heightUnit);
+    }
+    ;
 
 position_property: AT coordinates_value SEMICOLON {
 		printf("DEBUG: position_property with coordinates parsed\n");
@@ -626,6 +630,8 @@ dimensions_value: DIMENSIONS {
 		printf("DEBUG: dimensions_value parsed successfully\n");
 		$$.width = $1.width;
 		$$.height = $1.height;
+		$$.widthUnit  = $1.widthUnit;
+        $$.heightUnit = $1.heightUnit;
 	}
 	;
 

@@ -67,4 +67,7 @@ Scene * MergeSceneContent(Scene * acc, Scene * item);
 // ============= PROGRAM SEMANTIC ACTIONS =============
 Program * SceneProgramSemanticAction(Scene * scene);
 
+
+Property * SetPropertyDimensionsWithUnitSemanticAction(Property * property,float width,  UnitType wUnit,float height, UnitType hUnit);
+
 #endif

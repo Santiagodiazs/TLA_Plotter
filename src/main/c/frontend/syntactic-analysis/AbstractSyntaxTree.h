@@ -99,6 +99,13 @@ typedef enum {
 	TRANSFORM_TRANSLATE
 } TransformType;
 
+typedef enum {
+    UNIT_PX,
+    UNIT_REM,
+    UNIT_EM,
+    UNIT_PERCENT
+} UnitType;
+
 struct Transform {
 	TransformType type;
 	union {
@@ -204,7 +211,9 @@ struct Property {
 		} coordinates;        // Para AT, FROM, TO
 		struct {
 			int width;
-			int height;
+			int height;\
+			UnitType widthUnit;
+            UnitType heightUnit;
 		} dimensions;         // Para SIZE
 		struct {
 			float x;

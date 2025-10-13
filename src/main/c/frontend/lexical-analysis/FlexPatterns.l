@@ -44,21 +44,23 @@ extern CompilationStatus ColonLexemeAction();
 %x MULTILINE_COMMENT
 
 /* Patrones reutilizables para el DSL */ 
-whitespace			[[:space:]]+
-identifier			[a-zA-Z_][a-zA-Z0-9_]*
-integer				[0-9]+
-decimal				[0-9]+(\.[0-9]+)?
-dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
+whitespace          [[:space:]]+
+identifier          [a-zA-Z_][a-zA-Z0-9_]*
+integer             [0-9]+
+decimal             [0-9]+(\.[0-9]+)?
+dimensions          [0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 
-WS					[ \t\r\n\f\v]*
-INT					[0-9]+
-FLOAT				([0-9]+(\.[0-9]+)?|\.[0-9]+)
-hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
-rgb_color			rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
-color_func			color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-coordinates			\({WS}{INT}{WS},{WS}{INT}{WS}\)
-string				\"[^\"]*\"
+WS                  [ \t\r\n\f\v]*
+INT                 [0-9]+
+FLOAT               ([0-9]+(\.[0-9]+)?|\.[0-9]+)
+hex_color           #([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
+rgb_color           rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+rgba_color          rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
+color_func          color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+coordinates         \({WS}{INT}{WS},{WS}{INT}{WS}\)
+string              \"[^\"]*\"
+NUM                 ({decimal}|{integer})
+UNIT                (px|rem|em|%)
 
 %%
 
@@ -130,7 +132,8 @@ string				\"[^\"]*\"
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
 {coordinates}						{ return CoordinatesLexemeAction(); }
-{dimensions}						{ return DimensionsLexemeAction(); }
+{NUM}{WS}?{UNIT}{WS}*[xX]{WS}*{NUM}{WS}?{UNIT}    { return DimensionsLexemeAction(); }
+{dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }

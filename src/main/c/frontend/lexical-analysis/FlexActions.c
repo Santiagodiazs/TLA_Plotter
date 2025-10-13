@@ -2,6 +2,10 @@
 #include "FlexScanner.h"
 #include "FlexExport.h"
 #include <limits.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 /* MODULE INTERNAL STATE */
 
@@ -9,6 +13,12 @@ static bool _logIgnoredLexemes = true;
 static InputBuffer * _inputBuffer = NULL;
 static LexicalAnalyzer * _lexicalAnalyzer = NULL;
 static Logger * _logger = NULL;
+
+
+static UnitType _parse_unit_suffix(const char *s);
+static void _trim(char *s);
+static int _parse_value_and_unit(const char *side, float *outVal, UnitType *outUnit);
+
 
 /** Shutdown module's internal state. */
 void _shutdownFlexActionsModule() {
@@ -238,18 +248,106 @@ CompilationStatus DimensionsLexemeAction() {
 		if (token) destroyToken(token);
 		return FAILED;
 	}
-	int w = 0, h = 0;
-	// Acepta espacios opcionales (ya que el lexeme los permite por la regla Flex)
-	if (sscanf(token->lexeme, " %d %*[*xX] %d ", &w, &h) != 2) {
-		w = h = 0;
+
+	/* Copiamos el lexema porque vamos a partirlo en 'x' / 'X' */
+	char txt[128];
+	snprintf(txt, sizeof(txt), "%s", token->lexeme);
+
+	/* Buscamos separador 'x' o 'X' entre ancho y alto */
+	char *sep = strpbrk(txt, "xX");
+	float w = 0.f, h = 0.f;
+	UnitType wu = UNIT_PX, hu = UNIT_PX;
+
+	if (sep) {
+		/* Partimos en dos lados */
+		*sep = '\0';
+		char *lhs = txt;           /* lado izquierdo */
+		char *rhs = sep + 1;       /* lado derecho   */
+
+		_trim(lhs);
+		_trim(rhs);
+
+		int ok1 = _parse_value_and_unit(lhs, &w, &wu);
+		int ok2 = _parse_value_and_unit(rhs, &h, &hu);
+
+		if (!(ok1 && ok2)) {
+			/* Fallback total: intenta legacy "int x int" directo desde el lexema original */
+			int wi = 0, hi = 0;
+			if (sscanf(token->lexeme, " %d %*[*xX] %d ", &wi, &hi) == 2) {
+				w = (float)wi; h = (float)hi; wu = hu = UNIT_PX;
+			} else {
+				/* No se pudo parsear */
+				w = h = 0.f; wu = hu = UNIT_PX;
+			}
+		}
+	} else {
+		/* No hay 'x' → último intento legacy completo */
+		int wi = 0, hi = 0;
+		if (sscanf(token->lexeme, " %d %*[*xX] %d ", &wi, &hi) == 2) {
+			w = (float)wi; h = (float)hi; wu = hu = UNIT_PX;
+		} else {
+			w = h = 0.f; wu = hu = UNIT_PX;
+		}
 	}
-	token->semanticValue->dimensions.width  = w;
-	token->semanticValue->dimensions.height = h;
+
+	/* Escribir semanticValue (float + unidad) */
+	token->semanticValue->dimensions.width      = w;
+	token->semanticValue->dimensions.height     = h;
+	token->semanticValue->dimensions.widthUnit  = wu;
+	token->semanticValue->dimensions.heightUnit = hu;
 
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	destroyToken(token);         
-	return status;               
+	destroyToken(token);
+	return status;
+}
+
+static UnitType _parse_unit_suffix(const char *s) {
+	if (!s || !*s) return UNIT_PX;
+	if (strcmp(s, "px")  == 0) return UNIT_PX;
+	if (strcmp(s, "rem") == 0) return UNIT_REM;
+	if (strcmp(s, "em")  == 0) return UNIT_EM;
+	if (strcmp(s, "%")   == 0) return UNIT_PERCENT;
+	return UNIT_PX;
+}
+
+/* recorta espacios in-place */
+static void _trim(char *s) {
+	if (!s) return;
+	char *p = s;
+	while (*p && isspace((unsigned char)*p)) p++;
+	if (p != s) memmove(s, p, strlen(p) + 1);
+	size_t n = strlen(s);
+	while (n > 0 && isspace((unsigned char)s[n-1])) s[--n] = '\0';
+}
+
+
+/* parsea un "lado" como "800px" o "12.5rem" o "50%" o "800"
+   - Devuelve 1 si pudo extraer número (y opcionalmente unidad)
+   - Escribe en *outVal y outUnit (UNIT_PX por defecto si no hay sufijo) */
+static int _parse_value_and_unit(const char *side, float *outVal, UnitType *outUnit) {
+	if (!side || !outVal || !outUnit) return 0;
+	char buf[64];
+	snprintf(buf, sizeof(buf), "%s", side);
+	_trim(buf);
+
+	float v = 0.f;
+	char suf[8] = {0};
+	int matched = sscanf(buf, " %f%7s ", &v, suf);
+	if (matched >= 1) {
+		*outVal  = v;
+		*outUnit = (matched == 2) ? _parse_unit_suffix(suf) : UNIT_PX;
+		return 1;
+	}
+
+	int vint = 0;
+	if (sscanf(buf, " %d ", &vint) == 1) {
+		*outVal  = (float)vint;
+		*outUnit = UNIT_PX;
+		return 1;
+	}
+
+	return 0;
 }
 
 CompilationStatus CoordinatesLexemeAction() {

@@ -40,6 +40,21 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 
 /* HELPER FUNCTIONS */
 
+Property * SetPropertyDimensionsWithUnitSemanticAction(
+    Property * property,
+    float width,  UnitType wUnit,
+    float height, UnitType hUnit
+) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property) {
+        property->value.dimensions.width      = width;
+        property->value.dimensions.height     = height;
+        property->value.dimensions.widthUnit  = wUnit;
+        property->value.dimensions.heightUnit = hUnit;
+    }
+    return property;
+}
+
 static inline Property* new_property(PropertyType type) {
 	Property* p = calloc(1, sizeof(Property));
 	if (p == NULL) {
@@ -345,14 +360,14 @@ Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int 
 }
 
 Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (property != NULL) {
-		property->value.dimensions.width = width;
-		property->value.dimensions.height = height;
-	}
-	
-	return property;
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property) {
+        property->value.dimensions.width      = (float)width;
+        property->value.dimensions.height     = (float)height;
+        property->value.dimensions.widthUnit  = UNIT_PX;
+        property->value.dimensions.heightUnit = UNIT_PX;
+    }
+    return property;
 }
 
 Property * SetPropertyScaleSemanticAction(Property * property, float x, float y) {
