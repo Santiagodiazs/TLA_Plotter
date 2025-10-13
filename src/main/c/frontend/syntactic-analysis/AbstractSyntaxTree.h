@@ -31,6 +31,8 @@ typedef struct Figure Figure;
 typedef struct Property Property;
 typedef struct Color Color;
 typedef struct Layer Layer;
+typedef struct Symbol Symbol;
+typedef struct UseInstance UseInstance;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -147,6 +149,8 @@ struct Scene {
 	Figure * figures;  
 	char * backgroundColor; // opcional
 	Layer * layers; // Lista de layers
+	Symbol * symbols;          // lista de símbolos declarados
+  UseInstance * uses; 			// lista de uses en esta escena
 };
 
 struct Figure {
@@ -178,7 +182,18 @@ struct Property {
 	struct Property * next;   // Para lista enlazada
 };
 
+struct Symbol {
+    char * name;
+    Figure figure;
+    struct Symbol * next;
+};
 
+struct UseInstance {
+    char * symbolName;
+    int hasPosition;
+    int posX, posY;
+    struct UseInstance * next;
+};
 
 void destroyConstant(Constant * constant);
 void destroyExpression(Expression * expression);
@@ -188,6 +203,8 @@ void destroyScene(Scene * scene);
 void destroyFigure(Figure * figure);
 void destroyProperty(Property * property);
 void destroyColor(Color * color);
+void destroySymbol(Symbol * symbol);
+void destroyUseInstance(UseInstance * useInstance);
 Color * createColor(ColorType type);
 
 // Layer functions

@@ -72,8 +72,30 @@ void destroyScene(Scene * scene) {
 		}
 		destroyFigure(scene->figures);
 		destroyLayer(scene->layers); // Destruir layers
+		if (scene->symbols) destroySymbol(scene->symbols);
+		if (scene->uses) destroyUseInstance(scene->uses);
 		free(scene);
 	}
+}
+
+void destroySymbol(Symbol * symbol){
+	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+  while (symbol) {
+    Symbol * next = symbol->next;
+    if (symbol->name) free(symbol->name);
+    free(symbol);
+    symbol = next;
+  }
+}
+
+void destroyUseInstance(UseInstance * useInstance){
+  logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+  while (useInstance) {
+    UseInstance * nxt = useInstance->next;
+    if (useInstance->symbolName) free(useInstance->symbolName);
+    free(useInstance);
+    useInstance = nxt;
+  }
 }
 
 void destroyProgram(Program * program) {
