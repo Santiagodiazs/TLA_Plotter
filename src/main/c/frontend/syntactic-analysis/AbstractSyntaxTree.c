@@ -1,4 +1,5 @@
 #include "AbstractSyntaxTree.h"
+#include <string.h>
 
 /* MODULE INTERNAL STATE */
 
@@ -80,23 +81,41 @@ void destroyScene(Scene * scene) {
 }
 
 void destroySymbol(Symbol * symbol){
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-  while (symbol) {
-    Symbol * next = symbol->next;
-    if (symbol->name) free(symbol->name);
-    free(symbol);
-    symbol = next;
-  }
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    while (symbol) {
+        Symbol * next = symbol->next;
+
+        if (symbol->name) free(symbol->name);
+
+        // limpiar Figure embebido
+        if (symbol->figure.id) {
+            free(symbol->figure.id);
+            symbol->figure.id = NULL;
+        }
+        if (symbol->figure.properties) {
+            destroyProperty(symbol->figure.properties);
+            symbol->figure.properties = NULL;
+        }
+        if (symbol->figure.transforms) {
+            destroyTransform(symbol->figure.transforms);
+            symbol->figure.transforms = NULL;
+        }
+        symbol->figure.next = NULL;
+
+        free(symbol);
+        symbol = next;
+    }
 }
 
+
 void destroyUseInstance(UseInstance * useInstance){
-  logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-  while (useInstance) {
-    UseInstance * nxt = useInstance->next;
-    if (useInstance->symbolName) free(useInstance->symbolName);
-    free(useInstance);
-    useInstance = nxt;
-  }
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    while (useInstance) {
+        UseInstance * nxt = useInstance->next;
+        if (useInstance->symbolName) free(useInstance->symbolName);
+        free(useInstance);
+        useInstance = nxt;
+    }
 }
 
 void destroyProgram(Program * program) {
@@ -115,26 +134,28 @@ void destroyProgram(Program * program) {
 }
 
 void destroyFigure(Figure * figure) {
-	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
-	if (figure != NULL) {
-		Figure * current = figure;
-		while (current != NULL) {
-			Figure * next = current->next;
-			
-			if (current->id != NULL) {
-				free(current->id);
-			}
-			destroyProperty(current->properties);
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (!figure) return;
 
-			if (current->transforms) {
-                destroyTransform(current->transforms);
-                current->transforms = NULL;
-            }
+    Figure * current = figure;
+    while (current) {
+        Figure * next = current->next;
 
-			free(current);
-			current = next;
-		}
-	}
+        if (current->id) free(current->id);
+
+        if (current->properties) {
+            destroyProperty(current->properties);
+            current->properties = NULL;
+        }
+
+        if (current->transforms) {
+            destroyTransform(current->transforms);
+            current->transforms = NULL;
+        }
+
+        free(current);
+        current = next;
+    }
 }
 
 void destroyProperty(Property * property) {

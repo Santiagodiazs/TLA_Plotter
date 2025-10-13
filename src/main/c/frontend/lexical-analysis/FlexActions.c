@@ -77,6 +77,7 @@ CompilationStatus EnterImportExpressionLexemeAction(FlexContext context) {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, OPEN_BRACE);
 		_logTokenAction(__FUNCTION__, token);
+		destroyToken(token);
 	}
 	enterLexicalAnalyzerContext(_lexicalAnalyzer, context);
 	return IN_PROGRESS;
@@ -86,6 +87,7 @@ CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context) {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, OPEN_COMMENT);
 		_logTokenAction(__FUNCTION__, token);
+		destroyToken(token);
 	}
 	enterLexicalAnalyzerContext(_lexicalAnalyzer, context);
 	return IN_PROGRESS;
@@ -145,6 +147,7 @@ CompilationStatus IntegerLexemeAction() {
 	
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -154,6 +157,7 @@ CompilationStatus LeaveImportExpressionLexemeAction() {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, CLOSE_BRACE);
 		_logTokenAction(__FUNCTION__, token);
+		destroyToken(token);
 	}
 	return IN_PROGRESS;
 }
@@ -163,6 +167,7 @@ CompilationStatus LeaveMultilineCommentLexemeAction() {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, CLOSE_COMMENT);
 		_logTokenAction(__FUNCTION__, token);
+		destroyToken(token);
 	}
 	return IN_PROGRESS;
 }
@@ -181,12 +186,14 @@ CompilationStatus SubexpressionLexemeAction() {
 	if (_logIgnoredLexemes) {
 		_logTokenAction(__FUNCTION__, token);
 	}
+	destroyToken(token);
 	return IN_PROGRESS;
 }
 
 CompilationStatus UnknownLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, UNKNOWN);
 	_logTokenAction(__FUNCTION__, token);
+	if(token) destroyToken(token);
 	return FAILED;
 }
 
@@ -219,6 +226,7 @@ CompilationStatus IdentifierLexemeAction() {
 	
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
 	return status;
 }
 
@@ -229,7 +237,7 @@ CompilationStatus StringLexemeAction() {
 	token->semanticValue->string = content;
 	_logTokenAction(__FUNCTION__, token);
 	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-// 
+	destroyToken(token);
 	return status;
 }
 
