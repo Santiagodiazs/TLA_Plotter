@@ -1,0 +1,17 @@
+scene DuplicateZLevelTest {
+    layer background z 0 {
+        draw rectangle bg with {
+            at (0, 0);
+            size 800x600;
+            fill #F0F0F0;
+        }
+    }
+    
+    layer foreground z 0 {
+        draw circle c with {
+            at (400, 300);
+            radius 50;
+            fill #0000FF;
+        }
+    }
+}

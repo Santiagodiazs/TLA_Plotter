@@ -1,0 +1,17 @@
+scene LayerTest {
+    layer background z 0 {
+        draw rectangle bg with {
+            at (0, 0);
+            size 800x600;
+            fill #F0F0F0;
+        }
+    }
+    
+    layer foreground z 1 {
+        draw rectangle r1 with {
+            at (100, 100);
+            size 200x150;
+            fill #FF0000;
+        }
+    }
+}

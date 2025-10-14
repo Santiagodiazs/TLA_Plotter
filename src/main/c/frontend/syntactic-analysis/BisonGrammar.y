@@ -285,38 +285,30 @@ scene_declaration: SCENE IDENTIFIER	{
 	;
 
 scene_content: /* empty */				{ 
-		printf("[DEBUG] scene_content: empty\n");
 		$$ = NULL; 
 	}
 	| scene_content scene_item		{ 
-		printf("[DEBUG] scene_content: merging scene_item\n");
 		$$ = MergeSceneContent($1, $2); 
 	}
 	;
 
 scene_item: draw_statement		{ 
-		printf("[DEBUG] scene_item: draw_statement\n");
 		$$ = SceneFromFigure($1); 
 	}
 	| BACKGROUND parsed_color_value SEMICOLON {
-		printf("[DEBUG] scene_item: background\n");
 		$$ = SceneWithBackground($2);
 	}
 	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE {
-        printf("[DEBUG] scene_item: layer block with z\n");
         $$ = SceneWithLayerBlock($2, $4, $6);
         free($2);
     }
     | PALETTE OPEN_BRACE palette_list CLOSE_BRACE {
-        printf("[DEBUG] scene_item: palette block\n");
         $$ = SceneWithPaletteBlock($3);
     }
 	| symbol_declaration {
-    printf("[DEBUG] scene_item: symbol_declaration\n");
     $$ = $1;
 		}
 	| use_statement {
-    printf("[DEBUG] scene_item: use_statement\n");
     $$ = $1;
 		}
 	;
