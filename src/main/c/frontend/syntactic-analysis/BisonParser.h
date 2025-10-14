@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_SRC_MAIN_C_FRONTEND_SYNTACTIC_ANALYSIS_BISONPARSER_H_INCLUDED
-# define YY_YY_SRC_MAIN_C_FRONTEND_SYNTACTIC_ANALYSIS_BISONPARSER_H_INCLUDED
+#ifndef YY_YY_BISONGRAMMAR_TAB_H_INCLUDED
+# define YY_YY_BISONGRAMMAR_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 1
@@ -98,6 +98,7 @@ extern int yydebug;
     TRANSLATE = 299,               /* TRANSLATE  */
     ROTATE = 300,                  /* ROTATE  */
     SCALE = 301,                   /* SCALE  */
+    SCALING = 315,                 /* SCALING  */
     COLOR = 302,                   /* COLOR  */
     HEX_COLOR = 303,               /* HEX_COLOR  */
     RGB_COLOR = 304,               /* RGB_COLOR  */
@@ -107,19 +108,20 @@ extern int yydebug;
     DECIMAL = 308,                 /* DECIMAL  */
     DIMENSIONS = 309,              /* DIMENSIONS  */
     COORDINATES = 310,             /* COORDINATES  */
-    SEMICOLON = 311,               /* SEMICOLON  */
-    COMMA = 312,                   /* COMMA  */
-    COLON = 313                    /* COLON  */
+    UNIT = 311,                    /* UNIT  */
+    SEMICOLON = 312,               /* SEMICOLON  */
+    COMMA = 313,                   /* COMMA  */
+    COLON = 314                    /* COLON  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-#line 26 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 26 "BisonGrammar.y"
 union SemanticValue
 {
-#line 32 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 32 "BisonGrammar.y"
 
 	/** Terminals. */
 
@@ -135,6 +137,10 @@ union SemanticValue
 		int x;
 		int y;
 	} coordinates;
+	struct {
+		float value;
+		char *unit;   /* NULL => sin unidad */
+	} measure;
 
 	/** Non-terminals. */
 
@@ -147,10 +153,10 @@ union SemanticValue
 	Property * property;
 	Color * color;
 
-#line 151 "src/main/c/frontend/syntactic-analysis/BisonParser.h"
+#line 156 "BisonGrammar.tab.h"
 
 };
-#line 26 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 26 "BisonGrammar.y"
 typedef union SemanticValue YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -188,4 +194,4 @@ yypstate *yypstate_new (void);
 void yypstate_delete (yypstate *ps);
 
 
-#endif /* !YY_YY_SRC_MAIN_C_FRONTEND_SYNTACTIC_ANALYSIS_BISONPARSER_H_INCLUDED  */
+#endif /* !YY_YY_BISONGRAMMAR_TAB_H_INCLUDED  */
