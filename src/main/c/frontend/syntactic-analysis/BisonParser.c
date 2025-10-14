@@ -595,15 +595,15 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   228,   228,   232,   235,   256,   259,   271,   287,   291,
-     297,   301,   305,   310,   314,   318,   325,   336,   344,   355,
-     356,   359,   360,   363,   371,   377,   381,   385,   391,   395,
-     401,   409,   415,   421,   425,   431,   438,   445,   451,   457,
-     458,   459,   460,   461,   462,   465,   469,   476,   483,   484,
-     509,   513,   531,   535,   539,   543,   547,   551,   555,   559,
-     563,   567,   568,   569,   572,   581,   588,   595,   600,   608,
-     615,   621,   627,   634,   641,   648,   654,   663,   670,   690,
-     694,   698,   702
+       0,   228,   228,   232,   235,   256,   259,   271,   287,   290,
+     295,   298,   301,   305,   308,   311,   317,   328,   336,   347,
+     348,   351,   352,   355,   363,   369,   373,   377,   383,   387,
+     393,   401,   407,   413,   417,   423,   430,   437,   443,   449,
+     450,   451,   452,   453,   454,   457,   461,   468,   475,   476,
+     501,   505,   523,   527,   531,   535,   539,   543,   547,   551,
+     555,   559,   560,   561,   564,   573,   580,   587,   592,   600,
+     607,   613,   619,   626,   633,   640,   646,   655,   662,   682,
+     686,   690,   694
 };
 #endif
 
@@ -1858,78 +1858,70 @@ yyreduce:
   case 8: /* scene_content: %empty  */
 #line 287 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
-		printf("[DEBUG] scene_content: empty\n");
 		(yyval.scene) = NULL; 
 	}
-#line 1865 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1864 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 9: /* scene_content: scene_content scene_item  */
-#line 291 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 290 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 { 
-		printf("[DEBUG] scene_content: merging scene_item\n");
 		(yyval.scene) = MergeSceneContent((yyvsp[-1].scene), (yyvsp[0].scene)); 
 	}
-#line 1874 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1872 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 10: /* scene_item: draw_statement  */
-#line 297 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 295 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                         { 
-		printf("[DEBUG] scene_item: draw_statement\n");
 		(yyval.scene) = SceneFromFigure((yyvsp[0].figure)); 
 	}
-#line 1883 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1880 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 11: /* scene_item: BACKGROUND parsed_color_value SEMICOLON  */
-#line 301 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 298 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                   {
-		printf("[DEBUG] scene_item: background\n");
 		(yyval.scene) = SceneWithBackground((yyvsp[-1].color));
 	}
-#line 1892 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1888 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 12: /* scene_item: LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE  */
-#line 305 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 301 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                           {
-        printf("[DEBUG] scene_item: layer block with z\n");
         (yyval.scene) = SceneWithLayerBlock((yyvsp[-5].string), (yyvsp[-3].integer), (yyvsp[-1].scene));
         free((yyvsp[-5].string));
     }
-#line 1902 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1897 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 13: /* scene_item: PALETTE OPEN_BRACE palette_list CLOSE_BRACE  */
-#line 310 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 305 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                   {
-        printf("[DEBUG] scene_item: palette block\n");
         (yyval.scene) = SceneWithPaletteBlock((yyvsp[-1].palette_entry));
     }
-#line 1911 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1905 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 14: /* scene_item: symbol_declaration  */
-#line 314 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 308 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                              {
-    printf("[DEBUG] scene_item: symbol_declaration\n");
     (yyval.scene) = (yyvsp[0].scene);
 		}
-#line 1920 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1913 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 15: /* scene_item: use_statement  */
-#line 318 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 311 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                         {
-    printf("[DEBUG] scene_item: use_statement\n");
     (yyval.scene) = (yyvsp[0].scene);
 		}
-#line 1929 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1921 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 16: /* symbol_declaration: SYMBOL IDENTIFIER OPEN_BRACE figure_declaration CLOSE_BRACE  */
-#line 325 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 317 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 {
       printf("[DEBUG] symbol_declaration: name='%s' figure=%p\n", (yyvsp[-3].string), (void*)(yyvsp[-1].figure));
       Symbol *sym = CreateSymbolMove((yyvsp[-3].string), (yyvsp[-1].figure));
@@ -1938,11 +1930,11 @@ yyreduce:
       printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym);
       free((yyvsp[-3].string));
     }
-#line 1942 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1934 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 17: /* use_statement: USE IDENTIFIER SEMICOLON  */
-#line 336 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 328 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                              {
       printf("[DEBUG] use_statement: use '%s'\n", (yyvsp[-1].string));
       UseInstance *u = CreateUseInstance((yyvsp[-1].string));
@@ -1951,11 +1943,11 @@ yyreduce:
       printf("[DEBUG] use_statement: attached (use=%p)\n", (void*)u);
       free((yyvsp[-1].string));
     }
-#line 1955 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1947 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 18: /* use_statement: USE IDENTIFIER AT coordinates_value SEMICOLON  */
-#line 344 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 336 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                   {
       printf("[DEBUG] use_statement: use '%s' at (%d,%d)\n", (yyvsp[-3].string), (yyvsp[-1].coordinates).x, (yyvsp[-1].coordinates).y);
       UseInstance *u = CreateUseInstance((yyvsp[-3].string));
@@ -1965,35 +1957,35 @@ yyreduce:
       printf("[DEBUG] use_statement: attached with position (use=%p)\n", (void*)u);
       free((yyvsp[-3].string));
     }
-#line 1969 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1961 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 19: /* layer_name: IDENTIFIER  */
-#line 355 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 347 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                        { (yyval.string) = (yyvsp[0].string); }
-#line 1975 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1967 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 20: /* layer_name: BACKGROUND  */
-#line 356 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 348 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                      { (yyval.string) = strdup("background"); }
-#line 1981 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1973 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 21: /* figure_declaration: figure_with_id  */
-#line 359 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 351 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 { (yyval.figure) = (yyvsp[0].figure); }
-#line 1987 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1979 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 22: /* figure_declaration: figure_anonymous  */
-#line 360 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 352 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { (yyval.figure) = (yyvsp[0].figure); }
-#line 1993 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1985 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 23: /* draw_statement: DRAW figure_type IDENTIFIER draw_tail  */
-#line 363 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 355 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("DEBUG: Draw statement with ID '%s'\n", (yyvsp[-1].string));
 		printf("[DEBUG] draw_statement: About to call CreateFigureSemanticAction\n");
@@ -2002,345 +1994,345 @@ yyreduce:
 		printf("[DEBUG] draw_statement: CreateFigureSemanticAction completed\n");
 		printf("[DEBUG] draw_statement: Figure created successfully\n");
 	}
-#line 2006 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 1998 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 24: /* draw_statement: DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 371 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 363 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                         {
 		printf("DEBUG: Draw statement anonymous figure\n");
 		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-3].integer), NULL, (yyvsp[-1].property));
 	}
-#line 2015 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2007 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 25: /* draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 377 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 369 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] draw_tail: internal properties only\n");
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2024 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2016 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 26: /* draw_tail: external_items draw_tail_after_external  */
-#line 381 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 373 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] draw_tail: external + tail\n");
 		(yyval.property) = (yyvsp[0].property);
 	}
-#line 2033 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2025 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 27: /* draw_tail: WITH OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 385 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 377 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] draw_tail: WITH syntax\n");
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2042 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2034 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 28: /* draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 391 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 383 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                         {
 		printf("[DEBUG] draw_tail_after_external: external + internal properties\n");
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2051 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2043 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 29: /* draw_tail_after_external: WITH OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 395 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 387 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] draw_tail_after_external: external + WITH syntax\n");
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2060 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2052 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 30: /* external_items: external_item external_items_more  */
-#line 401 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 393 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] external_items: head + more\n");
 		printf("[DBG] link head %p -> %p\n", (void*)(yyvsp[-1].property), (void*)(yyvsp[0].property));
 		(yyvsp[-1].property)->next = (yyvsp[0].property);
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2071 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2063 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 31: /* external_items_more: SEMICOLON external_item external_items_more  */
-#line 409 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 401 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                         {
 		printf("[DEBUG] external_items_more: semicolon + item + more\n");
 		printf("[DBG] link mid %p -> %p\n", (void*)(yyvsp[-1].property), (void*)(yyvsp[0].property));
 		(yyvsp[-1].property)->next = (yyvsp[0].property);
 		(yyval.property) = (yyvsp[-1].property);
 	}
-#line 2082 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2074 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 32: /* external_items_more: %empty  */
-#line 415 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 407 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                         {
 		printf("[DEBUG] external_items_more: empty\n");
 		(yyval.property) = NULL;
 	}
-#line 2091 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2083 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 33: /* external_item: position_item  */
-#line 421 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 413 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] external_item: position_item\n");
 		(yyval.property) = (yyvsp[0].property);
 	}
-#line 2100 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2092 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 34: /* external_item: size_item  */
-#line 425 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 417 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 {
 		printf("[DEBUG] external_item: size_item\n");
 		(yyval.property) = (yyvsp[0].property);
 	}
-#line 2109 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2101 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 35: /* position_item: AT coordinates_value  */
-#line 431 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 423 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("[DEBUG] position_item: AT coordinates\n");
 		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
 		(yyval.property) = SetPropertyCoordinatesSemanticAction(prop, (yyvsp[0].coordinates).x, (yyvsp[0].coordinates).y);
 	}
-#line 2119 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2111 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 36: /* size_item: SIZE dimensions_value  */
-#line 438 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 430 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 {
 		printf("[DEBUG] size_item: SIZE dimensions\n");
 		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
 		(yyval.property) = SetPropertyDimensionsSemanticAction(prop, (yyvsp[0].dimensions).width, (yyvsp[0].dimensions).height);
 	}
-#line 2129 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2121 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 37: /* figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 445 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 437 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                                 {
 		printf("DEBUG: Creating figure with ID '%s' of type %d\n", (yyvsp[-3].string), (yyvsp[-4].integer));
 		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-4].integer), (yyvsp[-3].string), (yyvsp[-1].property));
 	}
-#line 2138 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2130 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 38: /* figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE  */
-#line 451 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 443 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                         {
 		printf("DEBUG: Creating anonymous figure of type %d\n", (yyvsp[-3].integer));
 		(yyval.figure) = CreateFigureSemanticAction((yyvsp[-3].integer), NULL, (yyvsp[-1].property));
 	}
-#line 2147 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2139 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 39: /* figure_type: RECTANGLE  */
-#line 457 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 449 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                         { (yyval.integer) = RECTANGLE_FIGURE; }
-#line 2153 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2145 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 40: /* figure_type: CIRCLE  */
-#line 458 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 450 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 { (yyval.integer) = CIRCLE_FIGURE; }
-#line 2159 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2151 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 41: /* figure_type: LINE  */
-#line 459 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 451 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 { (yyval.integer) = LINE_FIGURE; }
-#line 2165 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2157 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 42: /* figure_type: ELLIPSE  */
-#line 460 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 452 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 { (yyval.integer) = ELLIPSE_FIGURE; }
-#line 2171 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2163 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 43: /* figure_type: POLYLINE  */
-#line 461 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 453 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 { (yyval.integer) = POLYLINE_FIGURE; }
-#line 2177 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2169 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 44: /* figure_type: POLYGON  */
-#line 462 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 454 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 { (yyval.integer) = POLYGON_FIGURE; }
-#line 2183 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2175 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 45: /* figure_properties: %empty  */
-#line 465 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 457 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] figure_properties: empty\n");
 		(yyval.property) = NULL; 
 	}
-#line 2192 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2184 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 46: /* figure_properties: property_list  */
-#line 469 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 461 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] figure_properties: property_list=%p\n", (yyvsp[0].property));
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2201 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2193 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 47: /* palette_item: IDENTIFIER COLON parsed_color_value SEMICOLON  */
-#line 476 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 468 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
             printf("DEBUG: palette_item %s\n", (yyvsp[-3].string));
             (yyval.palette_entry) = CreatePaletteEntrySemanticAction((yyvsp[-3].string), (yyvsp[-1].color));
         }
-#line 2210 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2202 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 48: /* palette_list: palette_item  */
-#line 483 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 475 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                             { (yyval.palette_entry) = (yyvsp[0].palette_entry); }
-#line 2216 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2208 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 49: /* palette_list: palette_item palette_list  */
-#line 484 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 476 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                             { (yyvsp[-1].palette_entry)->next = (yyvsp[0].palette_entry); (yyval.palette_entry) = (yyvsp[-1].palette_entry); }
-#line 2222 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2214 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 50: /* property_list: property_item  */
-#line 509 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 501 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_list: single property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2231 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2223 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 51: /* property_list: property_item property_list  */
-#line 513 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 505 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_list: linking property to list\n");
 		(yyvsp[-1].property)->next = (yyvsp[0].property); 
 		(yyval.property) = (yyvsp[-1].property); 
 	}
-#line 2241 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2233 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 52: /* property_item: size_property  */
-#line 531 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 523 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_item: size_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2250 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2242 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 53: /* property_item: position_property  */
-#line 535 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 527 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] property_item: position_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2259 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2251 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 54: /* property_item: fill_property  */
-#line 539 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 531 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] property_item: fill_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2268 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2260 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 55: /* property_item: stroke_property  */
-#line 543 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 535 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] property_item: stroke_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2277 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2269 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 56: /* property_item: radius_property  */
-#line 547 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 539 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] property_item: radius_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2286 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2278 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 57: /* property_item: from_property  */
-#line 551 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 543 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_item: from_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2295 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2287 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 58: /* property_item: to_property  */
-#line 555 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 547 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_item: to_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2304 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2296 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 59: /* property_item: stroke_width_property  */
-#line 559 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 551 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         { 
 		printf("[DEBUG] property_item: stroke_width_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2313 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2305 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 60: /* property_item: opacity_property  */
-#line 563 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 555 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { 
 		printf("[DEBUG] property_item: opacity_property\n");
 		(yyval.property) = (yyvsp[0].property); 
 	}
-#line 2322 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2314 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 61: /* property_item: scale_property  */
-#line 567 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 559 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { (yyval.property) = (yyvsp[0].property); }
-#line 2328 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2320 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 62: /* property_item: rotate_property  */
-#line 568 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 560 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { (yyval.property) = (yyvsp[0].property); }
-#line 2334 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2326 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 63: /* property_item: translate_property  */
-#line 569 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 561 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                 { (yyval.property) = (yyvsp[0].property); }
-#line 2340 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2332 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 64: /* size_property: SIZE dimensions_value SEMICOLON  */
-#line 572 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 564 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                {
         printf("DEBUG: size_property with dimensions+units parsed\n");
         (yyval.property) = CreatePropertySemanticAction(SIZE_PROPERTY);
@@ -2348,118 +2340,118 @@ yyreduce:
                  (yyvsp[-1].dimensions).width,  (yyvsp[-1].dimensions).widthUnit,
                  (yyvsp[-1].dimensions).height, (yyvsp[-1].dimensions).heightUnit);
     }
-#line 2352 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2344 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 65: /* position_property: AT coordinates_value SEMICOLON  */
-#line 581 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 573 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                   {
 		printf("DEBUG: position_property with coordinates parsed\n");
 		(yyval.property) = CreatePropertySemanticAction(POSITION_PROPERTY);
 		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[-1].coordinates).x, (yyvsp[-1].coordinates).y);
 	}
-#line 2362 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2354 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 66: /* fill_property: FILL parsed_color_value SEMICOLON  */
-#line 588 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 580 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                  {
 		printf("DEBUG: fill_property with parsed color\n");
 		(yyval.property) = CreatePropertySemanticAction(FILL_PROPERTY);
 		(yyval.property) = SetPropertyColorSemanticAction((yyval.property), (yyvsp[-1].color));
 	}
-#line 2372 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2364 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 67: /* stroke_property: STROKE parsed_color_value SEMICOLON  */
-#line 595 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 587 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("DEBUG: stroke_property with parsed color\n");
 		(yyval.property) = CreatePropertySemanticAction(STROKE_PROPERTY);
 		(yyval.property) = SetPropertyColorSemanticAction((yyval.property), (yyvsp[-1].color));
 	}
-#line 2382 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2374 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 68: /* stroke_property: STROKE SEMICOLON  */
-#line 600 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 592 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                 {
 		printf("DEBUG: stroke_property without color parsed\n");
 		(yyval.property) = CreatePropertySemanticAction(STROKE_PROPERTY);
 		Color * defaultColor = ParseNamedColor("black");
 		(yyval.property) = SetPropertyColorSemanticAction((yyval.property), defaultColor);
 	}
-#line 2393 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2385 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 69: /* radius_property: RADIUS INTEGER SEMICOLON  */
-#line 608 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 600 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 {
 		printf("DEBUG: radius_property parsed: radius(%d)\n", (yyvsp[-1].integer));
 		(yyval.property) = CreatePropertySemanticAction(RADIUS_PROPERTY);
 		(yyval.property) = SetPropertyIntValueSemanticAction((yyval.property), (yyvsp[-1].integer));
 	}
-#line 2403 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2395 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 70: /* from_property: FROM coordinates_value SEMICOLON  */
-#line 615 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 607 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 {
 		(yyval.property) = CreatePropertySemanticAction(FROM_PROPERTY);
 		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[-1].coordinates).x, (yyvsp[-1].coordinates).y);
 	}
-#line 2412 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2404 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 71: /* to_property: TO coordinates_value SEMICOLON  */
-#line 621 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 613 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 {
 		(yyval.property) = CreatePropertySemanticAction(TO_PROPERTY);
 		(yyval.property) = SetPropertyCoordinatesSemanticAction((yyval.property), (yyvsp[-1].coordinates).x, (yyvsp[-1].coordinates).y);
 	}
-#line 2421 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2413 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 72: /* stroke_width_property: STROKE_WIDTH INTEGER SEMICOLON  */
-#line 627 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 619 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                         {
 		printf("DEBUG: stroke_width_property parsed: stroke-width(%d)\n", (yyvsp[-1].integer));
 		(yyval.property) = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
 		(yyval.property) = SetPropertyIntValueSemanticAction((yyval.property), (yyvsp[-1].integer));
 	}
-#line 2431 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2423 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 73: /* opacity_property: OPACITY DECIMAL SEMICOLON  */
-#line 634 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 626 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                 {
 		printf("DEBUG: opacity_property parsed: opacity(%f)\n", (yyvsp[-1].decimal));
 		(yyval.property) = CreatePropertySemanticAction(OPACITY_PROPERTY);
 		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (yyvsp[-1].decimal));
 	}
-#line 2441 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2433 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 74: /* scale_property: SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON  */
-#line 641 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 633 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                                          {
         (yyval.property) = CreatePropertySemanticAction(SCALE_PROPERTY);
         (yyval.property) = SetPropertyScaleSemanticAction((yyval.property), (yyvsp[-4].decimal), (yyvsp[-2].decimal));
     }
-#line 2450 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2442 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 75: /* rotate_property: ROTATE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON  */
-#line 648 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 640 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                              {
 		(yyval.property) = CreatePropertySemanticAction(ROTATE_PROPERTY);
 		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (yyvsp[-2].decimal));
 	}
-#line 2459 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2451 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 76: /* dimensions_value: DIMENSIONS  */
-#line 654 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 646 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                              {
 		printf("DEBUG: dimensions_value parsed successfully\n");
 		(yyval.dimensions).width = (yyvsp[0].dimensions).width;
@@ -2467,66 +2459,66 @@ yyreduce:
 		(yyval.dimensions).widthUnit  = (yyvsp[0].dimensions).widthUnit;
         (yyval.dimensions).heightUnit = (yyvsp[0].dimensions).heightUnit;
 	}
-#line 2471 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2463 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 77: /* coordinates_value: COORDINATES  */
-#line 663 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 655 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                {
 		printf("DEBUG: coordinates_value parsed successfully: (%d,%d)\n", (yyvsp[0].coordinates).x, (yyvsp[0].coordinates).y);
 		(yyval.coordinates).x = (yyvsp[0].coordinates).x;
 		(yyval.coordinates).y = (yyvsp[0].coordinates).y;
 	}
-#line 2481 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2473 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 78: /* translate_property: TRANSLATE coordinates_value SEMICOLON  */
-#line 670 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 662 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                           {
         (yyval.property) = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
         (yyval.property) = SetPropertyTranslateSemanticAction((yyval.property), (yyvsp[-1].coordinates).x, (yyvsp[-1].coordinates).y);
     }
-#line 2490 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2482 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 79: /* parsed_color_value: IDENTIFIER  */
-#line 690 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 682 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                {
 		printf("DEBUG: parsing named color: %s\n", (yyvsp[0].string));
 		(yyval.color) = ParseNamedColor((yyvsp[0].string));
 	}
-#line 2499 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2491 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 80: /* parsed_color_value: RGB_COLOR  */
-#line 694 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 686 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                     {
 		printf("DEBUG: parsing RGB color: %s\n", (yyvsp[0].string));
 		(yyval.color) = ParseRgbColor((yyvsp[0].string));
 	}
-#line 2508 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2500 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 81: /* parsed_color_value: HEX_COLOR  */
-#line 698 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 690 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                     {
 		printf("DEBUG: parsing HEX color: %s\n", (yyvsp[0].string));
 		(yyval.color) = ParseHexColor((yyvsp[0].string));
 	}
-#line 2517 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2509 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
   case 82: /* parsed_color_value: RGBA_COLOR  */
-#line 702 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 694 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                      {
 		printf("DEBUG: parsing RGBA color: %s\n", (yyvsp[0].string));
 		(yyval.color) = ParseRgbaColor((yyvsp[0].string));
 	}
-#line 2526 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2518 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
 
-#line 2530 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
+#line 2522 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
 
       default: break;
     }
@@ -2771,5 +2763,5 @@ yypushreturn:
 #undef yyls
 #undef yylsp
 #undef yystacksize
-#line 708 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 700 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 
