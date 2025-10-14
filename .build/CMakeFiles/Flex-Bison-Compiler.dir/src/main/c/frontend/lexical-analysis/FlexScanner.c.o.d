@@ -1,13 +1,6 @@
 CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/frontend/lexical-analysis/FlexScanner.c.o: \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/FlexScanner.c \
- /usr/include/stdc-predef.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/CompilationStatus.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/FlexContext.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/TokenLabel.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/AbstractSyntaxTree.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/logging/Logger.h \
- /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/logging/../configuration/Environment.h \
- /usr/lib/gcc/x86_64-linux-gnu/13/include/stdbool.h /usr/include/stdlib.h \
+ /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -17,14 +10,33 @@ CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/frontend/lexical-analysis/FlexScan
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
- /usr/include/x86_64-linux-gnu/bits/waitflags.h \
- /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
- /usr/include/x86_64-linux-gnu/bits/floatn.h \
- /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
- /usr/include/x86_64-linux-gnu/sys/types.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
  /usr/include/x86_64-linux-gnu/bits/types.h \
  /usr/include/x86_64-linux-gnu/bits/typesizes.h \
  /usr/include/x86_64-linux-gnu/bits/time64.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/CompilationStatus.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/FlexContext.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../../support/type/TokenLabel.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/AbstractSyntaxTree.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/logging/Logger.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/logging/../configuration/Environment.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdbool.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
+ /usr/include/x86_64-linux-gnu/sys/types.h \
  /usr/include/x86_64-linux-gnu/bits/types/clock_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
@@ -57,18 +69,7 @@ CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/frontend/lexical-analysis/FlexScan
  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/logging/../language/String.h \
- /usr/include/ctype.h /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
- /usr/include/stdio.h /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
- /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
- /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
- /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
- /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
- /usr/include/x86_64-linux-gnu/bits/stdio.h \
- /usr/include/x86_64-linux-gnu/bits/stdio2.h \
+ /usr/include/ctype.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/../../support/type/ModuleDestructor.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/lexical-analysis/../syntactic-analysis/BisonParser.h \
  /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \

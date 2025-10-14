@@ -70,4 +70,5 @@ CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/frontend/syntactic-analysis/BisonP
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/ModuleDestructor.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/BisonActions.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilerState.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilationStatus.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/BisonParser.h

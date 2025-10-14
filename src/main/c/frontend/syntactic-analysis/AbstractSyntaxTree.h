@@ -124,6 +124,8 @@ struct PaletteEntry {
 
 PaletteEntry * createPaletteEntry(const char *name, Color *color);
 void destroyPalette(PaletteEntry *head);
+Color * duplicateColor(Color *original);
+PaletteEntry * duplicatePalette(PaletteEntry *original);
 
 Transform * createTransformScale(float sx, float sy);
 Transform * createTransformRotate(float degrees);

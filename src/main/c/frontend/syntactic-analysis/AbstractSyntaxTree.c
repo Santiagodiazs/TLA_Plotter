@@ -302,4 +302,55 @@ void destroyPalette(PaletteEntry *head) {
     }
 }
 
+// Función helper para duplicar un Color
+Color * duplicateColor(Color *original) {
+    if (!original) return NULL;
+    
+    Color *copy = createColor(original->type);
+    if (!copy) return NULL;
+    
+    switch (original->type) {
+        case NAMED_COLOR:
+            copy->value.name = original->value.name ? strdup(original->value.name) : NULL;
+            break;
+        case HEX_COLOR_TYPE:
+            copy->value.hex = original->value.hex ? strdup(original->value.hex) : NULL;
+            break;
+        case RGB_COLOR_TYPE:
+            copy->value.rgb.r = original->value.rgb.r;
+            copy->value.rgb.g = original->value.rgb.g;
+            copy->value.rgb.b = original->value.rgb.b;
+            break;
+        case RGBA_COLOR_TYPE:
+            copy->value.rgba.r = original->value.rgba.r;
+            copy->value.rgba.g = original->value.rgba.g;
+            copy->value.rgba.b = original->value.rgba.b;
+            copy->value.rgba.a = original->value.rgba.a;
+            break;
+    }
+    return copy;
+}
+
+// Función helper para duplicar una lista de PaletteEntry
+PaletteEntry * duplicatePalette(PaletteEntry *original) {
+    if (!original) return NULL;
+    
+    PaletteEntry *head = NULL;
+    PaletteEntry *tail = NULL;
+    
+    for (PaletteEntry *it = original; it; it = it->next) {
+        Color *colorCopy = duplicateColor(it->color);
+        PaletteEntry *entryCopy = createPaletteEntry(it->name, colorCopy);
+        
+        if (!head) {
+            head = tail = entryCopy;
+        } else {
+            tail->next = entryCopy;
+            tail = entryCopy;
+        }
+    }
+    
+    return head;
+}
+
 

@@ -67,6 +67,7 @@ CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/frontend/syntactic-analysis/BisonA
  /usr/include/x86_64-linux-gnu/bits/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilerState.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilationStatus.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/ModuleDestructor.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/TokenLabel.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/AbstractSyntaxTree.h \

@@ -540,7 +540,7 @@ union yyalloc
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  82
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  165
+#define YYNSTATES  167
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   314
@@ -675,12 +675,12 @@ static const yytype_int16 yypact[] =
      -81,    52,    90,    11,    21,   -81,    14,    44,   -81,   -81,
       99,   105,   -81,   -81,    -7,   -81,    54,    22,   -81,   -81,
       55,    56,    57,   -81,    59,    60,    61,   -81,    63,    65,
-      66,    67,   112,   116,   -81,   -81,   120,    52,   -81,   -81,
-      52,   111,   -81,    -9,   -81,   -81,   -81,    52,   117,   -81,
-      69,   -81,   -81,   -81,   -81,   -81,   -81,   -81,   -81,   -81,
-     -81,   121,   122,   -81,   125,   126,    52,    44,    58,   127,
-      52,   -81,    76,    77,   -81,   -81,   130,   -81,   -81,   -81,
-     131,   -81,   -81,   -81,   -81
+      66,    67,    71,    72,   -81,   -81,   110,    52,   -81,   -81,
+      52,   109,   -81,    -9,   -81,   -81,   -81,    52,   111,   -81,
+      70,   -81,   -81,   -81,   -81,   -81,   -81,   -81,   -81,   -81,
+     -81,   121,    73,   -81,   124,   125,    52,    44,    58,   127,
+      52,   -81,    76,    80,   -81,   -81,   130,   -81,   -81,   -81,
+     131,   -81,   132,   -81,   -81,    81,   -81
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -704,15 +704,15 @@ static const yytype_int8 yydefact[] =
        0,    65,    70,    71,    64,    69,    66,    67,    72,    73,
       78,     0,     0,    25,     0,     0,    45,    32,     0,     0,
       45,    47,     0,     0,    27,    28,     0,    31,    12,    38,
-       0,    75,    74,    29,    37
+       0,    75,     0,    29,    37,     0,    74
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
      -81,   -81,   -81,   -23,   -81,   -81,   -81,   -81,   -81,   -81,
-     -81,   -81,   -81,   -10,    15,   -81,   -81,   -81,   -81,    93,
-     -80,   -81,    91,    72,   -81,   -81,   -81,   -81,   -81,   -81,
+     -81,   -81,   -81,   -10,    17,   -81,   -81,   -81,   -81,    95,
+     -80,   -81,    92,    77,   -81,   -81,   -81,   -81,   -81,   -81,
      -81,   -81,   -81,   -81,   -81,   -81,    68,   -48,   -81,   -55
 };
 
@@ -741,10 +741,10 @@ static const yytype_uint8 yytable[] =
       16,    17,    18,    54,    55,    56,    57,    58,   109,   110,
       59,    60,    61,    62,   112,   113,    63,    64,    65,   114,
      117,   123,   148,    24,    25,    26,    27,    28,    29,   125,
-     126,   129,   131,   132,   133,   141,   134,   135,   136,   142,
-     137,   146,   138,   139,   140,   143,   151,   150,   152,   153,
-     154,   155,   159,   161,   162,   163,   164,   157,   147,    94,
-     115,    98,     0,     0,     0,     0,     0,     0,     0,     0,
+     126,   129,   131,   132,   133,   143,   134,   135,   136,   146,
+     137,   150,   138,   139,   140,   141,   142,   151,   152,   154,
+     155,   153,   159,   161,   162,   163,   164,   157,   166,   165,
+     147,    94,    98,     0,     0,   115,     0,     0,     0,     0,
        0,     0,   119
 };
 
@@ -761,10 +761,10 @@ static const yytype_int16 yycheck[] =
       22,    23,    24,    31,    32,    33,    34,    35,     3,    54,
       38,    39,    40,    41,    12,    12,    44,    45,    46,     5,
       10,    57,   125,    25,    26,    27,    28,    29,    30,    10,
-       5,    57,    57,    57,    57,     3,    57,    57,    57,     3,
-      57,    10,    57,    57,    57,     5,    57,    10,     7,     7,
-       5,     5,     5,    57,    57,     5,     5,   147,   123,    46,
-      68,    50,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+       5,    57,    57,    57,    57,     5,    57,    57,    57,    10,
+      57,    10,    57,    57,    57,    54,    54,    57,     7,     5,
+       5,    58,     5,    57,    54,     5,     5,   147,    57,     7,
+     123,    46,    50,    -1,    -1,    68,    -1,    -1,    -1,    -1,
       -1,    -1,    84
 };
 
@@ -786,9 +786,9 @@ static const yytype_int8 yystos[] =
       54,    97,    12,    12,     5,    83,    80,    10,    97,    96,
       10,    18,    71,    57,    73,    10,     5,    10,    52,    57,
       99,    57,    57,    57,    57,    57,    57,    57,    57,    57,
-      57,     3,     3,     5,    80,    80,    10,    74,    63,    80,
-      10,    57,     7,     7,     5,     5,    80,    73,     5,     5,
-      80,    57,    57,     5,     5
+      57,    54,    54,     5,    80,    80,    10,    74,    63,    80,
+      10,    57,     7,    58,     5,     5,    80,    73,     5,     5,
+      80,    57,    54,     5,     5,     7,    57
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
@@ -815,7 +815,7 @@ static const yytype_int8 yyr2[] =
        1,     1,     1,     1,     1,     0,     1,     4,     1,     2,
        1,     2,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     3,     3,     3,     3,     2,     3,
-       3,     3,     3,     3,     5,     5,     1,     1,     3,     1,
+       3,     3,     3,     3,     7,     5,     1,     1,     3,     1,
        1,     1,     1
 };
 
@@ -2440,20 +2440,20 @@ yyreduce:
 #line 2441 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 74: /* scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON  */
+  case 74: /* scale_property: SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON  */
 #line 641 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
-                                                                           {
+                                                                                         {
         (yyval.property) = CreatePropertySemanticAction(SCALE_PROPERTY);
-        (yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (float)(yyvsp[-2].integer));
+        (yyval.property) = SetPropertyScaleSemanticAction((yyval.property), (yyvsp[-4].decimal), (yyvsp[-2].decimal));
     }
 #line 2450 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;
 
-  case 75: /* rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON  */
+  case 75: /* rotate_property: ROTATE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON  */
 #line 648 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
                                                                              {
 		(yyval.property) = CreatePropertySemanticAction(ROTATE_PROPERTY);
-		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (float)(yyvsp[-2].integer));
+		(yyval.property) = SetPropertyFloatValueSemanticAction((yyval.property), (yyvsp[-2].decimal));
 	}
 #line 2459 "src/main/c/frontend/syntactic-analysis/BisonParser.c"
     break;

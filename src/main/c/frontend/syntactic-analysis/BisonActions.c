@@ -7,6 +7,7 @@
 
 static CompilerState * _compilerState = NULL;
 static Scene * _currentScene = NULL;
+static PaletteEntry * _globalPalette = NULL;
 Logger * _logger = NULL;
 
 /** Shutdown module's internal state. */
@@ -16,6 +17,7 @@ void _shutdownBisonActionsModule() {
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
+	_globalPalette = NULL; // La palette se libera con la scene principal
 	_compilerState = NULL;
 }
 
@@ -574,7 +576,17 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
     }
     if (!entries) return _currentScene;
 
-    // Append tal cual: la resolución por nombre tomará la última coincidencia
+    // Guardar COPIA en palette global para evitar problemas de memoria
+    PaletteEntry *globalCopy = duplicatePalette(entries);
+    if (_globalPalette == NULL) {
+        _globalPalette = globalCopy;
+    } else {
+        PaletteEntry *tail = _globalPalette;
+        while (tail->next) tail = tail->next;
+        tail->next = globalCopy;
+    }
+
+    // Mantener original en la scene actual
     if (_currentScene->palette == NULL) {
         _currentScene->palette = entries;
     } else {
@@ -586,9 +598,14 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
 }
 
 Color * LookupPaletteColor(const char *name) {
-    if (!_currentScene || !name) return NULL;
+    if (!name) return NULL;
+    
+    // Usar SOLO palette global para evitar problemas de memoria
+    PaletteEntry *palette = _globalPalette;
+    if (!palette) return NULL;
+    
     Color *found = NULL;
-    for (PaletteEntry *it = _currentScene->palette; it; it = it->next) {
+    for (PaletteEntry *it = palette; it; it = it->next) {
         if (it->name && strcmp(it->name, name) == 0 && it->color) {
             found = it->color; // no retornes directamente; hacé copia profunda
         }
@@ -748,6 +765,19 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
     }
     item->uses = NULL;
 }	
+
+	// Preservar la palette - no debe ser liberada prematuramente
+	if (item->palette) {
+		if (!acc->palette) {
+			acc->palette = item->palette;
+		} else {
+			// Concatenar palettes al final 
+			PaletteEntry * last = acc->palette;
+			while (last->next) last = last->next;
+			last->next = item->palette;
+		}
+		item->palette = NULL; // Evitar doble liberación
+	}
 
 	destroyScene(item);
 	return acc;

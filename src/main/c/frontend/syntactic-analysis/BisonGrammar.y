@@ -638,16 +638,16 @@ opacity_property: OPACITY DECIMAL SEMICOLON	{
 	}
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
+scale_property: SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON {
         $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
+        $$ = SetPropertyScaleSemanticAction($$, $3, $5);
     }
     ;
 
 
-rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
+rotate_property: ROTATE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON {
 		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
+		$$ = SetPropertyFloatValueSemanticAction($$, $3);
 	}
 	;
 

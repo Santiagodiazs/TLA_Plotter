@@ -126,6 +126,7 @@ CMakeFiles/Flex-Bison-Compiler.dir/src/main/c/EntryPoint.c.o: \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/BisonActions.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/logging/Logger.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilerState.h \
+ /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/CompilationStatus.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/ModuleDestructor.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/../../support/type/TokenLabel.h \
  /home/ubuntu/Flex-Bison-Compiler/src/main/c/frontend/syntactic-analysis/AbstractSyntaxTree.h \
