@@ -160,6 +160,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <palette_entry> palette_list
 %type <scene> scene_content
 %type <scene> scene_item
+%type <scene> symbol_declaration
+%type <scene> use_statement
 %type <figure> draw_statement
 %type <string> layer_name
 %type <figure> figure_declaration
@@ -296,7 +298,46 @@ scene_item: draw_statement		{
         printf("[DEBUG] scene_item: palette block\n");
         $$ = SceneWithPaletteBlock($3);
     }
+	| symbol_declaration {
+    printf("[DEBUG] scene_item: symbol_declaration\n");
+    $$ = $1;
+		}
+	| use_statement {
+    printf("[DEBUG] scene_item: use_statement\n");
+    $$ = $1;
+		}
 	;
+
+symbol_declaration
+  : SYMBOL IDENTIFIER OPEN_BRACE figure_declaration CLOSE_BRACE {
+      printf("[DEBUG] symbol_declaration: name='%s' figure=%p\n", $2, (void*)$4);
+      Symbol *sym = CreateSymbolMove($2, $4);
+      $$ = BasicSceneSemanticAction(NULL);
+      $$ = AddSymbolToSceneSemanticAction($$, sym);
+      printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym);
+      free($2);
+    }
+  ;
+
+use_statement
+  : USE IDENTIFIER SEMICOLON {
+      printf("[DEBUG] use_statement: use '%s'\n", $2);
+      UseInstance *u = CreateUseInstance($2);
+      $$ = BasicSceneSemanticAction(NULL);
+      $$ = AddUseToSceneSemanticAction($$, u);
+      printf("[DEBUG] use_statement: attached (use=%p)\n", (void*)u);
+      free($2);
+    }
+  | USE IDENTIFIER AT coordinates_value SEMICOLON {
+      printf("[DEBUG] use_statement: use '%s' at (%d,%d)\n", $2, $4.x, $4.y);
+      UseInstance *u = CreateUseInstance($2);
+      u->hasPosition = 1; u->posX = $4.x; u->posY = $4.y;
+      $$ = BasicSceneSemanticAction(NULL);
+      $$ = AddUseToSceneSemanticAction($$, u);
+      printf("[DEBUG] use_statement: attached with position (use=%p)\n", (void*)u);
+      free($2);
+    }
+  ;
 
 layer_name: IDENTIFIER { $$ = $1; }
 	| BACKGROUND { $$ = strdup("background"); }
