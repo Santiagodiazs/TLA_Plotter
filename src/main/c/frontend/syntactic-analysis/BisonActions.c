@@ -725,7 +725,29 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 
 	if (ValidateLayerZLevel(acc) == FAILED) {
     	    printf(stderr, "ERROR: Scene has duplicate layer z-levels.\n");
+  }
+
+	if (item->symbols) {
+    if (!acc->symbols) {
+			acc->symbols = item->symbols;
+		} else {
+        Symbol *last = acc->symbols; 
+				while (last->next) last = last->next;
+        last->next = item->symbols;
     }
+    item->symbols = NULL;
+	}
+
+	if (item->uses) {
+    if (!acc->uses) {
+			acc->uses = item->uses;
+		} else {
+        UseInstance * last = acc->uses; 
+				while (last->next) t = last->next;
+        last->next = item->uses;
+    }
+    item->uses = NULL;
+}	
 
 	destroyScene(item);
 	return acc;
