@@ -125,6 +125,7 @@ UNIT                (px|rem|em|%)
 "translate"							{ return KeywordLexemeAction(TRANSLATE); }
 "rotate"							{ return KeywordLexemeAction(ROTATE); }
 "scale"								{ return KeywordLexemeAction(SCALE); }
+"scaling"							{ return KeywordLexemeAction(SCALING); }
 
 "color"								{ return KeywordLexemeAction(COLOR); }
 
@@ -133,13 +134,13 @@ UNIT                (px|rem|em|%)
 {rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
-{coordinates}						{ printf("[LEX DEBUG] COORDINATES pattern matched: '%s'\n", yytext); fflush(stdout); return CoordinatesLexemeAction(); }
+{coordinates}						{ return CoordinatesLexemeAction(); }
 {NUM}{WS}?{UNIT}{WS}*[xX]{WS}*{NUM}{WS}?{UNIT}    { return DimensionsLexemeAction(); }
 {dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
-{identifier}						{ printf("[LEX DEBUG] IDENTIFIER: %s\n", yytext); fflush(stdout); return IdentifierLexemeAction(); }
+{identifier}						{ return IdentifierLexemeAction(); }
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }

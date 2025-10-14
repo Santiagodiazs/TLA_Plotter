@@ -665,19 +665,6 @@ Scene * SceneWithBackground(Color * color) {
 	return scene;
 }
 
-Scene * SceneWithLayerDecl(const char * name, int zLevel) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Scene * scene = BasicSceneSemanticAction(NULL);
-	if (scene && name) {
-		Layer * layer = createLayer(name, zLevel);
-		if (layer) {
-			scene->layers = layer;
-			logDebugging(_logger, "Created scene with layer declaration '%s' z=%d", name, zLevel);
-		}
-	}
-	return scene;
-}
 
 Scene * SceneWithLayerBlock(const char * name, int zLevel, Scene * blockContent) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
@@ -785,77 +772,4 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 
 // ============= SCENE SEMANTIC ACTIONS =============
 
-Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (scene == NULL || layerName == NULL) {
-		return scene;
-	}
-	
-	// Validar layerName
-	if (!layerName || !*layerName) {
-		logWarning(_logger, "Empty layer name ignored");
-		return scene;
-	}
-	
-	// Buscar si el layer ya existe
-	Layer * current = scene->layers;
-	while (current != NULL) {
-		if (current->name && strcmp(current->name, layerName) == 0) {
-			// Layer existe, actualizar z-level
-			logDebugging(_logger, "Updating existing layer '%s' z-level from %d to %d", layerName, current->zLevel, zLevel);
-			current->zLevel = zLevel;
-			return scene;
-		}
-		current = current->next;
-	}
-	
-	// Layer no existe, crear nuevo
-	Layer * newLayer = createLayer(layerName, zLevel);
-	if (newLayer != NULL) {
-		// Agregar al inicio de la lista
-		newLayer->next = scene->layers;
-		scene->layers = newLayer;
-		logDebugging(_logger, "Created new layer '%s' with z-level %d", layerName, zLevel);
-	}
-	
-	return scene;
-}
 
-Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (scene == NULL || layerName == NULL || blockContent == NULL) {
-		return scene;
-	}
-	
-	// Buscar el layer
-	Layer * current = scene->layers;
-	while (current != NULL) {
-		if (current->name && strcmp(current->name, layerName) == 0) {
-			
-			Figure * blockFigures = blockContent->figures;
-			if (blockFigures != NULL) {
-				
-				Figure * lastFigure = current->figures;
-				if (lastFigure == NULL) {
-					current->figures = blockFigures;
-				} else {
-					while (lastFigure->next != NULL) {
-						lastFigure = lastFigure->next;
-					}
-					lastFigure->next = blockFigures;
-				}
-				logDebugging(_logger, "Attached figures to layer '%s'", layerName);
-			}
-			break;
-		}
-		current = current->next;
-	}
-	
-	
-	blockContent->figures = NULL;
-	destroyScene(blockContent);
-	
-	return scene;
-}

@@ -56,8 +56,6 @@ PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color);
 // ============= SCENE SEMANTIC ACTIONS =============
 Scene * BasicSceneSemanticAction(const char * name);
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
-Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel);
-Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent);
 Scene * AddSymbolToSceneSemanticAction(Scene *scene, Symbol *sym);
 Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *use);
 Scene * SceneWithPaletteBlock(PaletteEntry *entries);
@@ -65,9 +63,9 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries);
 // ============= NEW SCENE HELPER FUNCTIONS =============
 Scene * SceneFromFigure(Figure * figure);
 Scene * SceneWithBackground(Color * color);
-Scene * SceneWithLayerDecl(const char * name, int zLevel);
 Scene * SceneWithLayerBlock(const char * name, int zLevel, Scene * blockContent);
 Scene * MergeSceneContent(Scene * acc, Scene * item);
+bool ValidateLayerZLevels(Scene * scene);
 
 // ============= PROGRAM SEMANTIC ACTIONS =============
 Program * SceneProgramSemanticAction(Scene * scene);
