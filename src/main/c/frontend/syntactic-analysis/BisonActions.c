@@ -411,6 +411,43 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	return property;
 }
 
+Symbol * CreateSymbolMove(const char *name, Figure * figure) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Symbol *s = calloc(1, sizeof(Symbol));
+    if (!s) return NULL;
+    s->name = name ? strdup(name) : NULL;
+    if (figure) {
+        s->figure = *figure;        // copia superficial
+        figure->id = NULL; figure->properties = NULL; figure->transforms = NULL; figure->next = NULL;
+        free(figure);
+    }
+    return s;
+}
+
+UseInstance * CreateUseInstance(const char *symbolName) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    UseInstance * useInstace = calloc(1, sizeof(UseInstance));
+    if (!useInstace) return NULL;
+    useInstace->symbolName = symbolName ? strdup(symbolName) : NULL;
+    return useInstace;
+}
+
+Scene * AddSymbolToSceneSemanticAction(Scene *scene, Symbol * symbol) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !symbol) return scene;
+    symbol->next = scene->symbols;
+    scene->symbols = symbol;
+    return scene;
+}
+
+Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *useInstance) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !useInstance) return scene;
+    useInstance->next = scene->uses;
+    scene->uses = useInstance;
+    return scene;
+}
+
 Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     if (property != NULL) {

@@ -44,6 +44,8 @@ Property * SetPropertyScaleSemanticAction(Property * property, float x, float y)
 Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
 Property * SetPropertyColorSemanticAction(Property * property, Color * color);
+Symbol * CreateSymbolMove(const char * name, Figure * figure);
+UseInstance * CreateUseInstance(const char *symbolName);
 Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y);
 void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead);
 void AppendTransform(Figure *figure, Transform *t);
@@ -55,6 +57,8 @@ Scene * BasicSceneSemanticAction(const char * name);
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
 Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel);
 Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent);
+Scene * AddSymbolToSceneSemanticAction(Scene *scene, Symbol *sym);
+Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *use);
 Scene * SceneWithPaletteBlock(PaletteEntry *entries);
 
 // ============= NEW SCENE HELPER FUNCTIONS =============
