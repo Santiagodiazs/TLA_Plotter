@@ -9,6 +9,12 @@
 // Declarar logger externo para usar en la gramática
 extern Logger * _logger;
 
+// Deshabilitar buffering para ver logs inmediatamente
+static void disable_buffering() {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+}
+
 /**
  * The error reporting function for Bison parser.
  *
@@ -129,6 +135,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> TRANSLATE
 %token <token> ROTATE
 %token <token> SCALE
+%token <token> SCALING  // Token temporal para testing
 
 // DSL Tokens - Colors
 %token <token> COLOR
@@ -209,11 +216,17 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %left MUL DIV
 %left SEMICOLON
 
+// Precedencia para transformaciones
+%left SCALE
+%left ROTATE  
+%left TRANSLATE
+
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
 program: scene_declaration									{ 
+		disable_buffering();  // Deshabilitar buffering al inicio
 		$$ = SceneProgramSemanticAction($1); 
 	}
 	| INTEGER													{ 
@@ -551,18 +564,9 @@ property_item: size_property				{
 		printf("[DEBUG] property_item: opacity_property\n");
 		$$ = $1; 
 	}
-	| scale_property					{ 
-		printf("[DEBUG] property_item: scale_property\n");
-		$$ = $1; 
-	}
-	| rotate_property					{ 
-		printf("[DEBUG] property_item: rotate_property\n");
-		$$ = $1; 
-	}
-    | translate_property {
-        printf("[DEBUG] property_item: translate_property\n");
-        $$ = $1;
-    }
+	| scale_property					{ $$ = $1; }
+	| rotate_property					{ $$ = $1; }
+    | translate_property					{ $$ = $1; }
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
@@ -609,14 +613,12 @@ radius_property: RADIUS INTEGER SEMICOLON	{
 	;
 
 from_property: FROM coordinates_value SEMICOLON	{
-		printf("DEBUG: from_property parsed\n");
 		$$ = CreatePropertySemanticAction(FROM_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
 	;
 
 to_property: TO coordinates_value SEMICOLON	{
-		printf("DEBUG: to_property parsed\n");
 		$$ = CreatePropertySemanticAction(TO_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
@@ -636,32 +638,14 @@ opacity_property: OPACITY DECIMAL SEMICOLON	{
 	}
 	;
 
-scale_property
-    : SCALE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON {
-        printf("DEBUG: scale_property parsed: scale(%f)\n", $3);
+scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
         $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyScaleSemanticAction($$, $3, $3);
-    }
-    | SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
-        printf("DEBUG: scale_property parsed: scale(%d)\n", $3);
-        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$3);
-    }
-    | SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON {
-        printf("DEBUG: scale_property parsed: scale(%f, %f)\n", $3, $5);
-        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyScaleSemanticAction($$, $3, $5);
-    }
-    | SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
-        printf("DEBUG: scale_property parsed: scale(%d, %d)\n", $3, $5);
-        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$5);
+        $$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
     }
     ;
 
 
 rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		printf("DEBUG: rotate_property parsed: rotate(%d)\n", $3);
 		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
 		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
 	}
@@ -683,10 +667,9 @@ coordinates_value: COORDINATES {
 	}
 	;
 
-translate_property: TRANSLATE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
-        printf("DEBUG: translate_property parsed: translate(%d, %d)\n", $3, $5);
+translate_property: TRANSLATE coordinates_value SEMICOLON {
         $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
-        $$ = SetPropertyTranslateSemanticAction($$, $3, $5);
+        $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y);
     }
     ;
 

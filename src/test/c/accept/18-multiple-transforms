@@ -1,0 +1,10 @@
+scene MultiTransformTest {
+    draw rectangle r1 with {
+        at (150, 150);
+        size 60x60;
+        fill #FF00FF;
+        translate (20, 20);
+        rotate(30);
+        scale(1);
+    }
+}

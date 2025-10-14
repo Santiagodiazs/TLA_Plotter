@@ -359,16 +359,30 @@ static int _parse_value_and_unit(const char *side, float *outVal, UnitType *outU
 }
 
 CompilationStatus CoordinatesLexemeAction() {
+	printf("[LEX DEBUG] CoordinatesLexemeAction called\n");
+	fflush(stdout);
+	
 	Token * token = createToken(_lexicalAnalyzer, COORDINATES);
 	if (!token || !token->semanticValue || !token->lexeme) {
+		printf("[LEX ERROR] CoordinatesLexemeAction: token creation failed\n");
+		fflush(stdout);
 		if (token) destroyToken(token);
 		return FAILED;
 	}
 
+	printf("[LEX DEBUG] CoordinatesLexemeAction: lexeme='%s'\n", token->lexeme);
+	fflush(stdout);
+	
 	int x = 0, y = 0;
 	if (sscanf(token->lexeme, " ( %d %*[, ] %d ) ", &x, &y) != 2) {
+		printf("[LEX WARNING] CoordinatesLexemeAction: sscanf failed, defaulting to (0,0)\n");
+		fflush(stdout);
 		x = y = 0;
 	}
+	
+	printf("[LEX DEBUG] CoordinatesLexemeAction: parsed (%d, %d)\n", x, y);
+	fflush(stdout);
+	
 	token->semanticValue->coordinates.x = x;
 	token->semanticValue->coordinates.y = y;
 

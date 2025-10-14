@@ -1,5 +1,7 @@
 %top{
 
+#include <stdio.h>
+
 #include "../../support/type/CompilationStatus.h"
 #include "../../support/type/FlexContext.h"
 #include "../../support/type/TokenLabel.h"
@@ -131,13 +133,13 @@ UNIT                (px|rem|em|%)
 {rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
-{coordinates}						{ return CoordinatesLexemeAction(); }
+{coordinates}						{ printf("[LEX DEBUG] COORDINATES pattern matched: '%s'\n", yytext); fflush(stdout); return CoordinatesLexemeAction(); }
 {NUM}{WS}?{UNIT}{WS}*[xX]{WS}*{NUM}{WS}?{UNIT}    { return DimensionsLexemeAction(); }
 {dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
-{identifier}						{ return IdentifierLexemeAction(); }
+{identifier}						{ printf("[LEX DEBUG] IDENTIFIER: %s\n", yytext); fflush(stdout); return IdentifierLexemeAction(); }
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }

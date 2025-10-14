@@ -1,0 +1,22 @@
+scene TransformTest {
+    draw rectangle r1 with {
+        at (100, 100);
+        size 50x50;
+        fill #FF0000;
+        rotate(45);
+    }
+    
+    draw circle c1 with {
+        at (200, 200);
+        radius 30;
+        fill #00FF00;
+        scale(2);
+    }
+    
+    draw rectangle r2 with {
+        at (300, 300);
+        size 40x40;
+        fill #0000FF;
+        translate (50, 50);
+    }
+}
