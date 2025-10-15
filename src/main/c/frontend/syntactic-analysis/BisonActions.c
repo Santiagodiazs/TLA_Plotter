@@ -296,27 +296,7 @@ Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int 
 	return property;
 }
 
-Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height) {
-    _logSyntacticAnalyzerAction(__FUNCTION__);
-    if (property) {
-        property->value.dimensions.width      = (float)width;
-        property->value.dimensions.height     = (float)height;
-        property->value.dimensions.widthUnit  = UNIT_PX;
-        property->value.dimensions.heightUnit = UNIT_PX;
-    }
-    return property;
-}
 
-Property * SetPropertyScaleSemanticAction(Property * property, float x, float y) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (property != NULL) {
-		property->value.scale.x = x;
-		property->value.scale.y = y;
-	}
-	
-	return property;
-}
 
 Property * SetPropertyIntValueSemanticAction(Property * property, int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);

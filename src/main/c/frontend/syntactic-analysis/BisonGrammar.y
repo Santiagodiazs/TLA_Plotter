@@ -630,13 +630,11 @@ size_property: SIZE dimensions_value SEMICOLON {
     }
     ;
 
-/* ---- NUEVO: width con unidades ----
+/* ---- NUEVO: width con unidades obligatorias ----
    Soporta:
    - WIDTH DIMENSIONS;             (toma width y su unit del token DIMENSIONS)
    - WIDTH INTEGER IDENTIFIER;     (p.ej. WIDTH 320 px;)
    - WIDTH DECIMAL IDENTIFIER;     (p.ej. WIDTH 24.5 rem;)
-   - WIDTH INTEGER;                (unidad por defecto px)
-   - WIDTH DECIMAL;                (unidad por defecto px)
 */
 width_property
     : WIDTH DIMENSIONS SEMICOLON {
@@ -664,20 +662,6 @@ width_property
                  0,      u);
         free($3);
     }
-    | WIDTH INTEGER SEMICOLON {
-        printf("DEBUG: width_property: %d (default px)\n", $2);
-        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 $2, UNIT_PX,
-                 0,  UNIT_PX);
-    }
-    | WIDTH DECIMAL SEMICOLON {
-        printf("DEBUG: width_property: %f (default px)\n", $2);
-        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 (int)$2, UNIT_PX,
-                 0,       UNIT_PX);
-    }
     ;
 
 height_property
@@ -693,7 +677,7 @@ height_property
         printf("DEBUG: height_property: %d %s (unit=%d)\n", $2, $3, (int)u);
         $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,  u,   /* ancho ignorado */
+                 0,  u,  
                  $2, u);
         free($3);
     }
@@ -705,20 +689,6 @@ height_property
                  0,      u,   /* ancho ignorado */
                  (int)$2, u);
         free($3);
-    }
-    | HEIGHT INTEGER SEMICOLON {
-        printf("DEBUG: height_property: %d (default px)\n", $2);
-        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,  UNIT_PX, /* ancho ignorado */
-                 $2, UNIT_PX);
-    }
-    | HEIGHT DECIMAL SEMICOLON {
-        printf("DEBUG: height_property: %f (default px)\n", $2);
-        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,       UNIT_PX, /* ancho ignorado */
-                 (int)$2, UNIT_PX);
     }
     ;
 
@@ -768,12 +738,22 @@ to_property: TO coordinates_value SEMICOLON	{
 	}
 	;
 
-stroke_width_property: STROKE_WIDTH INTEGER SEMICOLON	{
-		printf("DEBUG: stroke_width_property parsed: stroke-width(%d)\n", $2);
-		$$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-		$$ = SetPropertyIntValueSemanticAction($$, $2);
-	}
-	;
+stroke_width_property
+    : STROKE_WIDTH INTEGER IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: stroke_width_property: %d %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+        $$ = SetPropertyIntValueSemanticAction($$, $2);
+        free($3);
+    }
+    | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: stroke_width_property: %f %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+        $$ = SetPropertyIntValueSemanticAction($$, (int)$2);
+        free($3);
+    }
+    ;
 
 opacity_property: OPACITY DECIMAL SEMICOLON	{
 		printf("DEBUG: opacity_property parsed: opacity(%f)\n", $2);

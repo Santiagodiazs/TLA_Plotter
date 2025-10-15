@@ -39,8 +39,6 @@ Color * LookupPaletteColor(const char *name);
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties);
 Property * CreatePropertySemanticAction(PropertyType type);
 Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int y);
-Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height);
-Property * SetPropertyScaleSemanticAction(Property * property, float x, float y);
 Property * SetPropertyIntValueSemanticAction(Property * property, int value);
 Property * SetPropertyFloatValueSemanticAction(Property * property, float value);
 Property * SetPropertyColorSemanticAction(Property * property, Color * color);

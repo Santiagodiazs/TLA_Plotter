@@ -4,7 +4,7 @@ scene MiCasa {
         size 200x150;
         fill #8B4513;
         stroke #654321;
-        stroke_width 2;
+        stroke_width 2px;
     }
     
     draw circle sol {
@@ -12,6 +12,6 @@ scene MiCasa {
         radius 50;
         fill #FFD700;
         stroke #FFA500;
-        stroke_width 3;
+        stroke_width 3px;
     }
 }

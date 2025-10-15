@@ -1,0 +1,18 @@
+scene WidthHeightNoUnits {
+    draw rectangle rect1 {
+        at (100, 100);
+        size 200x150;
+        fill #FF0000;
+        width 100;
+        // Falta unidad - debería fallar
+    }
+    
+    draw rectangle rect2 {
+        at (300, 100);
+        size 200x150;
+        fill #00FF00;
+        height 80;
+        // Falta unidad - debería fallar
+    }
+}
+
