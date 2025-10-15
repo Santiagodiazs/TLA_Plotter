@@ -218,6 +218,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> transform_item
 %type <property> transform_list
 %type <property> width_property
+%type <property> height_property
 
 /**
  * Precedence and associativity.
@@ -268,6 +269,7 @@ constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 
 scene_declaration: SCENE IDENTIFIER	{
 		$$ = BasicSceneSemanticAction($2);
+		free($2); // Liberar el string del IDENTIFIER
 	}
 	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{
 		$$ = BasicSceneSemanticAction($2);
@@ -280,6 +282,7 @@ scene_declaration: SCENE IDENTIFIER	{
 				}
 			}
 		}
+		free($2); // Liberar el string del IDENTIFIER
 	}
 	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
 		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
@@ -367,6 +370,7 @@ draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
 		printf("[DEBUG] draw_statement: About to call CreateFigureSemanticAction\n");
 		printf("[DEBUG] draw_statement: type=%d, id='%s', tail=%p\n", $2, $3, $4);
 		$$ = CreateFigureSemanticAction($2, $3, $4);
+		free($3); 
 		printf("[DEBUG] draw_statement: CreateFigureSemanticAction completed\n");
 		printf("[DEBUG] draw_statement: Figure created successfully\n");
 	}
@@ -573,6 +577,7 @@ property_item: size_property				{
     | translate_property					{ $$ = $1; }
 	/* nuevo: width */
 	| width_property					{ $$ = $1; }
+	| height_property					{ $$ = $1; }
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
@@ -631,6 +636,48 @@ width_property
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  (int)$2, UNIT_PX,
                  0,       UNIT_PX);
+    }
+    ;
+
+height_property
+    : HEIGHT DIMENSIONS SEMICOLON {
+        printf("DEBUG: height_property via DIMENSIONS: %d (unit=%d)\n", $2.height, (int)$2.heightUnit);
+        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 0,         $2.heightUnit, /* ancho ignorado */
+                 $2.height, $2.heightUnit);
+    }
+    | HEIGHT INTEGER IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: height_property: %d %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 0,  u,   /* ancho ignorado */
+                 $2, u);
+        free($3);
+    }
+    | HEIGHT DECIMAL IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: height_property: %f %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 0,      u,   /* ancho ignorado */
+                 (int)$2, u);
+        free($3);
+    }
+    | HEIGHT INTEGER SEMICOLON {
+        printf("DEBUG: height_property: %d (default px)\n", $2);
+        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 0,  UNIT_PX, /* ancho ignorado */
+                 $2, UNIT_PX);
+    }
+    | HEIGHT DECIMAL SEMICOLON {
+        printf("DEBUG: height_property: %f (default px)\n", $2);
+        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 0,       UNIT_PX, /* ancho ignorado */
+                 (int)$2, UNIT_PX);
     }
     ;
 

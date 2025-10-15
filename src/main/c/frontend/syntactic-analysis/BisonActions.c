@@ -17,12 +17,11 @@ void _shutdownBisonActionsModule() {
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
-	_globalPalette = NULL; // La palette se libera con la scene principal
+	_globalPalette = NULL; 
 	if(_globalPalette){
-	destroyPalette(_globalPalette);}
-        _globalPalette = NULL;
-    }
-	_compilerState = NULL;
+		destroyPalette(_globalPalette);
+		_globalPalette = NULL;
+	}
 }
 
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState) {
@@ -163,15 +162,7 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 
     program->scene = scene;
 
-    if (program->scene && ValidateLayerZLevel(program->scene) == FAILED) {
-        destroyProgram(program);
-        return NULL;
-    }
-
-    /* === resolver 'use' → 'symbol' === */
-    if (program->scene && FinalizeSymbolsAndUses(program->scene) == FAILED) {
-        if (_logger) logError(_logger, "Compilation failed: undefined symbol(s) in 'use' statements.");
-    }
+  
 
     program->type = SCENE_PROGRAM;
 
@@ -255,79 +246,14 @@ PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color) {
 
 // ============= SEMANTIC VALIDATION =============
 
-CompilationStatus ValidateFigureProperties(FigureType type, Property * properties) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (properties == NULL) {
-		return SUCCEEDED; 
-	}
-	
-	Property * current = properties;
-	while (current != NULL) {
-		switch (type) {
-			case CIRCLE_FIGURE:
-				if (current->type == SIZE_PROPERTY) {
-					fprintf(stderr, "ERROR: Circle figures cannot use 'size' property. Use 'radius' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			case LINE_FIGURE:
-				if (current->type == SIZE_PROPERTY) {
-					fprintf(stderr, "ERROR: Line figures cannot use 'size' property. Use 'from' and 'to' instead.\n");
-					return FAILED;
-				}
-				if (current->type == FILL_PROPERTY) {
-					fprintf(stderr, "ERROR: Line figures cannot use 'fill' property. Use 'stroke' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			case RECTANGLE_FIGURE:
-			case ELLIPSE_FIGURE:
-				if (current->type == RADIUS_PROPERTY) {
-					fprintf(stderr, "ERROR: Rectangle/Ellipse figures cannot use 'radius' property. Use 'size' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			default:
-				break;
-		}
-		current = current->next;
-	}
-	
-	return SUCCEEDED;
-}
 
-CompilationStatus ValidateLayerZLevel(const Scene *scene) {
-    _logSyntacticAnalyzerAction(__FUNCTION__);
-    if (!scene) return SUCCEEDED;
-
-    for (Layer *a = scene->layers; a; a = a->next) {
-        for (Layer *b = a->next; b; b = b->next) {
-            if (a->zLevel == b->zLevel) {
-                const char *na = (a->name ? a->name : "<unnamed>");
-                const char *nb = (b->name ? b->name : "<unnamed>");
-                fprintf(stderr,
-                        "ERROR: Duplicate layer z-level %d detected between '%s' and '%s'.\n",
-                        a->zLevel, na, nb);
-                return FAILED;
-            }
-        }
-    }
-    return SUCCEEDED;
-}
 
 // ============= DSL SEMANTIC ACTIONS =============
 
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	// Validate properties for this figure type
-	if (ValidateFigureProperties(type, properties) == FAILED) {
-		return NULL; 
-	}
+
 	
 	Figure * figure = calloc(1, sizeof(Figure));
 	if (figure == NULL) {
@@ -585,7 +511,7 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
     }
     if (!entries) return _currentScene;
 
-    // Guardar COPIA en palette global para evitar problemas de memoria
+   
     PaletteEntry *globalCopy = duplicatePalette(entries);
     if (_globalPalette == NULL) {
         _globalPalette = globalCopy;
@@ -595,7 +521,7 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
         tail->next = globalCopy;
     }
 
-    // Mantener original en la scene actual
+  
     if (_currentScene->palette == NULL) {
         _currentScene->palette = entries;
     } else {
@@ -616,7 +542,7 @@ Color * LookupPaletteColor(const char *name) {
     Color *found = NULL;
     for (PaletteEntry *it = palette; it; it = it->next) {
         if (it->name && strcmp(it->name, name) == 0 && it->color) {
-            found = it->color; // no retornes directamente; hacé copia profunda
+            found = it->color; 
         }
     }
     if (!found) return NULL;
@@ -736,9 +662,7 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		item->layers = NULL;
 	}
 
-	if (ValidateLayerZLevel(acc) == FAILED) {
-            fprintf(stderr, "ERROR: Scene has duplicate layer z-levels.\n");
-  }
+
 
 	if (item->symbols) {
     if (!acc->symbols) {
@@ -779,50 +703,13 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	return acc;
 }
 
-static Symbol* _findSymbolByName(Scene *scene, const char *name) {
-    if (!scene || !name) return NULL;
-    for (Symbol *s = scene->symbols; s; s = s->next) {
-        if (s->name && strcmp(s->name, name) == 0) return s;
-    }
-    return NULL;
-}
-
-/* Loguea duplicados (mantiene el primero). */
-static void _logDuplicateSymbols(Scene *scene) {
-    if (!scene) return;
-    for (Symbol *a = scene->symbols; a; a = a->next) {
-        for (Symbol *b = a ? a->next : NULL; b; b = b->next) {
-            if (a->name && b->name && strcmp(a->name, b->name) == 0) {
-                if (_logger) logWarning(_logger, "Duplicate symbol '%s' detected (keeping first)", a->name);
-                else fprintf(stderr, "WARNING: Duplicate symbol '%s' detected (keeping first)\n", a->name);
-            }
-        }
-    }
-}
-
-CompilationStatus FinalizeSymbolsAndUses(Scene *scene) {
-    _logSyntacticAnalyzerAction(__FUNCTION__);
-    if (!scene) return SUCCEEDED;
-
-    /* Avisar duplicados (no removemos para no tocar ownership) */
-    _logDuplicateSymbols(scene);
-
-    /* Resolver cada 'use' por nombre; si no existe, error. */
-    int unresolved = 0;
-    for (UseInstance *u = scene->uses; u; u = u->next) {
-        if (u->symbol) continue; /* ya resuelto en otra etapa */
-        const char *name = u->symbolName;
-        Symbol *s = _findSymbolByName(scene, name);
-        if (!s) {
-            ++unresolved;
-            if (_logger) logError(_logger, "Undefined symbol '%s' in use", (name ? name : "<null>"));
-            else fprintf(stderr, "ERROR: Undefined symbol '%s' in use\n", (name ? name : "<null>"));
-        } else {
-            u->symbol = s;
-        }
-    }
-    return (unresolved == 0) ? SUCCEEDED : FAILED;
-}
+// Symbol resolution functions moved to Stage 3 (Backend) - semantic validation
+// These functions validate symbol references and duplicates, which is semantic validation
+// 
+// Moved functions:
+// - _findSymbolByName() - finds symbol by name (semantic)
+// - _logDuplicateSymbols() - validates no duplicate symbols (semantic) 
+// - FinalizeSymbolsAndUses() - resolves symbol references (semantic)
 
 
 // ============= SCENE SEMANTIC ACTIONS =============
