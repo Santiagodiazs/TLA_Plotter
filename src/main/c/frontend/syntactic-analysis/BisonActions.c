@@ -18,6 +18,10 @@ void _shutdownBisonActionsModule() {
 		_logger = NULL;
 	}
 	_globalPalette = NULL; // La palette se libera con la scene principal
+	if(_globalPalette){
+	destroyPalette(_globalPalette);}
+        _globalPalette = NULL;
+    }
 	_compilerState = NULL;
 }
 
