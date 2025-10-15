@@ -62,7 +62,7 @@ color_func          color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 coordinates         \({WS}{INT}{WS},{WS}{INT}{WS}\)
 string              \"[^\"]*\"
 NUM                 ({decimal}|{integer})
-UNIT                (px|rem|em|%)
+UNIT                (px|rem|em|vw|vh|%)
 
 %%
 

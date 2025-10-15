@@ -15,6 +15,18 @@ static void disable_buffering() {
     setvbuf(stderr, NULL, _IONBF, 0);
 }
 
+/* ---- helper para mapear unidades de width cuando vienen como IDENTIFIER ---- */
+static UnitType parseUnit(const char* s) {
+    if (!s) return UNIT_PX; /* default razonable */
+    if (strcmp(s,"px")==0)  return UNIT_PX;
+    if (strcmp(s,"rem")==0) return UNIT_REM;
+    if (strcmp(s,"em")==0)  return UNIT_EM;
+    if (strcmp(s,"vw")==0)  return UNIT_VW;
+    if (strcmp(s,"vh")==0)  return UNIT_VH;
+    /* fallback: px */
+    return UNIT_PX;
+}
+
 /**
  * The error reporting function for Bison parser.
  *
@@ -205,6 +217,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> translate_property
 %type <property> transform_item
 %type <property> transform_list
+%type <property> width_property
 
 /**
  * Precedence and associativity.
@@ -218,23 +231,23 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 // Precedencia para transformaciones
 %left SCALE
-%left ROTATE  
+%left ROTATE
 %left TRANSLATE
 
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: scene_declaration									{ 
+program: scene_declaration									{
 		disable_buffering();  // Deshabilitar buffering al inicio
-		$$ = SceneProgramSemanticAction($1); 
+		$$ = SceneProgramSemanticAction($1);
 	}
-	| INTEGER													{ 
-		$$ = NULL; 
+	| INTEGER													{
+		$$ = NULL;
 	}
-	| error													{ 
-		yyerrok; 
-		$$ = NULL; 
+	| error													{
+		yyerrok;
+		$$ = NULL;
 	}
 	;
 
@@ -253,10 +266,10 @@ constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 	;
 
 
-scene_declaration: SCENE IDENTIFIER	{ 
-		$$ = BasicSceneSemanticAction($2); 
+scene_declaration: SCENE IDENTIFIER	{
+		$$ = BasicSceneSemanticAction($2);
 	}
-	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{
 		$$ = BasicSceneSemanticAction($2);
 		if ($4 != NULL) {
 			$$ = $4;  // Use the scene with figures
@@ -272,7 +285,7 @@ scene_declaration: SCENE IDENTIFIER	{
 		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
 		$$ = BasicSceneSemanticAction($2);
 		if ($6 != NULL) {
-			$$ = $6;  // Use the scene with figures  
+			$$ = $6;  // Use the scene with figures
 			if ($$ != NULL && $$->name == NULL) {
 				$$->name = malloc(strlen($2) + 1);
 				if ($$->name != NULL) {
@@ -284,16 +297,16 @@ scene_declaration: SCENE IDENTIFIER	{
 	}
 	;
 
-scene_content: /* empty */				{ 
-		$$ = NULL; 
+scene_content: /* empty */				{
+		$$ = NULL;
 	}
-	| scene_content scene_item		{ 
-		$$ = MergeSceneContent($1, $2); 
+	| scene_content scene_item		{
+		$$ = MergeSceneContent($1, $2);
 	}
 	;
 
-scene_item: draw_statement		{ 
-		$$ = SceneFromFigure($1); 
+scene_item: draw_statement		{
+		$$ = SceneFromFigure($1);
 	}
 	| BACKGROUND parsed_color_value SEMICOLON {
 		$$ = SceneWithBackground($2);
@@ -320,7 +333,6 @@ symbol_declaration
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddSymbolToSceneSemanticAction($$, sym);
       printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym);
-      free($2);
     }
   ;
 
@@ -331,7 +343,6 @@ use_statement
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
       printf("[DEBUG] use_statement: attached (use=%p)\n", (void*)u);
-      free($2);
     }
   | USE IDENTIFIER AT coordinates_value SEMICOLON {
       printf("[DEBUG] use_statement: use '%s' at (%d,%d)\n", $2, $4.x, $4.y);
@@ -340,7 +351,6 @@ use_statement
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
       printf("[DEBUG] use_statement: attached with position (use=%p)\n", (void*)u);
-      free($2);
     }
   ;
 
@@ -430,7 +440,9 @@ position_item: AT coordinates_value			{
 size_item: SIZE dimensions_value				{
 		printf("[DEBUG] size_item: SIZE dimensions\n");
 		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
-		$$ = SetPropertyDimensionsSemanticAction(prop, $2.width, $2.height);
+		$$ = SetPropertyDimensionsWithUnitSemanticAction(prop,
+                 $2.width,  $2.widthUnit,
+                 $2.height, $2.heightUnit);
 	}
 	;
 
@@ -454,13 +466,13 @@ figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
 	| POLYGON		{ $$ = POLYGON_FIGURE; }
 	;
 
-figure_properties: /* empty */				{ 
+figure_properties: /* empty */				{
 		printf("[DEBUG] figure_properties: empty\n");
-		$$ = NULL; 
+		$$ = NULL;
 	}
-	| property_list						{ 
+	| property_list						{
 		printf("[DEBUG] figure_properties: property_list=%p\n", $1);
-		$$ = $1; 
+		$$ = $1;
 	}
 	;
 
@@ -477,35 +489,35 @@ figure_properties: /* empty */				{
         ;
 
 
-external_property_list: external_property_item		{ 
+external_property_list: external_property_item		{
 		printf("[DEBUG] external_property_list: single property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| external_property_item external_property_list	{ 
+	| external_property_item external_property_list	{
 		printf("[DEBUG] external_property_list: linking property to list\n");
 		$1->next = $2;
-		$$ = $1; 
+		$$ = $1;
 	}
 	;
 
-external_property_item: position_property		{ 
+external_property_item: position_property		{
 		printf("[DEBUG] external_property_item: position_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| size_property					{ 
+	| size_property					{
 		printf("[DEBUG] external_property_item: size_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
 	;
 
-property_list: property_item				{ 
+property_list: property_item				{
 		printf("[DEBUG] property_list: single property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| property_item property_list			{ 
+	| property_item property_list			{
 		printf("[DEBUG] property_list: linking property to list\n");
-		$1->next = $2; 
-		$$ = $1; 
+		$1->next = $2;
+		$$ = $1;
 	}
 	;
 
@@ -520,45 +532,47 @@ transform_list
         | transform_item transform_list     { $1->next = $2; $$ = $1; }
         ;
 
-property_item: size_property				{ 
+property_item: size_property				{
 		printf("[DEBUG] property_item: size_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| position_property					{ 
+	| position_property					{
 		printf("[DEBUG] property_item: position_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| fill_property						{ 
+	| fill_property						{
 		printf("[DEBUG] property_item: fill_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| stroke_property					{ 
+	| stroke_property					{
 		printf("[DEBUG] property_item: stroke_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| radius_property					{ 
+	| radius_property					{
 		printf("[DEBUG] property_item: radius_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| from_property					{ 
+	| from_property					{
 		printf("[DEBUG] property_item: from_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| to_property					{ 
+	| to_property					{
 		printf("[DEBUG] property_item: to_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| stroke_width_property				{ 
+	| stroke_width_property				{
 		printf("[DEBUG] property_item: stroke_width_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
-	| opacity_property					{ 
+	| opacity_property					{
 		printf("[DEBUG] property_item: opacity_property\n");
-		$$ = $1; 
+		$$ = $1;
 	}
 	| scale_property					{ $$ = $1; }
 	| rotate_property					{ $$ = $1; }
     | translate_property					{ $$ = $1; }
+	/* nuevo: width */
+	| width_property					{ $$ = $1; }
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
@@ -567,6 +581,56 @@ size_property: SIZE dimensions_value SEMICOLON {
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  $2.width,  $2.widthUnit,
                  $2.height, $2.heightUnit);
+    }
+    ;
+
+/* ---- NUEVO: width con unidades ----
+   Soporta:
+   - WIDTH DIMENSIONS;             (toma width y su unit del token DIMENSIONS)
+   - WIDTH INTEGER IDENTIFIER;     (p.ej. WIDTH 320 px;)
+   - WIDTH DECIMAL IDENTIFIER;     (p.ej. WIDTH 24.5 rem;)
+   - WIDTH INTEGER;                (unidad por defecto px)
+   - WIDTH DECIMAL;                (unidad por defecto px)
+*/
+width_property
+    : WIDTH DIMENSIONS SEMICOLON {
+        printf("DEBUG: width_property via DIMENSIONS: %d (unit=%d)\n", $2.width, (int)$2.widthUnit);
+        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 $2.width,  $2.widthUnit,
+                 0,         $2.widthUnit /* altura ignorada */);
+    }
+    | WIDTH INTEGER IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: width_property: %d %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 $2, u,
+                 0,  u);
+        free($3);
+    }
+    | WIDTH DECIMAL IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        printf("DEBUG: width_property: %f %s (unit=%d)\n", $2, $3, (int)u);
+        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 (int)$2, u,   /* si necesitás preservar decimales, cambiá a un setter float */
+                 0,      u);
+        free($3);
+    }
+    | WIDTH INTEGER SEMICOLON {
+        printf("DEBUG: width_property: %d (default px)\n", $2);
+        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 $2, UNIT_PX,
+                 0,  UNIT_PX);
+    }
+    | WIDTH DECIMAL SEMICOLON {
+        printf("DEBUG: width_property: %f (default px)\n", $2);
+        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
+        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
+                 (int)$2, UNIT_PX,
+                 0,       UNIT_PX);
     }
     ;
 

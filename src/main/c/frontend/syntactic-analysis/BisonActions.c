@@ -150,28 +150,33 @@ Scene * BasicSceneSemanticAction(const char * sceneName) {
 }
 
 Program * SceneProgramSemanticAction(Scene * scene) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Program * program = calloc(1, sizeof(Program));
-	if (program == NULL) {
-		return NULL;
-	}
-	
-	program->scene = scene;
+    _logSyntacticAnalyzerAction(__FUNCTION__);
 
-	if (program->scene && ValidateLayerZLevel(program->scene) == FAILED) {
+    Program * program = calloc(1, sizeof(Program));
+    if (program == NULL) {
+        return NULL;
+    }
+
+    program->scene = scene;
+
+    if (program->scene && ValidateLayerZLevel(program->scene) == FAILED) {
         destroyProgram(program);
         return NULL;
     }
 
-	program->type = SCENE_PROGRAM; 
-	
-	if (_compilerState != NULL) {
-		_compilerState->abstractSyntaxtTree = program;
-	}
-	
-	logDebugging(_logger, "Created program with scene");
-	return program;
+    /* === resolver 'use' → 'symbol' === */
+    if (program->scene && FinalizeSymbolsAndUses(program->scene) == FAILED) {
+        if (_logger) logError(_logger, "Compilation failed: undefined symbol(s) in 'use' statements.");
+    }
+
+    program->type = SCENE_PROGRAM;
+
+    if (_compilerState != NULL) {
+        _compilerState->abstractSyntaxtTree = program;
+    }
+
+    logDebugging(_logger, "Created program with scene");
+    return program;
 }
 
 // ============= COLOR PARSING FUNCTIONS =============
@@ -769,6 +774,52 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	destroyScene(item);
 	return acc;
 }
+
+static Symbol* _findSymbolByName(Scene *scene, const char *name) {
+    if (!scene || !name) return NULL;
+    for (Symbol *s = scene->symbols; s; s = s->next) {
+        if (s->name && strcmp(s->name, name) == 0) return s;
+    }
+    return NULL;
+}
+
+/* Loguea duplicados (mantiene el primero). */
+static void _logDuplicateSymbols(Scene *scene) {
+    if (!scene) return;
+    for (Symbol *a = scene->symbols; a; a = a->next) {
+        for (Symbol *b = a ? a->next : NULL; b; b = b->next) {
+            if (a->name && b->name && strcmp(a->name, b->name) == 0) {
+                if (_logger) logWarning(_logger, "Duplicate symbol '%s' detected (keeping first)", a->name);
+                else fprintf(stderr, "WARNING: Duplicate symbol '%s' detected (keeping first)\n", a->name);
+            }
+        }
+    }
+}
+
+CompilationStatus FinalizeSymbolsAndUses(Scene *scene) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene) return SUCCEEDED;
+
+    /* Avisar duplicados (no removemos para no tocar ownership) */
+    _logDuplicateSymbols(scene);
+
+    /* Resolver cada 'use' por nombre; si no existe, error. */
+    int unresolved = 0;
+    for (UseInstance *u = scene->uses; u; u = u->next) {
+        if (u->symbol) continue; /* ya resuelto en otra etapa */
+        const char *name = u->symbolName;
+        Symbol *s = _findSymbolByName(scene, name);
+        if (!s) {
+            ++unresolved;
+            if (_logger) logError(_logger, "Undefined symbol '%s' in use", (name ? name : "<null>"));
+            else fprintf(stderr, "ERROR: Undefined symbol '%s' in use\n", (name ? name : "<null>"));
+        } else {
+            u->symbol = s;
+        }
+    }
+    return (unresolved == 0) ? SUCCEEDED : FAILED;
+}
+
 
 // ============= SCENE SEMANTIC ACTIONS =============
 

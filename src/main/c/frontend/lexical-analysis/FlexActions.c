@@ -311,13 +311,16 @@ CompilationStatus DimensionsLexemeAction() {
 }
 
 static UnitType _parse_unit_suffix(const char *s) {
-	if (!s || !*s) return UNIT_PX;
-	if (strcmp(s, "px")  == 0) return UNIT_PX;
-	if (strcmp(s, "rem") == 0) return UNIT_REM;
-	if (strcmp(s, "em")  == 0) return UNIT_EM;
-	if (strcmp(s, "%")   == 0) return UNIT_PERCENT;
-	return UNIT_PX;
+    if (!s || !*s) return UNIT_PX;
+    if (strcmp(s, "px")  == 0) return UNIT_PX;
+    if (strcmp(s, "rem") == 0) return UNIT_REM;
+    if (strcmp(s, "em")  == 0) return UNIT_EM;
+    if (strcmp(s, "vw")  == 0) return UNIT_VW;
+    if (strcmp(s, "vh")  == 0) return UNIT_VH;
+    if (strcmp(s, "%")   == 0) return UNIT_PERCENT;
+    return UNIT_PX;
 }
+
 
 /* recorta espacios in-place */
 static void _trim(char *s) {

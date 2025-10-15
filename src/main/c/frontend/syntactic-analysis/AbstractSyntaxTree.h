@@ -74,6 +74,7 @@ enum FigureType {
 enum PropertyType {
 	POSITION_PROPERTY,
 	SIZE_PROPERTY,
+	WIDTH_PROPERTY,
 	RADIUS_PROPERTY,
 	FROM_PROPERTY,
 	TO_PROPERTY,
@@ -103,6 +104,8 @@ typedef enum {
     UNIT_PX,
     UNIT_REM,
     UNIT_EM,
+    UNIT_VW,
+    UNIT_VH,
     UNIT_PERCENT
 } UnitType;
 
@@ -213,7 +216,7 @@ struct Property {
 		} coordinates;        // Para AT, FROM, TO
 		struct {
 			int width;
-			int height;\
+			int height;
 			UnitType widthUnit;
             UnitType heightUnit;
 		} dimensions;         // Para SIZE
@@ -235,6 +238,7 @@ struct Symbol {
 };
 
 struct UseInstance {
+    Symbol * symbol;
     char * symbolName;
     int hasPosition;
     int posX, posY;

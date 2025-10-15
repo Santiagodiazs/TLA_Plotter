@@ -72,5 +72,6 @@ Program * SceneProgramSemanticAction(Scene * scene);
 
 
 Property * SetPropertyDimensionsWithUnitSemanticAction(Property * property,float width,  UnitType wUnit,float height, UnitType hUnit);
+CompilationStatus FinalizeSymbolsAndUses(Scene *scene);
 
 #endif
