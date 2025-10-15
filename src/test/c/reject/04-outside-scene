@@ -1,0 +1,15 @@
+scene MiEscena size 400x300 {
+    draw rectangle casa {
+        at (500, 100);
+        size 200x150;
+        fill #FF0000;
+        // Posición fuera de la escena (500 > 400)
+    }
+    
+    draw circle sol {
+        at (200, 400);
+        radius 50;
+        fill #FFD700;
+        // Posición fuera de la escena (400 > 300)
+    }
+}

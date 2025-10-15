@@ -703,15 +703,9 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	return acc;
 }
 
-// Symbol resolution functions moved to Stage 3 (Backend) - semantic validation
-// These functions validate symbol references and duplicates, which is semantic validation
-// 
-// Moved functions:
-// - _findSymbolByName() - finds symbol by name (semantic)
-// - _logDuplicateSymbols() - validates no duplicate symbols (semantic) 
-// - FinalizeSymbolsAndUses() - resolves symbol references (semantic)
 
 
-// ============= SCENE SEMANTIC ACTIONS =============
+
+
 
 

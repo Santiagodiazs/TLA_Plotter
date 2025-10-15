@@ -1,0 +1,13 @@
+scene MissingSize {
+    draw rectangle casa {
+        at (100, 100);
+        fill #FF0000;
+        // Falta size
+    }
+    
+    draw circle sol {
+        at (300, 100);
+        fill #FFD700;
+        // Falta radius
+    }
+}

@@ -239,16 +239,16 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: scene_declaration									{
+program: scene_declaration									{ 
 		disable_buffering();  // Deshabilitar buffering al inicio
-		$$ = SceneProgramSemanticAction($1);
+		$$ = SceneProgramSemanticAction($1); 
 	}
 	| INTEGER													{
 		$$ = NULL;
 	}
-	| error													{
-		yyerrok;
-		$$ = NULL;
+	| error													{ 
+		yyerrok; 
+		$$ = NULL; 
 	}
 	;
 
@@ -267,11 +267,11 @@ constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 	;
 
 
-scene_declaration: SCENE IDENTIFIER	{
-		$$ = BasicSceneSemanticAction($2);
+scene_declaration: SCENE IDENTIFIER	{ 
+		$$ = BasicSceneSemanticAction($2); 
 		free($2); // Liberar el string del IDENTIFIER
 	}
-	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
 		$$ = BasicSceneSemanticAction($2);
 		if ($4 != NULL) {
 			$$ = $4;  // Use the scene with figures
@@ -410,6 +410,26 @@ external_items: external_item external_items_more	{
 		$1->next = $2;
 		$$ = $1;
 	}
+	| external_item external_item	{
+		printf("[DEBUG] external_items: two items in sequence\n");
+		$1->next = $2;
+		$$ = $1;
+	}
+	| external_item SEMICOLON external_item	{
+		printf("[DEBUG] external_items: item ; item\n");
+		$1->next = $3;
+		$$ = $1;
+	}
+	| external_item SEMICOLON external_item external_item	{
+		printf("[DEBUG] external_items: item ; item item\n");
+		$1->next = $3;
+		$3->next = $4;
+		$$ = $1;
+	}
+	| external_item	{
+		printf("[DEBUG] external_items: single item\n");
+		$$ = $1;
+	}
 	;
 
 external_items_more: SEMICOLON external_item external_items_more	{
@@ -430,6 +450,18 @@ external_item: position_item				{
 	}
 	| size_item						{
 		printf("[DEBUG] external_item: size_item\n");
+		$$ = $1;
+	}
+	| scale_property					{
+		printf("[DEBUG] external_item: scale_property\n");
+		$$ = $1;
+	}
+	| rotate_property					{
+		printf("[DEBUG] external_item: rotate_property\n");
+		$$ = $1;
+	}
+	| translate_property					{
+		printf("[DEBUG] external_item: translate_property\n");
 		$$ = $1;
 	}
 	;
@@ -572,9 +604,18 @@ property_item: size_property				{
 		printf("[DEBUG] property_item: opacity_property\n");
 		$$ = $1;
 	}
-	| scale_property					{ $$ = $1; }
-	| rotate_property					{ $$ = $1; }
-    | translate_property					{ $$ = $1; }
+	| scale_property					{ 
+		printf("[DEBUG] property_item: scale_property\n");
+		$$ = $1; 
+	}
+	| rotate_property					{ 
+		printf("[DEBUG] property_item: rotate_property\n");
+		$$ = $1; 
+	}
+    | translate_property					{ 
+		printf("[DEBUG] property_item: translate_property\n");
+		$$ = $1; 
+	}
 	/* nuevo: width */
 	| width_property					{ $$ = $1; }
 	| height_property					{ $$ = $1; }
@@ -741,16 +782,16 @@ opacity_property: OPACITY DECIMAL SEMICOLON	{
 	}
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS DECIMAL COMMA DECIMAL CLOSE_PARENTHESIS SEMICOLON {
-        $$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyScaleSemanticAction($$, $3, $5);
-    }
-    ;
+scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
+		$$ = CreatePropertySemanticAction(SCALE_PROPERTY);
+        $$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
+	}
+	;
 
 
-rotate_property: ROTATE OPEN_PARENTHESIS DECIMAL CLOSE_PARENTHESIS SEMICOLON {
+rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
 		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, $3);
+		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
 	}
 	;
 
@@ -771,10 +812,10 @@ coordinates_value: COORDINATES {
 	;
 
 translate_property: TRANSLATE coordinates_value SEMICOLON {
-        $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
+		$$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
         $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y);
-    }
-    ;
+	}
+	;
 
 color_value: IDENTIFIER {
 		$$ = $1;

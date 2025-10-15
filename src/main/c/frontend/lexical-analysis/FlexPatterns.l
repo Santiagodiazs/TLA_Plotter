@@ -135,7 +135,6 @@ UNIT                (px|rem|em|vw|vh|%)
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
 {coordinates}						{ return CoordinatesLexemeAction(); }
-{NUM}{WS}?{UNIT}{WS}*[xX]{WS}*{NUM}{WS}?{UNIT}    { return DimensionsLexemeAction(); }
 {dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }

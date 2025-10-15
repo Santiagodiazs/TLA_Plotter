@@ -1,0 +1,24 @@
+scene ZOverlap {
+    layer capa_principal z 0 {
+        draw rectangle base {
+            at (100, 100);
+            size 200x150;
+            fill #FF0000;
+            z 0;
+        }
+        
+        draw rectangle superpuesto {
+            at (150, 120);
+            size 100x80;
+            fill #00FF00;
+            z 1;
+        }
+        
+        draw circle encima {
+            at (200, 150);
+            radius 30;
+            fill #0000FF;
+            z 2;
+        }
+    }
+}

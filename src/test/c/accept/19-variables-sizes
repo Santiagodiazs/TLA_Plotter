@@ -1,0 +1,29 @@
+scene VariablesTest {
+    variable ancho_casa = 200;
+    variable alto_casa = 150;
+    variable radio_ventana = 20;
+    
+    draw rectangle casa {
+        at (100, 100);
+        size ancho_casa x alto_casa;
+        fill #DEB887;
+    }
+    
+    draw circle ventana1 {
+        at (150, 130);
+        radius radio_ventana;
+        fill #87CEEB;
+    }
+    
+    draw circle ventana2 {
+        at (200, 130);
+        radius radio_ventana;
+        fill #87CEEB;
+    }
+    
+    draw rectangle puerta {
+        at (180, 200);
+        size 40 x (alto_casa - 50);
+        fill #8B4513;
+    }
+}

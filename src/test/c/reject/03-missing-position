@@ -1,0 +1,13 @@
+scene MissingPosition {
+    draw rectangle casa {
+        size 200x150;
+        fill #FF0000;
+        // Falta at
+    }
+    
+    draw circle sol {
+        radius 50;
+        fill #FFD700;
+        // Falta at
+    }
+}

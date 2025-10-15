@@ -1,0 +1,35 @@
+scene DuplicateIds {
+    symbol casa {
+        draw rectangle base {
+            at (0, 0);
+            size 100x80;
+            fill #DEB887;
+        }
+    }
+    
+    symbol casa {
+        draw rectangle base2 {
+            at (0, 0);
+            size 120x90;
+            fill #8B4513;
+        }
+        // ID duplicado
+    }
+    
+    layer fondo z 0 {
+        draw rectangle cielo {
+            at (0, 0);
+            size 400x300;
+            fill #87CEEB;
+        }
+    }
+    
+    layer fondo z 1 {
+        draw rectangle suelo {
+            at (0, 250);
+            size 400x50;
+            fill #90EE90;
+        }
+        // ID de layer duplicado
+    }
+}

@@ -1,0 +1,25 @@
+scene EllipseTest {
+    draw ellipse elipse1 {
+        at (100, 100);
+        width 120;
+        height 80;
+        fill #FF69B4;
+        opacity 0.8;
+    }
+    
+    draw ellipse elipse2 {
+        at (300, 100);
+        width 100;
+        height 120;
+        fill #9370DB;
+        opacity 0.6;
+    }
+    
+    draw ellipse elipse3 {
+        at (500, 100);
+        width 80;
+        height 80;
+        fill #20B2AA;
+        opacity 0.4;
+    }
+}

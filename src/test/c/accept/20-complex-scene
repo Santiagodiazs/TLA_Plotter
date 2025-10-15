@@ -1,0 +1,60 @@
+scene ComplexScene {
+    palette colores {
+        rojo #FF0000;
+        verde #00FF00;
+        azul #0000FF;
+        amarillo #FFFF00;
+    }
+    
+    layer fondo z 0 {
+        draw rectangle cielo {
+            at (0, 0);
+            size 800x400;
+            fill colores.azul;
+            opacity 0.8;
+        }
+    }
+    
+    layer objetos z 1 {
+        group casa {
+            draw rectangle base {
+                at (0, 0);
+                size 200x150;
+                fill #DEB887;
+            }
+            
+            draw rectangle techo {
+                at (0, 0);
+                size 200x100;
+                fill colores.rojo;
+            }
+            
+            draw circle ventana {
+                at (50, 50);
+                radius 20;
+                fill colores.amarillo;
+            }
+            
+            translate (300, 200);
+            rotate 15;
+        }
+        
+        draw circle sol {
+            at (600, 80);
+            radius 60;
+            fill colores.amarillo;
+            stroke colores.rojo;
+            stroke_width 3;
+        }
+    }
+    
+    layer primer_plano z 2 {
+        draw line diagonal {
+            at (100, 100);
+            from (0, 0);
+            to (200, 200);
+            stroke colores.verde;
+            stroke_width 5;
+        }
+    }
+}
