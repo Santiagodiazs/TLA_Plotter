@@ -117,10 +117,10 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-#line 46 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 48 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 union SemanticValue
 {
-#line 52 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 54 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 
 	/** Terminals. */
 
@@ -156,7 +156,7 @@ union SemanticValue
 #line 157 "src/main/c/frontend/syntactic-analysis/BisonParser.h"
 
 };
-#line 46 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
+#line 48 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"
 typedef union SemanticValue YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

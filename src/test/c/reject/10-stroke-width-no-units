@@ -5,7 +5,7 @@ scene StrokeWidthNoUnits {
         fill #FF0000;
         stroke #000000;
         stroke_width 5;
-        // Falta unidad - debería fallar
+        
     }
 }
 

@@ -1,8 +1,7 @@
-scene MiEscena {
+scene InvalidSyntax {
     draw rectangle casa {
-        at (100, 100);
+        at (100, 100, 50);
         size 200x150;
         fill #FF0000;
-        stroke #000000
     }
 }
