@@ -328,16 +328,20 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	return property;
 }
 
-Symbol * CreateSymbolMove(const char *name, Figure * figure) {
+Symbol * CreateSymbolMove(const char *name, Figure *src) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Symbol * symbol = calloc(1, sizeof(Symbol));
-		symbol->next = NULL;
     if (!symbol) return NULL;
+
     symbol->name = name ? strdup(name) : NULL;
-    if (figure) {
-        symbol->figure = *figure;        // copia superficial
-        figure->id = NULL; figure->properties = NULL; figure->transforms = NULL; figure->next = NULL;
-        free(figure);
+    symbol->next = NULL;
+
+    if (src) {
+        symbol->figure = *src;
+        src->id = NULL;
+        src->properties = NULL;
+        src->next = NULL;
+        free(src);
     }
     return symbol;
 }
