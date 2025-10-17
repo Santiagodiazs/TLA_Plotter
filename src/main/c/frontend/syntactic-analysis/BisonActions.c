@@ -190,6 +190,31 @@ Color * ParseNamedColor(const char * name) {
 	return color;
 }
 
+Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	// Por ahora vamos a usar el lookup global existente, solo del color
+	// En el futuro se puede extender para manejar múltiples paletas por nombre
+	printf("DEBUG: Looking up color '%s' from palette '%s'\n", 
+	       color_name ? color_name : "NULL", 
+	       palette_name ? palette_name : "NULL");
+	
+	Color *found_color = LookupPaletteColor(color_name);
+	if (found_color) {
+		return found_color;
+	}
+	
+	// Si no se encuentra, crear un color con nombre como fallback
+	Color * color = createColor(NAMED_COLOR);
+	if (color != NULL && color_name != NULL) {
+		color->value.name = malloc(strlen(color_name) + 1);
+		if (color->value.name != NULL) {
+			strcpy(color->value.name, color_name);
+		}
+	}
+	return color;
+}
+
 Color * ParseHexColor(const char * hex) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
@@ -516,6 +541,23 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
         tail->next = entries;
     }
     return _currentScene;
+}
+
+Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    
+    // Por ahora, vamos a implementar las paletas con nombre igual que las normales
+    // En el futuro se puede extender para manejar múltiples paletas por nombre
+    printf("DEBUG: Creating named palette '%s'\n", name ? name : "NULL");
+    
+    Scene * result = SceneWithPaletteBlock(entries);
+    
+    // Limpia el nombre ya que se copió como string
+    if (name) {
+        free((char *)name);
+    }
+    
+    return result;
 }
 
 Color * LookupPaletteColor(const char *name) {

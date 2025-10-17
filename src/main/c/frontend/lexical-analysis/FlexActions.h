@@ -41,5 +41,6 @@ CompilationStatus BraceLexemeAction(TokenLabel label);
 CompilationStatus SemicolonLexemeAction();
 CompilationStatus CommaLexemeAction();
 CompilationStatus ColonLexemeAction();
+CompilationStatus DotLexemeAction();
 
 #endif

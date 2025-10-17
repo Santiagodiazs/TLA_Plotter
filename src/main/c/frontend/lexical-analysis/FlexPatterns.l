@@ -36,6 +36,7 @@ extern CompilationStatus BraceLexemeAction(TokenLabel label);
 extern CompilationStatus SemicolonLexemeAction();
 extern CompilationStatus CommaLexemeAction();
 extern CompilationStatus ColonLexemeAction();
+extern CompilationStatus DotLexemeAction();
 
 %}
 
@@ -146,6 +147,7 @@ UNIT                (px|rem|em|vw|vh|%)
 ";"									{ return SemicolonLexemeAction(); }
 ","									{ return CommaLexemeAction(); }
 ":"									{ return ColonLexemeAction(); }
+"."									{ return DotLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 

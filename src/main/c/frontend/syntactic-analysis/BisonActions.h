@@ -30,6 +30,7 @@ Scene * BasicSceneSemanticAction(const char * sceneName);
 
 // ============= COLOR PARSING FUNCTIONS =============
 Color * ParseNamedColor(const char * name);
+Color * ParsePaletteColor(const char * palette_name, const char * color_name);
 Color * ParseHexColor(const char * hex);
 Color * ParseRgbColor(const char * rgb);
 Color * ParseRgbaColor(const char * rgba);
@@ -56,6 +57,7 @@ Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure);
 Scene * AddSymbolToSceneSemanticAction(Scene *scene, Symbol *sym);
 Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *use);
 Scene * SceneWithPaletteBlock(PaletteEntry *entries);
+Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries);
 
 // ============= NEW SCENE HELPER FUNCTIONS =============
 Scene * SceneFromFigure(Figure * figure);

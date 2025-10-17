@@ -446,3 +446,11 @@ CompilationStatus ColonLexemeAction() {
 	destroyToken(token);
 	return status;
 }
+
+CompilationStatus DotLexemeAction() {
+	Token * token = createToken(_lexicalAnalyzer, DOT);
+	_logTokenAction(__FUNCTION__, token);
+	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
+	return status;
+}

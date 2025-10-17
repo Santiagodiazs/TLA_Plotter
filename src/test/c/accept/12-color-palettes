@@ -1,13 +1,31 @@
-scene Parque {
-  palette {
-    trunk: #6B4F2A;
-    crown: #2E8B57;
-    grass: rgb(76,175,80);
-  }
-
-  draw rectangle ground { at (0, 350); size 900x50; fill grass; }
-  draw rectangle trunk1 { at (120, 350); size 20x40; fill trunk; }
-  draw circle crown1 { at (130, 330); radius 25; fill crown; }
-  draw rectangle trunk2 { at (180, 360); size 20x40; fill trunk; }
-  draw circle crown2 { at (190, 340); radius 25; fill crown; }
+scene ColorPalettes {
+    palette colores_primarios {
+        rojo #FF0000;
+        verde #00FF00;
+        azul #0000FF;
+    }
+    
+    palette colores_secundarios {
+        amarillo #FFFF00;
+        magenta #FF00FF;
+        cian #00FFFF;
+    }
+    
+    draw rectangle rect1 {
+        at (100, 100);
+        size 80x60;
+        fill colores_primarios.rojo;
+    }
+    
+    draw circle circ1 {
+        at (250, 100);
+        radius 40;
+        fill colores_secundarios.amarillo;
+    }
+    
+    draw rectangle rect2 {
+        at (400, 100);
+        size 80x60;
+        fill colores_primarios.verde;
+    }
 }

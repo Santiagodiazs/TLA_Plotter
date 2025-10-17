@@ -168,6 +168,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> SEMICOLON
 %token <token> COMMA
 %token <token> COLON
+%token <token> DOT
 
 /** Non-terminals. */
 %type <constant> constant
@@ -328,6 +329,9 @@ scene_item: draw_statement		{
     }
     | PALETTE OPEN_BRACE palette_list CLOSE_BRACE {
         $$ = SceneWithPaletteBlock($3);
+    }
+    | PALETTE IDENTIFIER OPEN_BRACE palette_list CLOSE_BRACE {
+        $$ = SceneWithNamedPaletteBlock($2, $4);
     }
 	| symbol_declaration {
     $$ = $1;
@@ -582,9 +586,9 @@ figure_properties: /* empty */				{
 	;
 
 	palette_item
-        : IDENTIFIER COLON parsed_color_value SEMICOLON {
+        : IDENTIFIER parsed_color_value SEMICOLON {
             printf("DEBUG: palette_item %s\n", $1);
-            $$ = CreatePaletteEntrySemanticAction($1, $3);
+            $$ = CreatePaletteEntrySemanticAction($1, $2);
         }
         ;
 
@@ -883,6 +887,10 @@ color_value: IDENTIFIER {
 parsed_color_value: IDENTIFIER {
 		printf("DEBUG: parsing named color: %s\n", $1);
 		$$ = ParseNamedColor($1);
+	}
+	| IDENTIFIER DOT IDENTIFIER {
+		printf("DEBUG: parsing palette color: %s.%s\n", $1, $3);
+		$$ = ParsePaletteColor($1, $3);
 	}
 	| RGB_COLOR {
 		printf("DEBUG: parsing RGB color: %s\n", $1);
