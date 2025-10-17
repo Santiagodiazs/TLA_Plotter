@@ -23,7 +23,6 @@ static UnitType parseUnit(const char* s) {
     if (strcmp(s,"em")==0)  return UNIT_EM;
     if (strcmp(s,"vw")==0)  return UNIT_VW;
     if (strcmp(s,"vh")==0)  return UNIT_VH;
-	if (strcmp(s,"%")==0)   return UNIT_PERCENT;
     /* fallback: px */
     return UNIT_PX;
 }
@@ -93,9 +92,6 @@ void yyerror(const YYLTYPE * location, const char * message) {
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
-%destructor { destroyConstant($$); } <constant>
-%destructor { destroyExpression($$); } <expression>
-%destructor { destroyFactor($$); } <factor>
 %destructor { destroyColor($$); } <color>
 
 /** Terminals. */
@@ -174,9 +170,6 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> DOT
 
 /** Non-terminals. */
-%type <constant> constant
-%type <expression> expression
-%type <factor> factor
 %type <program> program
 %type <scene> scene_declaration
 
@@ -195,17 +188,11 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <figure> draw_statement
 %type <figure> draw_list
 %type <string> layer_name
-%type <figure> figure_declaration
-%type <figure> figure_with_id
 %type <coordinates> coordinates_value
 %type <dimensions> dimensions_value
-%type <string> color_value
 %type <color> parsed_color_value
-%type <figure> figure_anonymous
 %type <integer> figure_type
 %type <property> figure_properties
-%type <property> external_property_list
-%type <property> external_property_item
 %type <property> property_list
 %type <property> property_item
 %type <property> size_property
@@ -222,13 +209,10 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> draw_tail
 %type <property> draw_tail_after_external
 %type <property> external_items
-%type <property> external_items_more
 %type <property> external_item
 %type <property> position_item
 %type <property> size_item
 %type <property> translate_property
-%type <property> transform_item
-%type <property> transform_list
 %type <property> width_property
 %type <property> height_property
 
@@ -264,19 +248,7 @@ program: scene_declaration									{
 	}
 	;
 
-expression: expression[left] ADD expression[right]			{ $$ = ArithmeticExpressionSemanticAction($left, $right, ADDITION); }
-	| expression[left] DIV expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, DIVISION); }
-	| expression[left] MUL expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, MULTIPLICATION); }
-	| expression[left] SUB expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, SUBTRACTION); }
-	| factor												{ $$ = FactorExpressionSemanticAction($1); }
-	;
 
-factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSemanticAction($2); }
-	| constant												{ $$ = ConstantFactorSemanticAction($1); }
-	;
-
-constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
-	;
 
 
 scene_declaration: SCENE IDENTIFIER	{ 
@@ -422,9 +394,7 @@ layer_name: IDENTIFIER { $$ = $1; }
 	| BACKGROUND { $$ = strdup("background"); }
 	;
 
-figure_declaration: figure_with_id		{ $$ = $1; }
-	| figure_anonymous				{ $$ = $1; }
-	;
+
 
 draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
 		printf("DEBUG: Draw statement with ID '%s'\n", $3);
@@ -447,7 +417,17 @@ draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
 	}
 	| external_items draw_tail_after_external	{
 		printf("[DEBUG] draw_tail: external + tail\n");
-		$$ = $2;
+		// Combine external_items ($1) with draw_tail_after_external ($2)
+		if ($1 && $2) {
+			Property *last = $1;
+			while (last && last->next) last = last->next;
+			if (last) last->next = $2;
+			$$ = $1;
+		} else if ($1) {
+			$$ = $1;
+		} else {
+			$$ = $2;
+		}
 	}
 	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
 		printf("[DEBUG] draw_tail: WITH syntax\n");
@@ -480,32 +460,16 @@ draw_list
     }
   ;
 
-external_items: external_item external_items_more	{
-		printf("[DEBUG] external_items: head + more\n");
-		printf("[DBG] link head %p -> %p\n", (void*)$1, (void*)$2);
-		$1->next = $2;
-		$$ = $1;
-	}
-	| external_item external_item	{
-		printf("[DEBUG] external_items: two items in sequence\n");
-		$1->next = $2;
-		$$ = $1;
-	}
-	| external_item	{
+external_items: external_item	{
 		printf("[DEBUG] external_items: single item\n");
 		$$ = $1;
 	}
-	;
-
-external_items_more: SEMICOLON external_item external_items_more	{
-		printf("[DEBUG] external_items_more: semicolon + item + more\n");
-		printf("[DBG] link mid %p -> %p\n", (void*)$2, (void*)$3);
-		$2->next = $3;
-		$$ = $2;
-	}
-	| /* empty */	{
-		printf("[DEBUG] external_items_more: empty\n");
-		$$ = NULL;
+	| external_items external_item	{
+		printf("[DEBUG] external_items: adding item to list\n");
+		Property *last = $1;
+		while (last->next) last = last->next;
+		last->next = $2;
+		$$ = $1;
 	}
 	;
 
@@ -547,17 +511,7 @@ size_item: SIZE dimensions_value				{
 	}
 	;
 
-figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Creating figure with ID '%s' of type %d\n", $2, $1);
-		$$ = CreateFigureSemanticAction($1, $2, $4);
-	}
-	;
 
-figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Creating anonymous figure of type %d\n", $1);
-		$$ = CreateFigureSemanticAction($1, NULL, $3);
-	}
-	;
 
 figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
 	| CIRCLE		{ $$ = CIRCLE_FIGURE; }
@@ -590,26 +544,7 @@ figure_properties: /* empty */				{
         ;
 
 
-external_property_list: external_property_item		{
-		printf("[DEBUG] external_property_list: single property\n");
-		$$ = $1;
-	}
-	| external_property_item external_property_list	{
-		printf("[DEBUG] external_property_list: linking property to list\n");
-		$1->next = $2;
-		$$ = $1;
-	}
-	;
 
-external_property_item: position_property		{
-		printf("[DEBUG] external_property_item: position_property\n");
-		$$ = $1;
-	}
-	| size_property					{
-		printf("[DEBUG] external_property_item: size_property\n");
-		$$ = $1;
-	}
-	;
 
 property_list: property_item				{
 		printf("[DEBUG] property_list: single property\n");
@@ -622,16 +557,7 @@ property_list: property_item				{
 	}
 	;
 
-transform_item
-        : scale_property
-        | rotate_property
-        | translate_property
-        ;
 
-transform_list
-        : transform_item                    { $$ = $1; }
-        | transform_item transform_list     { $1->next = $2; $$ = $1; }
-        ;
 
 property_item: size_property				{
 		printf("[DEBUG] property_item: size_property\n");
@@ -862,19 +788,7 @@ translate_property: TRANSLATE coordinates_value SEMICOLON {
 	}
 	;
 
-color_value: IDENTIFIER {
-		$$ = $1;
-	}
-	| RGB_COLOR {
-		$$ = $1;
-	}
-	| HEX_COLOR {
-		$$ = $1;
-	}
-	| RGBA_COLOR {
-		$$ = $1;
-	}
-	;
+
 
 parsed_color_value: IDENTIFIER {
 		printf("DEBUG: parsing named color: %s\n", $1);
