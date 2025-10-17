@@ -329,15 +329,15 @@ scene_item: draw_statement		{
 		}
 	;
 
-symbol_declaration
-  : SYMBOL IDENTIFIER OPEN_BRACE figure_declaration CLOSE_BRACE {
-      printf("[DEBUG] symbol_declaration: name='%s' figure=%p\n", $2, (void*)$4);
-      Symbol *sym = CreateSymbolMove($2, $4);
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddSymbolToSceneSemanticAction($$, sym);
-      printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym);
-    }
-  ;
+symbol_declaration 
+	: SYMBOL IDENTIFIER OPEN_BRACE draw_statement CLOSE_BRACE { 
+			printf("[DEBUG] symbol_declaration: name='%s' figure=%p\n", $2, (void*)$4); 
+			Symbol *sym = CreateSymbolMove($2, $4); 
+			$$ = BasicSceneSemanticAction(NULL); 
+			$$ = AddSymbolToSceneSemanticAction($$, sym); 
+			printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym); 
+		} 
+	;
 
 use_statement
   : USE IDENTIFIER SEMICOLON {
