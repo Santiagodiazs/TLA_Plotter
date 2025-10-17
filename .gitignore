@@ -1,2 +1,3 @@
 BisonParser*
+FlexScanner*
 .build
