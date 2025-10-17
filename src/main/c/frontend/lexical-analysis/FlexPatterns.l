@@ -14,10 +14,15 @@
 
 extern CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
 extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus EnterOnelineCommentLexemeAction(FlexContext context);
 extern CompilationStatus EOFLexemeAction();
 extern CompilationStatus IgnoredLexemeAction();
 extern CompilationStatus IntegerLexemeAction();
 extern CompilationStatus LeaveMultilineCommentLexemeAction();
+extern CompilationStatus LeaveOnelineCommentLexemeAction();
+extern CompilationStatus EnterStringContextLexemeAction(FlexContext context);
+extern CompilationStatus LeaveStringContextLexemeAction();
+extern CompilationStatus SemicolonAndLeaveStringContextLexemeAction();
 extern CompilationStatus ParenthesisLexemeAction(TokenLabel label);
 extern CompilationStatus UnknownLexemeAction();
 
@@ -43,6 +48,8 @@ extern CompilationStatus DotLexemeAction();
  * @see https://westes.github.io/flex/manual/Start-Conditions.html
  */
 %x MULTILINE_COMMENT
+%x ONELINE_COMMENT
+%s STRING
 
 /**
  * Reusable patterns.
@@ -84,6 +91,13 @@ UNIT                (px|rem|em|vw|vh|%)
 <MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+
+"//"								{ return EnterOnelineCommentLexemeAction(ONELINE_COMMENT); }
+<ONELINE_COMMENT>"\n"				{ return LeaveOnelineCommentLexemeAction(); }
+<ONELINE_COMMENT>[^\n]+			{ return IgnoredLexemeAction(); }
+<ONELINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+
+<STRING>";"							{ return SemicolonAndLeaveStringContextLexemeAction(); }
 
 "-"									{ return ArithmeticOperatorLexemeAction(SUB); }
 "*"									{ return ArithmeticOperatorLexemeAction(MUL); }
@@ -150,7 +164,7 @@ UNIT                (px|rem|em|vw|vh|%)
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
 ";"									{ return SemicolonLexemeAction(); }
 ","									{ return CommaLexemeAction(); }
-":"									{ return ColonLexemeAction(); }
+":"									{ return EnterStringContextLexemeAction(STRING); }
 "."									{ return DotLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }

@@ -255,6 +255,35 @@ CompilationStatus LeaveMultilineCommentLexemeAction() {
 	return IN_PROGRESS;
 }
 
+CompilationStatus EnterOnelineCommentLexemeAction(FlexContext context) {
+	enterLexicalAnalyzerContext(_lexicalAnalyzer, context);
+	return IN_PROGRESS;
+}
+
+CompilationStatus LeaveOnelineCommentLexemeAction() {
+	leaveLexicalAnalyzerContext(_lexicalAnalyzer);
+	return IN_PROGRESS;
+}
+
+CompilationStatus EnterStringContextLexemeAction(FlexContext context) {
+	enterLexicalAnalyzerContext(_lexicalAnalyzer, context);
+	return IN_PROGRESS;
+}
+
+CompilationStatus LeaveStringContextLexemeAction() {
+	leaveLexicalAnalyzerContext(_lexicalAnalyzer);
+	return IN_PROGRESS;
+}
+
+CompilationStatus SemicolonAndLeaveStringContextLexemeAction() {
+	leaveLexicalAnalyzerContext(_lexicalAnalyzer);
+	Token * token = createToken(_lexicalAnalyzer, SEMICOLON);
+	_logTokenAction(__FUNCTION__, token);
+	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
+	return status;
+}
+
 CompilationStatus SubexpressionLexemeAction() {
 	return IgnoredLexemeAction();
 }
