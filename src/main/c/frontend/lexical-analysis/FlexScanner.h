@@ -4,15 +4,13 @@
 
 #line 6 "src/main/c/frontend/lexical-analysis/FlexScanner.h"
 
-#include <stdio.h>
-
 #include "../../support/type/CompilationStatus.h"
 #include "../../support/type/FlexContext.h"
 #include "../../support/type/TokenLabel.h"
 #include "../syntactic-analysis/AbstractSyntaxTree.h"
 #include "../syntactic-analysis/BisonParser.h"
 
-#line 16 "src/main/c/frontend/lexical-analysis/FlexScanner.h"
+#line 14 "src/main/c/frontend/lexical-analysis/FlexScanner.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -255,8 +253,7 @@ void yyfree ( void * , yyscan_t yyscanner );
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
-#define IMPORT_EXPRESSION 1
-#define MULTILINE_COMMENT 2
+#define MULTILINE_COMMENT 1
 
 #endif
 
@@ -520,9 +517,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 158 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 163 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 
 
-#line 527 "src/main/c/frontend/lexical-analysis/FlexScanner.h"
+#line 524 "src/main/c/frontend/lexical-analysis/FlexScanner.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */
