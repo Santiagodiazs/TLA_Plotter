@@ -688,3 +688,97 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	destroyScene(item);
 	return acc;
 }
+
+// Funciones para Group
+Group * CreateGroup(const char *name, GroupContent *content) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Group *group = calloc(1, sizeof(Group));
+    if (!group) return NULL;
+    
+    group->name = name ? strdup(name) : NULL;
+    group->figures = NULL;
+    group->properties = NULL;
+    group->next = NULL;
+    
+    // Procesar el contenido del grupo
+    if (content) {
+        group->figures = content->figures;
+        group->properties = content->properties;
+        free(content);
+    }
+    
+    return group;
+}
+
+GroupContent * GroupFromFigure(Figure *figure) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    GroupContent *content = calloc(1, sizeof(GroupContent));
+    if (!content) return NULL;
+    
+    content->figures = figure;
+    content->properties = NULL;
+    return content;
+}
+
+GroupContent * GroupFromProperty(Property *property) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    GroupContent *content = calloc(1, sizeof(GroupContent));
+    if (!content) return NULL;
+    
+    content->figures = NULL;
+    content->properties = property;
+    return content;
+}
+
+GroupContent * MergeGroupContent(GroupContent *acc, GroupContent *item) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!acc) return item;
+    if (!item) return acc;
+    
+    // Concatenar figuras
+    if (item->figures) {
+        Figure *last = acc->figures;
+        if (last) {
+            while (last->next) last = last->next;
+            last->next = item->figures;
+        } else {
+            acc->figures = item->figures;
+        }
+        item->figures = NULL;
+    }
+    
+    // Concatenar propiedades
+    if (item->properties) {
+        Property *last = acc->properties;
+        if (last) {
+            while (last->next) last = last->next;
+            last->next = item->properties;
+        } else {
+            acc->properties = item->properties;
+        }
+        item->properties = NULL;
+    }
+    
+    free(item);
+    return acc;
+}
+
+Scene * AddGroupToSceneSemanticAction(Scene *scene, Group *group) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !group) return scene;
+    group->next = scene->groups;
+    scene->groups = group;
+    return scene;
+}
+
+// Funciones para propiedades de Use
+Property * MergeProperties(Property *acc, Property *item) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!acc) return item;
+    if (!item) return acc;
+    
+    Property *last = acc;
+    while (last->next) last = last->next;
+    last->next = item;
+    return acc;
+}

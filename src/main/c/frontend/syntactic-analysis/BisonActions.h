@@ -69,5 +69,14 @@ Program * SceneProgramSemanticAction(Scene * scene);
 
 Property * SetPropertyDimensionsWithUnitSemanticAction(Property * property,float width,  UnitType wUnit,float height, UnitType hUnit);
 
+// ============= GROUP FUNCTIONS =============
+Group * CreateGroup(const char *name, GroupContent *content);
+GroupContent * GroupFromFigure(Figure *figure);
+GroupContent * GroupFromProperty(Property *property);
+GroupContent * MergeGroupContent(GroupContent *acc, GroupContent *item);
+Scene * AddGroupToSceneSemanticAction(Scene *scene, Group *group);
+
+// ============= USE PROPERTIES FUNCTIONS =============
+Property * MergeProperties(Property *acc, Property *item);
 
 #endif

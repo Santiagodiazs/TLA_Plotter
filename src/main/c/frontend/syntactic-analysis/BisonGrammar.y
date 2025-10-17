@@ -78,6 +78,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	Property * property;
 	Color * color;
 	PaletteEntry * palette_entry;
+	GroupContent * group_content;
+	Group * group;
 }
 
 /**
@@ -181,6 +183,11 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <scene> scene_item
 %type <scene> symbol_declaration
 %type <scene> use_statement
+%type <scene> group_statement
+%type <property> use_properties
+%type <property> use_property
+%type <group_content> group_content
+%type <group_content> group_item
 %type <figure> draw_statement
 %type <figure> draw_list
 %type <string> layer_name
@@ -328,6 +335,9 @@ scene_item: draw_statement		{
 	| use_statement {
     $$ = $1;
 		}
+	| group_statement {
+    $$ = $1;
+		}
 	;
 
 symbol_declaration
@@ -358,6 +368,47 @@ use_statement
       $$ = AddUseToSceneSemanticAction($$, u);
       printf("[DEBUG] use_statement: attached with position (use=%p)\n", (void*)u);
     }
+  | USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE {
+      printf("[DEBUG] use_statement: use '%s' with properties\n", $2);
+      UseInstance *u = CreateUseInstance($2);
+      u->properties = $3;
+      $$ = BasicSceneSemanticAction(NULL);
+      $$ = AddUseToSceneSemanticAction($$, u);
+      printf("[DEBUG] use_statement: attached with properties (use=%p)\n", (void*)u);
+    }
+  ;
+
+use_properties: /* empty */ { $$ = NULL; }
+  | use_properties use_property { $$ = MergeProperties($1, $2); }
+  ;
+
+use_property: AT coordinates_value SEMICOLON {
+    $$ = CreatePropertySemanticAction(POSITION_PROPERTY);
+    $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
+  }
+  | scale_property { $$ = $1; }
+  | rotate_property { $$ = $1; }
+  | translate_property { $$ = $1; }
+  ;
+
+group_statement
+  : GROUP IDENTIFIER OPEN_BRACE group_content CLOSE_BRACE {
+      printf("[DEBUG] group_statement: group '%s'\n", $2);
+      Group *g = CreateGroup($2, $4);
+      $$ = BasicSceneSemanticAction(NULL);
+      $$ = AddGroupToSceneSemanticAction($$, g);
+      printf("[DEBUG] group_statement: attached (group=%p)\n", (void*)g);
+    }
+  ;
+
+group_content: /* empty */ { $$ = NULL; }
+  | group_content group_item { $$ = MergeGroupContent($1, $2); }
+  ;
+
+group_item: draw_statement { $$ = GroupFromFigure($1); }
+  | scale_property { $$ = GroupFromProperty($1); }
+  | rotate_property { $$ = GroupFromProperty($1); }
+  | translate_property { $$ = GroupFromProperty($1); }
   ;
 
 layer_name: IDENTIFIER { $$ = $1; }

@@ -8,3 +8,5 @@ scene StrokeWidthNoUnits {
         // Falta unidad - debería fallar
     }
 }
+
+

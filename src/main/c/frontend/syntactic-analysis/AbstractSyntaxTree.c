@@ -75,6 +75,7 @@ void destroyScene(Scene * scene) {
 		destroyLayer(scene->layers); // Destruir layers
 		if (scene->symbols) destroySymbol(scene->symbols);
 		if (scene->uses) destroyUseInstance(scene->uses);
+		if (scene->groups) destroyGroup(scene->groups);
 		if (scene->palette) destroyPalette(scene->palette);
 		free(scene);
 	}
@@ -113,8 +114,21 @@ void destroyUseInstance(UseInstance * useInstance){
     while (useInstance) {
         UseInstance * nxt = useInstance->next;
         if (useInstance->symbolName) free(useInstance->symbolName);
+        if (useInstance->properties) destroyProperty(useInstance->properties);
         free(useInstance);
         useInstance = nxt;
+    }
+}
+
+void destroyGroup(Group * group) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    while (group) {
+        Group * nxt = group->next;
+        if (group->name) free(group->name);
+        if (group->figures) destroyFigure(group->figures);
+        if (group->properties) destroyProperty(group->properties);
+        free(group);
+        group = nxt;
     }
 }
 

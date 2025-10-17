@@ -150,8 +150,10 @@ union SemanticValue
 	Property * property;
 	Color * color;
 	PaletteEntry * palette_entry;
+	GroupContent * group_content;
+	Group * group;
 
-#line 155 "src/main/c/frontend/syntactic-analysis/BisonParser.h"
+#line 157 "src/main/c/frontend/syntactic-analysis/BisonParser.h"
 
 };
 #line 46 "src/main/c/frontend/syntactic-analysis/BisonGrammar.y"

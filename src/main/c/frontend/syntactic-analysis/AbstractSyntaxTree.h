@@ -33,6 +33,8 @@ typedef struct Color Color;
 typedef struct Layer Layer;
 typedef struct Symbol Symbol;
 typedef struct UseInstance UseInstance;
+typedef struct Group Group;
+typedef struct GroupContent GroupContent;
 typedef struct PaletteEntry PaletteEntry;
 typedef struct Transform Transform;
 
@@ -198,6 +200,7 @@ struct Scene {
 	Symbol * symbols;          // lista de símbolos declarados
 	PaletteEntry *palette;   // lista de entradas de paleta
   UseInstance * uses; 			// lista de uses en esta escena
+  Group * groups;              // lista de grupos en esta escena
 };
 
 struct Figure {
@@ -243,7 +246,20 @@ struct UseInstance {
     char * symbolName;
     int hasPosition;
     int posX, posY;
+    Property * properties; 
     struct UseInstance * next;
+};
+
+struct Group {
+    char * name;
+    Figure * figures;
+    Property * properties;  
+    struct Group * next;
+};
+
+struct GroupContent {
+    Figure * figures;
+    Property * properties;
 };
 
 void destroyConstant(Constant * constant);
@@ -256,6 +272,7 @@ void destroyProperty(Property * property);
 void destroyColor(Color * color);
 void destroySymbol(Symbol * symbol);
 void destroyUseInstance(UseInstance * useInstance);
+void destroyGroup(Group * group);
 Color * createColor(ColorType type);
 
 // Layer functions

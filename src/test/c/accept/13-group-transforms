@@ -13,7 +13,7 @@ scene GroupTransforms {
         }
         
         translate (200, 100);
-        rotate 45;
+        rotate (45);
     }
     
     group mi_grupo2 {
@@ -24,6 +24,6 @@ scene GroupTransforms {
         }
         
         translate (100, 200);
-        scale 1.5;
+        scale (1);
     }
 }
