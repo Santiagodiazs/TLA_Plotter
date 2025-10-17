@@ -328,22 +328,28 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	return property;
 }
 
-Symbol * CreateSymbolMove(const char *name, Figure * figure) {
+Symbol * CreateSymbolMove(const char *name, Figure *src) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    Symbol *s = calloc(1, sizeof(Symbol));
-    if (!s) return NULL;
-    s->name = name ? strdup(name) : NULL;
-    if (figure) {
-        s->figure = *figure;        // copia superficial
-        figure->id = NULL; figure->properties = NULL; figure->transforms = NULL; figure->next = NULL;
-        free(figure);
+    Symbol * symbol = calloc(1, sizeof(Symbol));
+    if (!symbol) return NULL;
+
+    symbol->name = name ? strdup(name) : NULL;
+    symbol->next = NULL;
+
+    if (src) {
+        symbol->figure = *src;
+        src->id = NULL;
+        src->properties = NULL;
+        src->next = NULL;
+        free(src);
     }
-    return s;
+    return symbol;
 }
 
 UseInstance * CreateUseInstance(const char *symbolName) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     UseInstance * useInstace = calloc(1, sizeof(UseInstance));
+		useInstace->next = NULL;
     if (!useInstace) return NULL;
     useInstace->symbolName = symbolName ? strdup(symbolName) : NULL;
     return useInstace;
@@ -682,10 +688,3 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	destroyScene(item);
 	return acc;
 }
-
-
-
-
-
-
-

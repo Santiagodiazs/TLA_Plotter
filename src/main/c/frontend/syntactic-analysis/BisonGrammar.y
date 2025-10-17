@@ -182,6 +182,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <scene> symbol_declaration
 %type <scene> use_statement
 %type <figure> draw_statement
+%type <figure> draw_list
 %type <string> layer_name
 %type <figure> figure_declaration
 %type <figure> figure_with_id
@@ -330,12 +331,14 @@ scene_item: draw_statement		{
 	;
 
 symbol_declaration
-  : SYMBOL IDENTIFIER OPEN_BRACE figure_declaration CLOSE_BRACE {
-      printf("[DEBUG] symbol_declaration: name='%s' figure=%p\n", $2, (void*)$4);
-      Symbol *sym = CreateSymbolMove($2, $4);
+  : SYMBOL IDENTIFIER OPEN_BRACE draw_list CLOSE_BRACE
+    {
+      printf("[DEBUG] symbol_declaration(list): name='%s' head=%p\n", $2, (void*)$4);
+      Symbol *sym = CreateSymbolMove($2, $4);   /* $4 es la CABEZA de la lista de Figure */
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddSymbolToSceneSemanticAction($$, sym);
-      printf("[DEBUG] symbol_declaration: symbol attached to scene (sym=%p)\n", (void*)sym);
+      printf("[DEBUG] symbol_declaration: attached (sym=%p)\n", (void*)sym);
+      free($2); /* si CreateSymbolMove hace strdup del nombre */
     }
   ;
 
@@ -403,6 +406,21 @@ draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
 		$$ = $3;
 	}
 	;
+
+draw_list
+  : draw_statement                          { $$ = $1; }
+  | draw_list draw_statement                {
+      printf("[DEBUG] draw_list: linking %p -> %p\n", (void*)$1, (void*)$2);
+      if ($1) {
+        Figure *tail = $1;
+        while (tail->next) tail = tail->next;
+        tail->next = $2;
+        $$ = $1;
+      } else {
+        $$ = $2;
+      }
+    }
+  ;
 
 external_items: external_item external_items_more	{
 		printf("[DEBUG] external_items: head + more\n");

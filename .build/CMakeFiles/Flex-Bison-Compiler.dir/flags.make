@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = 
 
-C_FLAGS = -fsanitize=address -O3 -static-libgcc -std=gnu99
+C_FLAGS = -O3 -static-libgcc -std=gnu99
 
