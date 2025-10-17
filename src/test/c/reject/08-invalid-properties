@@ -4,7 +4,7 @@ scene InvalidProperties {
         size 200x150;
         fill #FF0000;
         radius 50;
-        // radius no es válido para rectangle
+        
     }
     
     draw circle sol {
@@ -13,7 +13,7 @@ scene InvalidProperties {
         fill #FFD700;
         width 100;
         height 80;
-        // width y height no son válidos para circle
+        
     }
     
     draw line diagonal {
@@ -22,6 +22,6 @@ scene InvalidProperties {
         to (100, 100);
         stroke #0000FF;
         radius 10;
-        // radius no es válido para line
+        
     }
 }

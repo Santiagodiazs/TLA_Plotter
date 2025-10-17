@@ -36,6 +36,8 @@ static UnitType parseUnit(const char* s) {
  * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
  */
 void yyerror(const YYLTYPE * location, const char * message) {
+    fprintf(stderr, "SYNTAX ERROR: %s\n", message);
+    exit(1);
 }
 
 %}
@@ -486,17 +488,6 @@ external_items: external_item external_items_more	{
 	| external_item external_item	{
 		printf("[DEBUG] external_items: two items in sequence\n");
 		$1->next = $2;
-		$$ = $1;
-	}
-	| external_item SEMICOLON external_item	{
-		printf("[DEBUG] external_items: item ; item\n");
-		$1->next = $3;
-		$$ = $1;
-	}
-	| external_item SEMICOLON external_item external_item	{
-		printf("[DEBUG] external_items: item ; item item\n");
-		$1->next = $3;
-		$3->next = $4;
 		$$ = $1;
 	}
 	| external_item	{
