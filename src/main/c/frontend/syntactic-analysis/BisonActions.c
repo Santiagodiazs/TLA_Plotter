@@ -17,7 +17,6 @@ void _shutdownBisonActionsModule() {
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
-	_globalPalette = NULL; 
 	if(_globalPalette){
 		destroyPalette(_globalPalette);
 		_globalPalette = NULL;
@@ -172,9 +171,7 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 
     logDebugging(_logger, "Created program with scene");
     return program;
-}
-
-// ============= COLOR PARSING FUNCTIONS =============
+}// ============= COLOR PARSING FUNCTIONS =============
 
 Color * ParseNamedColor(const char * name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);

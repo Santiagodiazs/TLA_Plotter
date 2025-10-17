@@ -23,7 +23,6 @@ Expression * FactorExpressionSemanticAction(Factor * factor);
 Factor * ConstantFactorSemanticAction(Constant * constant);
 Factor * ExpressionFactorSemanticAction(Expression * expression);
 Program * ExpressionProgramSemanticAction(Expression * expression);
-Program * ProgramWithPaletteAndScene(PaletteEntry * palette, Scene * scene);
 
 Scene * BasicSceneSemanticAction(const char * sceneName);
 

@@ -23,6 +23,7 @@ static UnitType parseUnit(const char* s) {
     if (strcmp(s,"em")==0)  return UNIT_EM;
     if (strcmp(s,"vw")==0)  return UNIT_VW;
     if (strcmp(s,"vh")==0)  return UNIT_VH;
+	if (strcmp(s,"%")==0)   return UNIT_PERCENT;
     /* fallback: px */
     return UNIT_PX;
 }
