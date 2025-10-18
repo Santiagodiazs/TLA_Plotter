@@ -62,7 +62,7 @@ whitespace			[[:space:]]+
 /* Patrones específicos del DSL */ 
 identifier          [a-zA-Z_][a-zA-Z0-9_]*
 integer             [0-9]+
-decimal             [0-9]+(\.[0-9]+)?
+decimal             [0-9]+\.[0-9]+
 dimensions          [0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 
 WS                  [ \t\r\n\f\v]*
