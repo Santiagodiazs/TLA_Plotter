@@ -144,7 +144,6 @@ UNIT                (px|rem|em|vw|vh|%)
 "translate"							{ return KeywordLexemeAction(TRANSLATE); }
 "rotate"							{ return KeywordLexemeAction(ROTATE); }
 "scale"								{ return KeywordLexemeAction(SCALE); }
-"scaling"							{ return KeywordLexemeAction(SCALING); }
 
 "color"								{ return KeywordLexemeAction(COLOR); }
 

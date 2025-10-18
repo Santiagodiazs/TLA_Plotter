@@ -61,6 +61,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 		UnitType widthUnit;
         UnitType heightUnit;
 	} dimensions;
+
 	struct {
 		int x;
 		int y;
@@ -145,7 +146,6 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> TRANSLATE
 %token <token> ROTATE
 %token <token> SCALE
-%token <token> SCALING
 
 // DSL Tokens - Colors
 %token <token> COLOR
@@ -232,430 +232,179 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: scene_declaration									{ 
-		disable_buffering();  
-		$$ = SceneProgramSemanticAction($1); 
-	}
-	| INTEGER													{
-		$$ = NULL;
-	}
-	| error													{ 
-		yyerrok; 
-		$$ = NULL; 
-	}
+program: scene_declaration	{ disable_buffering(); $$ = SceneProgramSemanticAction($1); }
+	| INTEGER	{ $$ = NULL; }
+	| error	{ yyerrok; $$ = NULL; }
 	;
 
 
-
-
-scene_declaration: SCENE IDENTIFIER	{ 
-		$$ = BasicSceneSemanticAction($2); 
-		free($2); 
-	}
-	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
-		$$ = BasicSceneSemanticAction($2);
-		if ($4 != NULL) {
-			$$ = $4;  
-			if ($$ != NULL && $$->name == NULL) {
-				$$->name = malloc(strlen($2) + 1);
-				if ($$->name != NULL) {
-					strcpy($$->name, $2);
-				}
-			}
-		}
-		free($2); 
-	}
-	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
-		$$ = BasicSceneSemanticAction($2);
-		if ($6 != NULL) {
-			$$ = $6;  
-			if ($$ != NULL && $$->name == NULL) {
-				$$->name = malloc(strlen($2) + 1);
-				if ($$->name != NULL) {
-					strcpy($$->name, $2);
-				}
-			}
-		}
-		// TODO: Agregar acción semántica para tamaño de escena
-	}
+scene_declaration: SCENE IDENTIFIER	{ $$ = BasicSceneSemanticAction($2); }
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($4 != NULL) { $$ = $4; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
+	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($6 != NULL) { $$ = $6; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
 	;
 
-scene_content: /* empty */				{
-		$$ = NULL;
-	}
-	| scene_content scene_item		{
-		$$ = MergeSceneContent($1, $2);
-	}
+scene_content: /* empty */	{ $$ = NULL; }
+	| scene_content scene_item	{ $$ = MergeSceneContent($1, $2); }
 	;
 
-scene_item: draw_statement		{
-		$$ = SceneFromFigure($1);
-	}
-	| BACKGROUND parsed_color_value SEMICOLON {
-		$$ = SceneWithBackground($2);
-	}
-	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE {
-        $$ = SceneWithLayerBlock($2, $4, $6);
-        free($2);
-    }
-    | PALETTE OPEN_BRACE palette_list CLOSE_BRACE {
-        $$ = SceneWithPaletteBlock($3);
-    }
-    | PALETTE IDENTIFIER OPEN_BRACE palette_list CLOSE_BRACE {
-        $$ = SceneWithNamedPaletteBlock($2, $4);
-    }
-	| symbol_declaration {
-    $$ = $1;
-		}
-	| use_statement {
-    $$ = $1;
-		}
-	| group_statement {
-    $$ = $1;
-		}
+scene_item: draw_statement	{ $$ = SceneFromFigure($1); }
+	| BACKGROUND parsed_color_value SEMICOLON	{ $$ = SceneWithBackground($2); }
+	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = SceneWithLayerBlock($2, $4, $6); }
+    | PALETTE OPEN_BRACE palette_list CLOSE_BRACE	{ $$ = SceneWithPaletteBlock($3); }
+    | PALETTE IDENTIFIER OPEN_BRACE palette_list CLOSE_BRACE	{ $$ = SceneWithNamedPaletteBlock($2, $4); }
+	| symbol_declaration	{ $$ = $1; }
+	| use_statement	{ $$ = $1; }
+	| group_statement	{ $$ = $1; }
 	;
 
-symbol_declaration
-  : SYMBOL IDENTIFIER OPEN_BRACE draw_list CLOSE_BRACE
-    {
-      Symbol *sym = CreateSymbolMove($2, $4);   /* $4 es la CABEZA de la lista de Figure */
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddSymbolToSceneSemanticAction($$, sym);
-      free($2); /* si CreateSymbolMove hace strdup del nombre */
-    }
+symbol_declaration: SYMBOL IDENTIFIER OPEN_BRACE draw_list CLOSE_BRACE	{ Symbol *sym = CreateSymbolMove($2, $4); $$ = BasicSceneSemanticAction(NULL); $$ = AddSymbolToSceneSemanticAction($$, sym); }
   ;
 
-use_statement
-  : USE IDENTIFIER SEMICOLON {
-      UseInstance *u = CreateUseInstance($2);
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddUseToSceneSemanticAction($$, u);
-    }
-  | USE IDENTIFIER AT coordinates_value SEMICOLON {
-      UseInstance *u = CreateUseInstance($2);
-      u->hasPosition = 1; u->posX = $4.x; u->posY = $4.y;
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddUseToSceneSemanticAction($$, u);
-    }
-  | USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE {
-      UseInstance *u = CreateUseInstance($2);
-      u->properties = $4;
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddUseToSceneSemanticAction($$, u);
-    }
+use_statement: USE IDENTIFIER SEMICOLON	{ UseInstance *u = CreateUseInstance($2); $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
+	| USE IDENTIFIER AT coordinates_value SEMICOLON	{ UseInstance *u = CreateUseInstance($2); u->hasPosition = 1; u->posX = $4.x; u->posY = $4.y; $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
+	| USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE	{ UseInstance *u = CreateUseInstance($2); u->properties = $4; $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
   ;
 
-use_properties: /* empty */ { $$ = NULL; }
-  | use_properties use_property { $$ = MergeProperties($1, $2); }
+use_properties: /* empty */	{ $$ = NULL; }
+	| use_properties use_property	{ $$ = MergeProperties($1, $2); }
   ;
 
-use_property: AT coordinates_value SEMICOLON {
-    $$ = CreatePropertySemanticAction(POSITION_PROPERTY);
-    $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-  }
-  | scale_property { $$ = $1; }
-  | rotate_property { $$ = $1; }
-  | translate_property { $$ = $1; }
+use_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
   ;
 
-group_statement
-  : GROUP IDENTIFIER OPEN_BRACE group_content CLOSE_BRACE {
-      Group *g = CreateGroup($2, $4);
-      $$ = BasicSceneSemanticAction(NULL);
-      $$ = AddGroupToSceneSemanticAction($$, g);
-    }
+group_statement: GROUP IDENTIFIER OPEN_BRACE group_content CLOSE_BRACE	{ Group *g = CreateGroup($2, $4); $$ = BasicSceneSemanticAction(NULL); $$ = AddGroupToSceneSemanticAction($$, g); }
   ;
 
-group_content: /* empty */ { $$ = NULL; }
-  | group_content group_item { $$ = MergeGroupContent($1, $2); }
+group_content: /* empty */	{ $$ = NULL; }
+	| group_content group_item	{ $$ = MergeGroupContent($1, $2); }
   ;
 
-group_item: draw_statement { $$ = GroupFromFigure($1); }
-  | scale_property { $$ = GroupFromProperty($1); }
-  | rotate_property { $$ = GroupFromProperty($1); }
-  | translate_property { $$ = GroupFromProperty($1); }
+group_item: draw_statement	{ $$ = GroupFromFigure($1); }
+	| scale_property	{ $$ = GroupFromProperty($1); }
+	| rotate_property	{ $$ = GroupFromProperty($1); }
+	| translate_property	{ $$ = GroupFromProperty($1); }
   ;
 
-layer_name: IDENTIFIER { $$ = $1; }
-	| BACKGROUND { $$ = strdup("background"); }
+layer_name: IDENTIFIER	{ $$ = $1; }
+	| BACKGROUND	{ $$ = strdup("background"); }
 	;
 
 
 
-draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
-		$$ = CreateFigureSemanticAction($2, $3, $4);
-		free($3); 
-	}
-	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
-		$$ = CreateFigureSemanticAction($2, NULL, $4);
-	}
+draw_statement: DRAW figure_type IDENTIFIER draw_tail	{ $$ = CreateFigureSemanticAction($2, $3, $4); }
+	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = CreateFigureSemanticAction($2, NULL, $4); }
 	;
 
-draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		$$ = $2;
-	}
-	| external_items draw_tail_after_external	{
-		if ($1 && $2) {
-			Property *last = $1;
-			while (last && last->next) last = last->next;
-			if (last) last->next = $2;
-			$$ = $1;
-		} else if ($1) {
-			$$ = $1;
-		} else {
-			$$ = $2;
-		}
-	}
-	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		$$ = $3;
-	}
+draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $2; }
+	| external_items draw_tail_after_external	{ if ($1 && $2) { Property *last = $1; while (last && last->next) last = last->next; if (last) last->next = $2; $$ = $1; } else if ($1) { $$ = $1; } else { $$ = $2; } }
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $3; }
 	;
 
-draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		$$ = $2;
-	}
-	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		$$ = $3;
-	}
+draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $2; }
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $3; }
 	;
 
-draw_list
-  : draw_statement                          { $$ = $1; }
-  | draw_list draw_statement                {
-      if ($1) {
-        Figure *tail = $1;
-        while (tail->next) tail = tail->next;
-        tail->next = $2;
-        $$ = $1;
-      } else {
-        $$ = $2;
-      }
-    }
+draw_list: draw_statement	{ $$ = $1; }
+	| draw_list draw_statement	{ if ($1) { Figure *tail = $1; while (tail->next) tail = tail->next; tail->next = $2; $$ = $1; } else { $$ = $2; } }
   ;
 
-external_items: external_item	{
-		$$ = $1;
-	}
-	| external_items external_item	{
-		Property *last = $1;
-		while (last->next) last = last->next;
-		last->next = $2;
-		$$ = $1;
-	}
+external_items: external_item	{ $$ = $1; }
+	| external_items external_item	{ Property *last = $1; while (last->next) last = last->next; last->next = $2; $$ = $1; }
 	;
 
-external_item: position_item				{
-		$$ = $1;
-	}
-	| size_item						{
-		$$ = $1;
-	}
-	| scale_property					{
-		$$ = $1;
-	}
-	| rotate_property					{
-		$$ = $1;
-	}
-	| translate_property					{
-		$$ = $1;
-	}
+external_item: position_item	{ $$ = $1; }
+	| size_item	{ $$ = $1; }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
 	;
 
-position_item: AT coordinates_value			{
-		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y);
-	}
+position_item: AT coordinates_value	{ Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y); }
 	;
 
-size_item: SIZE dimensions_value				{
-		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
-		$$ = SetPropertyDimensionsWithUnitSemanticAction(prop,
-                 $2.width,  $2.widthUnit,
-                 $2.height, $2.heightUnit);
-	}
+size_item: SIZE dimensions_value	{ Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction(prop, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
 	;
 
 
 
 figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
-	| CIRCLE		{ $$ = CIRCLE_FIGURE; }
-	| LINE			{ $$ = LINE_FIGURE; }
-	| ELLIPSE		{ $$ = ELLIPSE_FIGURE; }
-	| POLYLINE		{ $$ = POLYLINE_FIGURE; }
-	| POLYGON		{ $$ = POLYGON_FIGURE; }
+	| CIRCLE	{ $$ = CIRCLE_FIGURE; }
+	| LINE	{ $$ = LINE_FIGURE; }
+	| ELLIPSE	{ $$ = ELLIPSE_FIGURE; }
+	| POLYLINE	{ $$ = POLYLINE_FIGURE; }
+	| POLYGON	{ $$ = POLYGON_FIGURE; }
 	;
 
-figure_properties: /* empty */				{
-		$$ = NULL;
-	}
-	| property_list						{
-		$$ = $1;
-	}
+figure_properties: /* empty */	{ $$ = NULL; }
+	| property_list	{ $$ = $1; }
 	;
 
-	palette_item
-        : IDENTIFIER parsed_color_value SEMICOLON {
-            $$ = CreatePaletteEntrySemanticAction($1, $2);
-        }
+palette_item: IDENTIFIER parsed_color_value SEMICOLON	{ $$ = CreatePaletteEntrySemanticAction($1, $2); }
         ;
 
-    palette_list
-        : palette_item                      { $$ = $1; }
-        | palette_item palette_list         { $1->next = $2; $$ = $1; }
+palette_list: palette_item	{ $$ = $1; }
+	| palette_item palette_list	{ $1->next = $2; $$ = $1; }
         ;
 
 
 
 
-property_list: property_item				{
-		$$ = $1;
-	}
-	| property_item property_list			{
-		$1->next = $2;
-		$$ = $1;
-	}
+property_list: property_item	{ $$ = $1; }
+	| property_item property_list	{ $1->next = $2; $$ = $1; }
 	;
 
 
 
-property_item: size_property				{
-		$$ = $1;
-	}
-	| position_property					{
-		$$ = $1;
-	}
-	| fill_property						{
-		$$ = $1;
-	}
-	| stroke_property					{
-		$$ = $1;
-	}
-	| radius_property					{
-		$$ = $1;
-	}
-	| from_property					{
-		$$ = $1;
-	}
-	| to_property					{
-		$$ = $1;
-	}
-	| stroke_width_property				{
-		$$ = $1;
-	}
-	| opacity_property					{
-		$$ = $1;
-	}
-	| scale_property					{ 
-		$$ = $1; 
-	}
-	| rotate_property					{ 
-		$$ = $1; 
-	}
-    | translate_property					{ 
-		$$ = $1; 
-	}
+property_item: size_property	{ $$ = $1; }
+	| position_property	{ $$ = $1; }
+	| fill_property	{ $$ = $1; }
+	| stroke_property	{ $$ = $1; }
+	| radius_property	{ $$ = $1; }
+	| from_property	{ $$ = $1; }
+	| to_property	{ $$ = $1; }
+	| stroke_width_property	{ $$ = $1; }
+	| opacity_property	{ $$ = $1; }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
 	/* nuevo: width */
-	| width_property					{ $$ = $1; }
-	| height_property					{ $$ = $1; }
+	| width_property	{ $$ = $1; }
+	| height_property	{ $$ = $1; }
 	;
 
-size_property: SIZE dimensions_value SEMICOLON {
-        $$ = CreatePropertySemanticAction(SIZE_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 $2.width,  $2.widthUnit,
-                 $2.height, $2.heightUnit);
-    }
+size_property: SIZE dimensions_value SEMICOLON	{ $$ = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
     ;
 
-width_property
-    : WIDTH DIMENSIONS SEMICOLON {
-        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 $2.width,  $2.widthUnit,
-                 0,         $2.widthUnit /* altura ignorada */);
-    }
-    | WIDTH INTEGER IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 $2, u,
-                 0,  u);
-        free($3);
-    }
-    | WIDTH DECIMAL IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 (int)$2, u,   /* si necesitás preservar decimales, cambiá a un setter float */
-                 0,      u);
-        free($3);
-    }
+width_property: WIDTH DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, 0, $2.widthUnit); }
+	| WIDTH INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2, u, 0, u); }
+	| WIDTH DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, (int)$2, u, 0, u); }
     ;
 
-height_property
-      : HEIGHT DIMENSIONS SEMICOLON {
-          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,         $2.heightUnit, /* ancho ignorado */
-                 $2.height, $2.heightUnit);
-    }
-    | HEIGHT INTEGER IDENTIFIER SEMICOLON {
-          UnitType u = parseUnit($3);
-          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,  u,  
-                 $2, u);
-        free($3);
-    }
-    | HEIGHT DECIMAL IDENTIFIER SEMICOLON {
-          UnitType u = parseUnit($3);
-          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
-        $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
-                 0,      u,   /* ancho ignorado */
-                 (int)$2, u);
-        free($3);
-    }
+height_property: HEIGHT DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $2.heightUnit, $2.height, $2.heightUnit); }
+	| HEIGHT INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, $2, u); }
+	| HEIGHT DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, (int)$2, u); }
     ;
 
-position_property: AT coordinates_value SEMICOLON {
-		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+position_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-fill_property: FILL parsed_color_value SEMICOLON {
-		$$ = CreatePropertySemanticAction(FILL_PROPERTY);
-		$$ = SetPropertyColorSemanticAction($$, $2);
-	}
+fill_property: FILL parsed_color_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FILL_PROPERTY); $$ = SetPropertyColorSemanticAction($$, $2); }
 	;
 
-stroke_property: STROKE parsed_color_value SEMICOLON	{
-		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		$$ = SetPropertyColorSemanticAction($$, $2);
-	}
-	| STROKE SEMICOLON	{
-		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		Color * defaultColor = ParseNamedColor("black");
-		$$ = SetPropertyColorSemanticAction($$, defaultColor);
-	}
+stroke_property: STROKE parsed_color_value SEMICOLON	{ $$ = CreatePropertySemanticAction(STROKE_PROPERTY); $$ = SetPropertyColorSemanticAction($$, $2); }
+	| STROKE SEMICOLON	{ $$ = CreatePropertySemanticAction(STROKE_PROPERTY); Color * defaultColor = ParseNamedColor("black"); $$ = SetPropertyColorSemanticAction($$, defaultColor); }
 	;
 
-radius_property: RADIUS INTEGER SEMICOLON	{
-		$$ = CreatePropertySemanticAction(RADIUS_PROPERTY);
-		$$ = SetPropertyIntValueSemanticAction($$, $2);
-	}
+	radius_property: RADIUS INTEGER SEMICOLON	{ $$ = CreatePropertySemanticAction(RADIUS_PROPERTY); $$ = SetPropertyIntValueSemanticAction($$, $2); }
 	;
 
-from_property: FROM coordinates_value SEMICOLON	{
-		$$ = CreatePropertySemanticAction(FROM_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+	from_property: FROM coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FROM_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-to_property: TO coordinates_value SEMICOLON	{
-		$$ = CreatePropertySemanticAction(TO_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+	to_property: TO coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TO_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
 stroke_width_property
@@ -663,74 +412,38 @@ stroke_width_property
         UnitType u = parseUnit($3);
         $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
         $$ = SetPropertyIntValueSemanticAction($$, $2);
-        free($3);
     }
-      | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
-          UnitType u = parseUnit($3);
-          $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+    | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
         $$ = SetPropertyIntValueSemanticAction($$, (int)$2);
-        free($3);
     }
     ;
 
-opacity_property: OPACITY DECIMAL SEMICOLON	{
-		$$ = CreatePropertySemanticAction(OPACITY_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, $2);
-	}
+	opacity_property: OPACITY DECIMAL SEMICOLON	{ $$ = CreatePropertySemanticAction(OPACITY_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, $2); }
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		$$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-        $$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
-	}
+	scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(SCALE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
 	;
 
 
-rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
-	}
+	rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(ROTATE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
 	;
 
-dimensions_value: DIMENSIONS {
-		$$.width = $1.width;
-		$$.height = $1.height;
-		$$.widthUnit  = $1.widthUnit;
-        $$.heightUnit = $1.heightUnit;
-	}
+	dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.widthUnit = $1.widthUnit; $$.heightUnit = $1.heightUnit; }
 	;
 
-coordinates_value: COORDINATES {
-		$$.x = $1.x;
-		$$.y = $1.y;
-	}
+	coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
 	;
 
-translate_property: TRANSLATE coordinates_value SEMICOLON {
-		$$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY);
-        $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y);
-	}
+	translate_property: TRANSLATE coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY); $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y); }
 	;
 
-
-
-parsed_color_value: IDENTIFIER {
-		$$ = ParseNamedColor($1);
-	}
-	| IDENTIFIER DOT IDENTIFIER {
-		
-		$$ = ParsePaletteColor($1, $3);
-	}
-	| RGB_COLOR {
-		$$ = ParseRgbColor($1);
-	}
-	| HEX_COLOR {
-	
-		$$ = ParseHexColor($1);
-	}
-	| RGBA_COLOR {
-		$$ = ParseRgbaColor($1);
-	}
+	parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }
+	| IDENTIFIER DOT IDENTIFIER	{ $$ = ParsePaletteColor($1, $3); }
+	| RGB_COLOR	{ $$ = ParseRgbColor($1); }
+	| HEX_COLOR	{ $$ = ParseHexColor($1); }
+	| RGBA_COLOR	{ $$ = ParseRgbaColor($1); }
 	;
 
 %%
