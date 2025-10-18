@@ -6,12 +6,29 @@
 #include "FlexScanner.h"
 #include <stdbool.h>
 
-// Hook para exportar funciones estáticas de Flex
+/**
+ * Hook that allows to export a static function or variable from the inside of
+ * Flex infrastructure, in this case, the current context (a.k.a. start
+ * condition). This source exists only because Flex uses static for methods
+ * that are in its public API, a clearly flawed design decision.
+ */
 
+FlexContext flexCurrentContext(LexicalAnalyzer * lexicalAnalyzer) {
+	struct yyguts_t * yyg = (struct yyguts_t *) lexicalAnalyzer->scanner;
+	return YYSTATE;
+}
 
-FlexContext flexCurrentContext(LexicalAnalyzer * lexicalAnalyzer);
-void flexEnterContext(LexicalAnalyzer * lexicalAnalyzer, FlexContext flexContext);
-bool flexHasBuffer(LexicalAnalyzer * lexicalAnalyzer);
-void flexLeaveContext(LexicalAnalyzer * lexicalAnalyzer);
+void flexEnterContext(LexicalAnalyzer * lexicalAnalyzer, FlexContext flexContext) {
+	yy_push_state(flexContext, lexicalAnalyzer->scanner);
+}
+
+bool flexHasBuffer(LexicalAnalyzer * lexicalAnalyzer) {
+	struct yyguts_t * yyg = (struct yyguts_t *) lexicalAnalyzer->scanner;
+	return YY_CURRENT_BUFFER != NULL;
+}
+
+void flexLeaveContext(LexicalAnalyzer * lexicalAnalyzer) {
+	yy_pop_state(lexicalAnalyzer->scanner);
+}
 
 #endif

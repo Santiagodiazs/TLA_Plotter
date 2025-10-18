@@ -91,10 +91,10 @@ enum PropertyType {
 };
 
 enum ColorType {
-	NAMED_COLOR,    // "red", "blue", etc.
-	HEX_COLOR_TYPE,      // "#FF0000", "#F00"
-	RGB_COLOR_TYPE,      // "rgb(255,0,0)"
-	RGBA_COLOR_TYPE      // "rgba(255,0,0,1.0)"
+	NAMED_COLOR,   
+	HEX_COLOR_TYPE,    
+	RGB_COLOR_TYPE,     
+	RGBA_COLOR_TYPE
 };
 
 typedef enum {
@@ -275,7 +275,7 @@ void destroyUseInstance(UseInstance * useInstance);
 void destroyGroup(Group * group);
 Color * createColor(ColorType type);
 
-// Layer functions
+
 Layer * createLayer(const char * name, int zLevel);
 void destroyLayer(Layer * layer);
 

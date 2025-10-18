@@ -19,7 +19,6 @@ ModuleDestructor initializeAbstractSyntaxTreeModule() {
 	return _shutdownAbstractSyntaxTreeModule;
 }
 
-/* PUBLIC FUNCTIONS */
 
 void destroyConstant(Constant * constant) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
@@ -222,7 +221,6 @@ void destroyColor(Color * color) {
 	}
 }
 
-// ============= LAYER FUNCTIONS =============
 
 Layer * createLayer(const char * name, int zLevel) {
 	logDebugging(_logger, "Creating layer with name '%s' and z-level %d", name ? name : "NULL", zLevel);
@@ -312,7 +310,7 @@ void destroyPalette(PaletteEntry *head) {
     }
 }
 
-// Función helper para duplicar un Color
+
 Color * duplicateColor(Color *original) {
     if (!original) return NULL;
     
@@ -341,7 +339,6 @@ Color * duplicateColor(Color *original) {
     return copy;
 }
 
-// Función helper para duplicar una lista de PaletteEntry
 PaletteEntry * duplicatePalette(PaletteEntry *original) {
     if (!original) return NULL;
     

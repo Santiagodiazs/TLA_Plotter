@@ -69,53 +69,11 @@ static inline Property* new_property(PropertyType type) {
 	return p;
 }
 
-Constant * IntegerConstantSemanticAction(const int value) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Constant * constant = calloc(1, sizeof(Constant));
-	constant->value = value;
-	return constant;
-}
 
-Expression * ArithmeticExpressionSemanticAction(Expression * leftExpression, Expression * rightExpression, ExpressionType type) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->leftExpression = leftExpression;
-	expression->rightExpression = rightExpression;
-	expression->type = type;
-	return expression;
-}
 
-Expression * FactorExpressionSemanticAction(Factor * factor) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->factor = factor;
-	expression->type = FACTOR;
-	return expression;
-}
 
-Factor * ConstantFactorSemanticAction(Constant * constant) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->constant = constant;
-	factor->type = CONSTANT;
-	return factor;
-}
 
-Factor * ExpressionFactorSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->expression = expression;
-	factor->type = EXPRESSION_FACTOR;
-	return factor;
-}
 
-Program * ExpressionProgramSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Program * program = calloc(1, sizeof(Program));
-	program->expression = expression;
-	_compilerState->abstractSyntaxtTree = program;
-	return program;
-}
 
 
 Scene * BasicSceneSemanticAction(const char * sceneName) {
@@ -171,7 +129,7 @@ Program * SceneProgramSemanticAction(Scene * scene) {
 
     logDebugging(_logger, "Created program with scene");
     return program;
-}// ============= COLOR PARSING FUNCTIONS =============
+}
 
 Color * ParseNamedColor(const char * name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -190,8 +148,7 @@ Color * ParseNamedColor(const char * name) {
 Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	// Por ahora vamos a usar el lookup global existente, solo del color
-	// En el futuro se puede extender para manejar múltiples paletas por nombre
+	
 	printf("DEBUG: Looking up color '%s' from palette '%s'\n", 
 	       color_name ? color_name : "NULL", 
 	       palette_name ? palette_name : "NULL");
@@ -263,11 +220,7 @@ PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color) {
     return e;
 }
 
-// ============= SEMANTIC VALIDATION =============
 
-
-
-// ============= DSL SEMANTIC ACTIONS =============
 
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -461,7 +414,6 @@ void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead)
 }
 
 
-
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
@@ -493,7 +445,6 @@ Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	return scene;
 }
 
-// ============= NEW SCENE HELPER FUNCTIONS =============
 
 Scene * SceneFromFigure(Figure * figure) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -538,8 +489,7 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
 Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     
-    // Por ahora, vamos a implementar las paletas con nombre igual que las normales
-    // En el futuro se puede extender para manejar múltiples paletas por nombre
+   
     printf("DEBUG: Creating named palette '%s'\n", name ? name : "NULL");
     
     Scene * result = SceneWithPaletteBlock(entries);
@@ -674,8 +624,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		}
 		item->layers = NULL;
 	}
-
-
 
 	if (item->symbols) {
     if (!acc->symbols) {

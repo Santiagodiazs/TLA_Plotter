@@ -6,16 +6,16 @@
 #include <stdio.h>
 #include <string.h>
 
-// Declarar logger externo para usar en la gramática
+
 extern Logger * _logger;
 
-// Deshabilitar buffering para ver logs inmediatamente
+
 static void disable_buffering() {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 }
 
-/* ---- helper para mapear unidades de width cuando vienen como IDENTIFIER ---- */
+
 static UnitType parseUnit(const char* s) {
     if (!s) return UNIT_PX; /* default razonable */
     if (strcmp(s,"px")==0)  return UNIT_PX;
@@ -269,7 +269,6 @@ scene_declaration: SCENE IDENTIFIER	{
 		free($2); 
 	}
 	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
-		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
 		$$ = BasicSceneSemanticAction($2);
 		if ($6 != NULL) {
 			$$ = $6;  
@@ -322,38 +321,30 @@ scene_item: draw_statement		{
 symbol_declaration
   : SYMBOL IDENTIFIER OPEN_BRACE draw_list CLOSE_BRACE
     {
-      printf("[DEBUG] symbol_declaration(list): name='%s' head=%p\n", $2, (void*)$4);
       Symbol *sym = CreateSymbolMove($2, $4);   /* $4 es la CABEZA de la lista de Figure */
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddSymbolToSceneSemanticAction($$, sym);
-      printf("[DEBUG] symbol_declaration: attached (sym=%p)\n", (void*)sym);
       free($2); /* si CreateSymbolMove hace strdup del nombre */
     }
   ;
 
 use_statement
   : USE IDENTIFIER SEMICOLON {
-      printf("[DEBUG] use_statement: use '%s'\n", $2);
       UseInstance *u = CreateUseInstance($2);
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
-      printf("[DEBUG] use_statement: attached (use=%p)\n", (void*)u);
     }
   | USE IDENTIFIER AT coordinates_value SEMICOLON {
-      printf("[DEBUG] use_statement: use '%s' at (%d,%d)\n", $2, $4.x, $4.y);
       UseInstance *u = CreateUseInstance($2);
       u->hasPosition = 1; u->posX = $4.x; u->posY = $4.y;
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
-      printf("[DEBUG] use_statement: attached with position (use=%p)\n", (void*)u);
     }
   | USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE {
-      printf("[DEBUG] use_statement: use '%s' with properties\n", $2);
       UseInstance *u = CreateUseInstance($2);
       u->properties = $4;
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
-      printf("[DEBUG] use_statement: attached with properties (use=%p)\n", (void*)u);
     }
   ;
 
@@ -372,11 +363,9 @@ use_property: AT coordinates_value SEMICOLON {
 
 group_statement
   : GROUP IDENTIFIER OPEN_BRACE group_content CLOSE_BRACE {
-      printf("[DEBUG] group_statement: group '%s'\n", $2);
       Group *g = CreateGroup($2, $4);
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddGroupToSceneSemanticAction($$, g);
-      printf("[DEBUG] group_statement: attached (group=%p)\n", (void*)g);
     }
   ;
 
@@ -397,22 +386,15 @@ layer_name: IDENTIFIER { $$ = $1; }
 
 
 draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
-		printf("DEBUG: Draw statement with ID '%s'\n", $3);
-		printf("[DEBUG] draw_statement: About to call CreateFigureSemanticAction\n");
-		printf("[DEBUG] draw_statement: type=%d, id='%s', tail=%p\n", $2, $3, $4);
 		$$ = CreateFigureSemanticAction($2, $3, $4);
 		free($3); 
-		printf("[DEBUG] draw_statement: CreateFigureSemanticAction completed\n");
-		printf("[DEBUG] draw_statement: Figure created successfully\n");
 	}
 	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Draw statement anonymous figure\n");
 		$$ = CreateFigureSemanticAction($2, NULL, $4);
 	}
 	;
 
 draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail: internal properties only\n");
 		$$ = $2;
 	}
 	| external_items draw_tail_after_external	{
@@ -620,12 +602,6 @@ size_property: SIZE dimensions_value SEMICOLON {
     }
     ;
 
-/* ---- NUEVO: width con unidades obligatorias ----
-   Soporta:
-   - WIDTH DIMENSIONS;             (toma width y su unit del token DIMENSIONS)
-   - WIDTH INTEGER IDENTIFIER;     (p.ej. WIDTH 320 px;)
-   - WIDTH DECIMAL IDENTIFIER;     (p.ej. WIDTH 24.5 rem;)
-*/
 width_property
     : WIDTH DIMENSIONS SEMICOLON {
         printf("DEBUG: width_property via DIMENSIONS: %d (unit=%d)\n", $2.width, (int)$2.widthUnit);
