@@ -33,6 +33,10 @@ typedef struct Color Color;
 typedef struct Layer Layer;
 typedef struct Symbol Symbol;
 typedef struct UseInstance UseInstance;
+typedef struct Group Group;
+typedef struct GroupContent GroupContent;
+typedef struct PaletteEntry PaletteEntry;
+typedef struct Transform Transform;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -72,6 +76,8 @@ enum FigureType {
 enum PropertyType {
 	POSITION_PROPERTY,
 	SIZE_PROPERTY,
+	WIDTH_PROPERTY,
+	HEIGHT_PROPERTY,
 	RADIUS_PROPERTY,
 	FROM_PROPERTY,
 	TO_PROPERTY,
@@ -80,15 +86,57 @@ enum PropertyType {
 	STROKE_WIDTH_PROPERTY,
 	OPACITY_PROPERTY,
 	SCALE_PROPERTY,
-	ROTATE_PROPERTY
+	ROTATE_PROPERTY,
+	TRANSLATE_PROPERTY
 };
 
 enum ColorType {
-	NAMED_COLOR,    // "red", "blue", etc.
-	HEX_COLOR_TYPE,      // "#FF0000", "#F00"
-	RGB_COLOR_TYPE,      // "rgb(255,0,0)"
-	RGBA_COLOR_TYPE      // "rgba(255,0,0,1.0)"
+	NAMED_COLOR,   
+	HEX_COLOR_TYPE,    
+	RGB_COLOR_TYPE,     
+	RGBA_COLOR_TYPE
 };
+
+typedef enum {
+	TRANSFORM_SCALE,
+	TRANSFORM_ROTATE,
+	TRANSFORM_TRANSLATE
+} TransformType;
+
+typedef enum {
+    UNIT_PX,
+    UNIT_REM,
+    UNIT_EM,
+    UNIT_VW,
+    UNIT_VH,
+    UNIT_PERCENT
+} UnitType;
+
+struct Transform {
+	TransformType type;
+	union {
+		struct { float sx, sy; } scale;
+		struct { float degrees; } rotate;
+		struct { float tx, ty; } translate;
+	} value;
+	Transform *next;
+};
+
+struct PaletteEntry {
+    char *name;        
+    Color *color;      
+    struct PaletteEntry *next;
+};
+
+PaletteEntry * createPaletteEntry(const char *name, Color *color);
+void destroyPalette(PaletteEntry *head);
+Color * duplicateColor(Color *original);
+PaletteEntry * duplicatePalette(PaletteEntry *original);
+
+Transform * createTransformScale(float sx, float sy);
+Transform * createTransformRotate(float degrees);
+Transform * createTransformTranslate(float tx, float ty);
+void destroyTransform(Transform *t);
 
 struct Constant {
 	int value;
@@ -112,8 +160,8 @@ struct Color {
 struct Layer {
 	char * name;
 	int zLevel;
-	Figure * figures;  // Lista de figuras en este layer
-	struct Layer * next; // Lista enlazada de layers
+	Figure * figures;  
+	struct Layer * next; 
 };
 
 struct Factor {
@@ -147,17 +195,20 @@ struct Scene {
 	char * name;
 	SceneType type;
 	Figure * figures;  
-	char * backgroundColor; // opcional
-	Layer * layers; // Lista de layers
-	Symbol * symbols;          // lista de símbolos declarados
-  UseInstance * uses; 			// lista de uses en esta escena
+	char * backgroundColor; 
+	Layer * layers; 
+	Symbol * symbols;        
+	PaletteEntry *palette;   
+  UseInstance * uses; 		
+  Group * groups;           
 };
 
 struct Figure {
 	char * id;               
 	FigureType type;
 	Property * properties;    
-	struct Figure * next;     
+	struct Figure * next;
+	Transform *transforms;   
 };
 
 struct Property {
@@ -166,20 +217,22 @@ struct Property {
 		struct {
 			int x;
 			int y;
-		} coordinates;        // Para AT, FROM, TO
+		} coordinates;       
 		struct {
 			int width;
 			int height;
-		} dimensions;         // Para SIZE
+			UnitType widthUnit;
+            UnitType heightUnit;
+		} dimensions;        
 		struct {
 			float x;
 			float y;
-		} scale;              // Para SCALE
-		int intValue;         // Para RADIUS, STROKE_WIDTH
-		float floatValue;     // Para OPACITY, ROTATE (angle)
-		Color * colorValue;   // Para FILL, STROKE (colores)
+		} scale;            
+		int intValue;        
+		float floatValue;    
+		Color * colorValue;   
 	} value;
-	struct Property * next;   // Para lista enlazada
+	struct Property * next;   
 };
 
 struct Symbol {
@@ -189,10 +242,24 @@ struct Symbol {
 };
 
 struct UseInstance {
+    Symbol * symbol;
     char * symbolName;
     int hasPosition;
     int posX, posY;
+    Property * properties; 
     struct UseInstance * next;
+};
+
+struct Group {
+    char * name;
+    Figure * figures;
+    Property * properties;  
+    struct Group * next;
+};
+
+struct GroupContent {
+    Figure * figures;
+    Property * properties;
 };
 
 void destroyConstant(Constant * constant);
@@ -205,9 +272,10 @@ void destroyProperty(Property * property);
 void destroyColor(Color * color);
 void destroySymbol(Symbol * symbol);
 void destroyUseInstance(UseInstance * useInstance);
+void destroyGroup(Group * group);
 Color * createColor(ColorType type);
 
-// Layer functions
+
 Layer * createLayer(const char * name, int zLevel);
 void destroyLayer(Layer * layer);
 

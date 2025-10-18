@@ -1,0 +1,8 @@
+scene MiEscena {
+    draw rectangle casa {
+        at (100, 100);
+        size 200x150;
+        fill #FF0000;
+        stroke #000000
+    }
+}

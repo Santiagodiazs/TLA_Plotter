@@ -1,0 +1,13 @@
+scene UndefinedSymbol {
+    use casa {
+        at (100, 100);
+        scale 1.0;
+        
+    }
+    
+    use arbol {
+        at (200, 100);
+        scale 1.5;
+        
+    }
+}

@@ -1,0 +1,29 @@
+scene GroupTransforms {
+    group mi_grupo {
+        draw rectangle base {
+            at (0, 0);
+            size 100x50;
+            fill #8B4513;
+        }
+        
+        draw circle ventana {
+            at (25, 10);
+            radius 15;
+            fill #87CEEB;
+        }
+        
+        translate (200, 100);
+        rotate (45);
+    }
+    
+    group mi_grupo2 {
+        draw rectangle base2 {
+            at (0, 0);
+            size 80x40;
+            fill #654321;
+        }
+        
+        translate (100, 200);
+        scale (1);
+    }
+}

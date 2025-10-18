@@ -1,0 +1,31 @@
+scene ColorPalettes {
+    palette colores_primarios {
+        rojo #FF0000;
+        verde #00FF00;
+        azul #0000FF;
+    }
+    
+    palette colores_secundarios {
+        amarillo #FFFF00;
+        magenta #FF00FF;
+        cian #00FFFF;
+    }
+    
+    draw rectangle rect1 {
+        at (100, 100);
+        size 80x60;
+        fill colores_primarios.rojo;
+    }
+    
+    draw circle circ1 {
+        at (250, 100);
+        radius 40;
+        fill colores_secundarios.amarillo;
+    }
+    
+    draw rectangle rect2 {
+        at (400, 100);
+        size 80x60;
+        fill colores_primarios.verde;
+    }
+}

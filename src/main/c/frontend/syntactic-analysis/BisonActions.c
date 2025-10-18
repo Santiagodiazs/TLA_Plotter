@@ -1,9 +1,13 @@
 #include "BisonActions.h"
 #include "../../support/type/CompilationStatus.h"
+#include <string.h>
+#include <stdio.h>
 
 /* MODULE INTERNAL STATE */
 
 static CompilerState * _compilerState = NULL;
+static Scene * _currentScene = NULL;
+static PaletteEntry * _globalPalette = NULL;
 Logger * _logger = NULL;
 
 /** Shutdown module's internal state. */
@@ -13,7 +17,10 @@ void _shutdownBisonActionsModule() {
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
-	_compilerState = NULL;
+	if(_globalPalette){
+		destroyPalette(_globalPalette);
+		_globalPalette = NULL;
+	}
 }
 
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState) {
@@ -37,6 +44,21 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 
 /* HELPER FUNCTIONS */
 
+Property * SetPropertyDimensionsWithUnitSemanticAction(
+    Property * property,
+    float width,  UnitType wUnit,
+    float height, UnitType hUnit
+) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property) {
+        property->value.dimensions.width      = width;
+        property->value.dimensions.height     = height;
+        property->value.dimensions.widthUnit  = wUnit;
+        property->value.dimensions.heightUnit = hUnit;
+    }
+    return property;
+}
+
 static inline Property* new_property(PropertyType type) {
 	Property* p = calloc(1, sizeof(Property));
 	if (p == NULL) {
@@ -47,53 +69,11 @@ static inline Property* new_property(PropertyType type) {
 	return p;
 }
 
-Constant * IntegerConstantSemanticAction(const int value) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Constant * constant = calloc(1, sizeof(Constant));
-	constant->value = value;
-	return constant;
-}
 
-Expression * ArithmeticExpressionSemanticAction(Expression * leftExpression, Expression * rightExpression, ExpressionType type) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->leftExpression = leftExpression;
-	expression->rightExpression = rightExpression;
-	expression->type = type;
-	return expression;
-}
 
-Expression * FactorExpressionSemanticAction(Factor * factor) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->factor = factor;
-	expression->type = FACTOR;
-	return expression;
-}
 
-Factor * ConstantFactorSemanticAction(Constant * constant) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->constant = constant;
-	factor->type = CONSTANT;
-	return factor;
-}
 
-Factor * ExpressionFactorSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->expression = expression;
-	factor->type = EXPRESSION_FACTOR;
-	return factor;
-}
 
-Program * ExpressionProgramSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Program * program = calloc(1, sizeof(Program));
-	program->expression = expression;
-	_compilerState->abstractSyntaxtTree = program;
-	return program;
-}
 
 
 Scene * BasicSceneSemanticAction(const char * sceneName) {
@@ -105,9 +85,14 @@ Scene * BasicSceneSemanticAction(const char * sceneName) {
 	}
 	
 	scene->type = BASIC_SCENE;
-	scene->figures = NULL;
-	scene->backgroundColor = NULL;
-	scene->layers = NULL; // Inicializar layers
+    scene->figures = NULL;
+    scene->backgroundColor = NULL;
+    scene->layers = NULL;
+    scene->symbols = NULL;
+    scene->uses = NULL;
+    scene->palette = NULL;
+    _currentScene = scene;
+
 	
 	if (sceneName != NULL && strlen(sceneName) > 0) {
 		scene->name = malloc(strlen(sceneName) + 1);
@@ -125,34 +110,59 @@ Scene * BasicSceneSemanticAction(const char * sceneName) {
 }
 
 Program * SceneProgramSemanticAction(Scene * scene) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Program * program = calloc(1, sizeof(Program));
-	if (program == NULL) {
-		return NULL;
-	}
-	
-	program->scene = scene;
-	program->type = SCENE_PROGRAM; 
-	
-	if (_compilerState != NULL) {
-		_compilerState->abstractSyntaxtTree = program;
-	}
-	
-	logDebugging(_logger, "Created program with scene");
-	return program;
-}
+    _logSyntacticAnalyzerAction(__FUNCTION__);
 
-// ============= COLOR PARSING FUNCTIONS =============
+    Program * program = calloc(1, sizeof(Program));
+    if (program == NULL) {
+        return NULL;
+    }
+
+    program->scene = scene;
+
+  
+
+    program->type = SCENE_PROGRAM;
+
+    if (_compilerState != NULL) {
+        _compilerState->abstractSyntaxtTree = program;
+    }
+
+    logDebugging(_logger, "Created program with scene");
+    return program;
+}
 
 Color * ParseNamedColor(const char * name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
+	Color *pal = LookupPaletteColor(name);
+    if (pal) return pal;
 	Color * color = createColor(NAMED_COLOR);
 	if (color != NULL && name != NULL) {
 		color->value.name = malloc(strlen(name) + 1);
 		if (color->value.name != NULL) {
 			strcpy(color->value.name, name);
+		}
+	}
+	return color;
+}
+
+Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	
+	printf("DEBUG: Looking up color '%s' from palette '%s'\n", 
+	       color_name ? color_name : "NULL", 
+	       palette_name ? palette_name : "NULL");
+	
+	Color *found_color = LookupPaletteColor(color_name);
+	if (found_color) {
+		return found_color;
+	}
+	
+	Color * color = createColor(NAMED_COLOR);
+	if (color != NULL && color_name != NULL) {
+		color->value.name = malloc(strlen(color_name) + 1);
+		if (color->value.name != NULL) {
+			strcpy(color->value.name, color_name);
 		}
 	}
 	return color;
@@ -176,7 +186,6 @@ Color * ParseRgbColor(const char * rgb) {
 	
 	Color * color = createColor(RGB_COLOR_TYPE);
 	if (color != NULL && rgb != NULL) {
-		// Parsear "rgb(255,0,0)" -> r=255, g=0, b=0
 		int r, g, b;
 		if (sscanf(rgb, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
 			color->value.rgb.r = r;
@@ -192,7 +201,6 @@ Color * ParseRgbaColor(const char * rgba) {
 	
 	Color * color = createColor(RGBA_COLOR_TYPE);
 	if (color != NULL && rgba != NULL) {
-		// Parsear "rgba(255,0,0,1.0)" -> r=255, g=0, b=0, a=1.0
 		int r, g, b;
 		float a;
 		if (sscanf(rgba, "rgba(%d,%d,%d,%f)", &r, &g, &b, &a) == 4) {
@@ -205,62 +213,19 @@ Color * ParseRgbaColor(const char * rgba) {
 	return color;
 }
 
-// ============= SEMANTIC VALIDATION =============
-
-CompilationStatus ValidateFigureProperties(FigureType type, Property * properties) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (properties == NULL) {
-		return SUCCEEDED; 
-	}
-	
-	Property * current = properties;
-	while (current != NULL) {
-		switch (type) {
-			case CIRCLE_FIGURE:
-				if (current->type == SIZE_PROPERTY) {
-					fprintf(stderr, "ERROR: Circle figures cannot use 'size' property. Use 'radius' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			case LINE_FIGURE:
-				if (current->type == SIZE_PROPERTY) {
-					fprintf(stderr, "ERROR: Line figures cannot use 'size' property. Use 'from' and 'to' instead.\n");
-					return FAILED;
-				}
-				if (current->type == FILL_PROPERTY) {
-					fprintf(stderr, "ERROR: Line figures cannot use 'fill' property. Use 'stroke' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			case RECTANGLE_FIGURE:
-			case ELLIPSE_FIGURE:
-				if (current->type == RADIUS_PROPERTY) {
-					fprintf(stderr, "ERROR: Rectangle/Ellipse figures cannot use 'radius' property. Use 'size' instead.\n");
-					return FAILED;
-				}
-				break;
-				
-			default:
-				break;
-		}
-		current = current->next;
-	}
-	
-	return SUCCEEDED;
+PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    PaletteEntry *e = createPaletteEntry(name, color);
+    if (name) free(name);
+    return e;
 }
 
-// ============= DSL SEMANTIC ACTIONS =============
+
 
 Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property * properties) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	// Validate properties for this figure type
-	if (ValidateFigureProperties(type, properties) == FAILED) {
-		return NULL; 
-	}
+
 	
 	Figure * figure = calloc(1, sizeof(Figure));
 	if (figure == NULL) {
@@ -270,6 +235,9 @@ Figure * CreateFigureSemanticAction(FigureType type, const char * id, Property *
 	figure->type = type;
 	figure->properties = properties;
 	figure->next = NULL;
+	figure->transforms = NULL;
+
+	ApplyTransformPropertiesToFigure(figure, &figure->properties);
 	
 	if (id != NULL && strlen(id) > 0) {
 		figure->id = malloc(strlen(id) + 1);
@@ -300,27 +268,7 @@ Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int 
 	return property;
 }
 
-Property * SetPropertyDimensionsSemanticAction(Property * property, int width, int height) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (property != NULL) {
-		property->value.dimensions.width = width;
-		property->value.dimensions.height = height;
-	}
-	
-	return property;
-}
 
-Property * SetPropertyScaleSemanticAction(Property * property, float x, float y) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (property != NULL) {
-		property->value.scale.x = x;
-		property->value.scale.y = y;
-	}
-	
-	return property;
-}
 
 Property * SetPropertyIntValueSemanticAction(Property * property, int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -352,6 +300,118 @@ Property * SetPropertyColorSemanticAction(Property * property, Color * color) {
 	return property;
 }
 
+Symbol * CreateSymbolMove(const char *name, Figure *src) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Symbol * symbol = calloc(1, sizeof(Symbol));
+    if (!symbol) return NULL;
+
+    symbol->name = name ? strdup(name) : NULL;
+    symbol->next = NULL;
+
+    if (src) {
+        symbol->figure = *src;
+        src->id = NULL;
+        src->properties = NULL;
+        src->next = NULL;
+        free(src);
+    }
+    return symbol;
+}
+
+UseInstance * CreateUseInstance(const char *symbolName) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    UseInstance * useInstace = calloc(1, sizeof(UseInstance));
+		useInstace->next = NULL;
+    if (!useInstace) return NULL;
+    useInstace->symbolName = symbolName ? strdup(symbolName) : NULL;
+    return useInstace;
+}
+
+Scene * AddSymbolToSceneSemanticAction(Scene *scene, Symbol * symbol) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !symbol) return scene;
+    symbol->next = scene->symbols;
+    scene->symbols = symbol;
+    return scene;
+}
+
+Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *useInstance) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !useInstance) return scene;
+    useInstance->next = scene->uses;
+    scene->uses = useInstance;
+    return scene;
+}
+
+Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property != NULL) {
+        property->value.coordinates.x = x;
+        property->value.coordinates.y = y;
+    }
+    return property;
+}
+
+void AppendTransform(Figure *figure, Transform *t) {
+    if (!figure || !t) return;
+    if (!figure->transforms) {
+        figure->transforms = t;
+        return;
+    }
+    Transform *it = figure->transforms;
+    while (it->next) it = it->next;
+    it->next = t;
+}
+
+void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!figure || !propertiesHead || !*propertiesHead) return;
+
+    Property *prev = NULL;
+    Property *cur = *propertiesHead;
+
+    while (cur) {
+        int removeNode = 0;
+
+        switch (cur->type) {
+            case SCALE_PROPERTY: {
+                Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.y);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            case ROTATE_PROPERTY: {
+                Transform *t = createTransformRotate(cur->value.floatValue);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            case TRANSLATE_PROPERTY: {
+                int tx = cur->value.coordinates.x;
+                int ty = cur->value.coordinates.y;
+                Transform *t = createTransformTranslate((float)tx, (float)ty);
+                if (t) AppendTransform(figure, t);
+                removeNode = 1;
+                break;
+            }
+            default:
+                break;
+        }
+
+        if (removeNode) {
+            Property *toFree = cur;
+            if (prev) prev->next = cur->next;
+            else *propertiesHead = cur->next;
+            cur = cur->next;
+
+            toFree->next = NULL;
+            destroyProperty(toFree);  
+        } else {
+            prev = cur;
+            cur = cur->next;
+        }
+    }
+}
 
 
 Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
@@ -385,7 +445,6 @@ Scene * AddFigureToSceneSemanticAction(Scene * scene, Figure * figure) {
 	return scene;
 }
 
-// ============= NEW SCENE HELPER FUNCTIONS =============
 
 Scene * SceneFromFigure(Figure * figure) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
@@ -398,12 +457,89 @@ Scene * SceneFromFigure(Figure * figure) {
 	return scene;
 }
 
+
+Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!_currentScene) {
+        return NULL;
+    }
+    if (!entries) return _currentScene;
+
+   
+    PaletteEntry *globalCopy = duplicatePalette(entries);
+    if (_globalPalette == NULL) {
+        _globalPalette = globalCopy;
+    } else {
+        PaletteEntry *tail = _globalPalette;
+        while (tail->next) tail = tail->next;
+        tail->next = globalCopy;
+    }
+
+  
+    if (_currentScene->palette == NULL) {
+        _currentScene->palette = entries;
+    } else {
+        PaletteEntry *tail = _currentScene->palette;
+        while (tail->next) tail = tail->next;
+        tail->next = entries;
+    }
+    return _currentScene;
+}
+
+Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    
+   
+    printf("DEBUG: Creating named palette '%s'\n", name ? name : "NULL");
+    
+    Scene * result = SceneWithPaletteBlock(entries);
+    
+    if (name) {
+        free((char *)name);
+    }
+    
+    return result;
+}
+
+Color * LookupPaletteColor(const char *name) {
+    if (!name) return NULL;
+    
+    PaletteEntry *palette = _globalPalette;
+    if (!palette) return NULL;
+    
+    Color *found = NULL;
+    for (PaletteEntry *it = palette; it; it = it->next) {
+        if (it->name && strcmp(it->name, name) == 0 && it->color) {
+            found = it->color; 
+        }
+    }
+    if (!found) return NULL;
+
+    Color *copy = createColor(found->type);
+    if (!copy) return NULL;
+    switch (found->type) {
+        case NAMED_COLOR:
+            copy->value.name = found->value.name ? strdup(found->value.name) : NULL;
+            break;
+        case HEX_COLOR_TYPE:
+            copy->value.hex = found->value.hex ? strdup(found->value.hex) : NULL;
+            break;
+        case RGB_COLOR_TYPE:
+            copy->value.rgb = found->value.rgb;
+            break;
+        case RGBA_COLOR_TYPE:
+            copy->value.rgba = found->value.rgba;
+            break;
+    }
+    return copy;
+}
+
+
 Scene * SceneWithBackground(Color * color) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
 	Scene * scene = BasicSceneSemanticAction(NULL);
 	if (scene && color) {
-		// Convertir Color a string para mantener compatibilidad con backgroundColor
 		char * colorStr = NULL;
 		switch (color->type) {
 			case NAMED_COLOR:
@@ -430,39 +566,25 @@ Scene * SceneWithBackground(Color * color) {
 	return scene;
 }
 
-Scene * SceneWithLayerDecl(const char * name, int zLevel) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Scene * scene = BasicSceneSemanticAction(NULL);
-	if (scene && name) {
-		Layer * layer = createLayer(name, zLevel);
-		if (layer) {
-			scene->layers = layer;
-			logDebugging(_logger, "Created scene with layer declaration '%s' z=%d", name, zLevel);
-		}
-	}
-	return scene;
-}
 
-Scene * SceneWithLayerBlock(const char * name, Scene * blockContent) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	Scene * scene = BasicSceneSemanticAction(NULL);
-	if (scene && name) {
-		Layer * layer = createLayer(name, 0); // z-level por defecto
-		if (layer && blockContent) {
-			layer->figures = blockContent->figures;
-			blockContent->figures = NULL; // Evitar ciclo
-		}
-		scene->layers = layer;
-		
-		// Limpiar el contenido del bloque
-		if (blockContent) {
-			destroyScene(blockContent);
-		}
-		logDebugging(_logger, "Created scene with layer block '%s'", name);
-	}
-	return scene;
+Scene * SceneWithLayerBlock(const char * name, int zLevel, Scene * blockContent) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+
+    Scene * scene = BasicSceneSemanticAction(NULL);
+    if (scene && name) {
+        Layer * layer = createLayer(name, zLevel);
+        if (layer && blockContent) {
+            layer->figures = blockContent->figures;
+            blockContent->figures = NULL;
+        }
+        scene->layers = layer;
+
+        if (blockContent) {
+            destroyScene(blockContent);
+        }
+        logDebugging(_logger, "Created scene with layer block '%s' z=%d", name, zLevel);
+    }
+    return scene;
 }
 
 Scene * MergeSceneContent(Scene * acc, Scene * item) {
@@ -473,7 +595,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	
 	logDebugging(_logger, "Merging scene content - simplified version");
 	
-	// Versión simplificada: solo merge básico
 	if (item->backgroundColor) {
 		if (acc->backgroundColor) {
 			free(acc->backgroundColor);
@@ -486,7 +607,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		if (!acc->figures) {
 			acc->figures = item->figures;
 		} else {
-			// Concatenar al final
 			Figure * last = acc->figures;
 			while (last->next) last = last->next;
 			last->next = item->figures;
@@ -498,91 +618,135 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		if (!acc->layers) {
 			acc->layers = item->layers;
 		} else {
-			// Concatenar al final
 			Layer * last = acc->layers;
 			while (last->next) last = last->next;
 			last->next = item->layers;
 		}
 		item->layers = NULL;
 	}
-	
+
+	if (item->symbols) {
+    if (!acc->symbols) {
+			acc->symbols = item->symbols;
+		} else {
+        Symbol *last = acc->symbols; 
+				while (last->next) last = last->next;
+        last->next = item->symbols;
+    }
+    item->symbols = NULL;
+	}
+
+	if (item->uses) {
+    if (!acc->uses) {
+			acc->uses = item->uses;
+		} else {
+        UseInstance * last = acc->uses; 
+                                while (last->next) last = last->next;
+        last->next = item->uses;
+    }
+    item->uses = NULL;
+}	
+
+	if (item->palette) {
+		if (!acc->palette) {
+			acc->palette = item->palette;
+		} else {
+			PaletteEntry * last = acc->palette;
+			while (last->next) last = last->next;
+			last->next = item->palette;
+		}
+		item->palette = NULL; 
+	}
+
 	destroyScene(item);
 	return acc;
 }
 
-// ============= SCENE SEMANTIC ACTIONS =============
-
-Scene * AddOrUpdateLayerSemanticAction(Scene * scene, const char * layerName, int zLevel) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (scene == NULL || layerName == NULL) {
-		return scene;
-	}
-	
-	// Validar layerName
-	if (!layerName || !*layerName) {
-		logWarning(_logger, "Empty layer name ignored");
-		return scene;
-	}
-	
-	// Buscar si el layer ya existe
-	Layer * current = scene->layers;
-	while (current != NULL) {
-		if (current->name && strcmp(current->name, layerName) == 0) {
-			// Layer existe, actualizar z-level
-			logDebugging(_logger, "Updating existing layer '%s' z-level from %d to %d", layerName, current->zLevel, zLevel);
-			current->zLevel = zLevel;
-			return scene;
-		}
-		current = current->next;
-	}
-	
-	// Layer no existe, crear nuevo
-	Layer * newLayer = createLayer(layerName, zLevel);
-	if (newLayer != NULL) {
-		// Agregar al inicio de la lista
-		newLayer->next = scene->layers;
-		scene->layers = newLayer;
-		logDebugging(_logger, "Created new layer '%s' with z-level %d", layerName, zLevel);
-	}
-	
-	return scene;
+Group * CreateGroup(const char *name, GroupContent *content) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Group *group = calloc(1, sizeof(Group));
+    if (!group) return NULL;
+    
+    group->name = name ? strdup(name) : NULL;
+    group->figures = NULL;
+    group->properties = NULL;
+    group->next = NULL;
+    
+    if (content) {
+        group->figures = content->figures;
+        group->properties = content->properties;
+        free(content);
+    }
+    
+    return group;
 }
 
-Scene * AttachBlockToLayerSemanticAction(Scene * scene, const char * layerName, Scene * blockContent) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	
-	if (scene == NULL || layerName == NULL || blockContent == NULL) {
-		return scene;
-	}
-	
-	// Buscar el layer
-	Layer * current = scene->layers;
-	while (current != NULL) {
-		if (current->name && strcmp(current->name, layerName) == 0) {
-			
-			Figure * blockFigures = blockContent->figures;
-			if (blockFigures != NULL) {
-				
-				Figure * lastFigure = current->figures;
-				if (lastFigure == NULL) {
-					current->figures = blockFigures;
-				} else {
-					while (lastFigure->next != NULL) {
-						lastFigure = lastFigure->next;
-					}
-					lastFigure->next = blockFigures;
-				}
-				logDebugging(_logger, "Attached figures to layer '%s'", layerName);
-			}
-			break;
-		}
-		current = current->next;
-	}
-	
-	
-	blockContent->figures = NULL;
-	destroyScene(blockContent);
-	
-	return scene;
+GroupContent * GroupFromFigure(Figure *figure) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    GroupContent *content = calloc(1, sizeof(GroupContent));
+    if (!content) return NULL;
+    
+    content->figures = figure;
+    content->properties = NULL;
+    return content;
+}
+
+GroupContent * GroupFromProperty(Property *property) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    GroupContent *content = calloc(1, sizeof(GroupContent));
+    if (!content) return NULL;
+    
+    content->figures = NULL;
+    content->properties = property;
+    return content;
+}
+
+GroupContent * MergeGroupContent(GroupContent *acc, GroupContent *item) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!acc) return item;
+    if (!item) return acc;
+    
+    if (item->figures) {
+        Figure *last = acc->figures;
+        if (last) {
+            while (last->next) last = last->next;
+            last->next = item->figures;
+        } else {
+            acc->figures = item->figures;
+        }
+        item->figures = NULL;
+    }
+    
+    if (item->properties) {
+        Property *last = acc->properties;
+        if (last) {
+            while (last->next) last = last->next;
+            last->next = item->properties;
+        } else {
+            acc->properties = item->properties;
+        }
+        item->properties = NULL;
+    }
+    
+    free(item);
+    return acc;
+}
+
+Scene * AddGroupToSceneSemanticAction(Scene *scene, Group *group) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !group) return scene;
+    group->next = scene->groups;
+    scene->groups = group;
+    return scene;
+}
+
+Property * MergeProperties(Property *acc, Property *item) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!acc) return item;
+    if (!item) return acc;
+    
+    Property *last = acc;
+    while (last->next) last = last->next;
+    last->next = item;
+    return acc;
 }

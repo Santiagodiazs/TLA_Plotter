@@ -1,0 +1,11 @@
+scene StrokeWidthNoUnits {
+    draw rectangle rect1 {
+        at (100, 100);
+        size 200x150;
+        fill #FF0000;
+        stroke #000000;
+        stroke_width 5;
+        
+    }
+}
+

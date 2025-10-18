@@ -25,6 +25,11 @@ CompilationStatus IgnoredLexemeAction();
 CompilationStatus IntegerLexemeAction();
 CompilationStatus LeaveImportExpressionLexemeAction();
 CompilationStatus LeaveMultilineCommentLexemeAction();
+CompilationStatus EnterOnelineCommentLexemeAction(FlexContext context);
+CompilationStatus LeaveOnelineCommentLexemeAction();
+CompilationStatus EnterStringContextLexemeAction(FlexContext context);
+CompilationStatus LeaveStringContextLexemeAction();
+CompilationStatus SemicolonAndLeaveStringContextLexemeAction();
 CompilationStatus ParenthesisLexemeAction(TokenLabel label);
 CompilationStatus SubexpressionLexemeAction();
 CompilationStatus UnknownLexemeAction();
@@ -41,5 +46,6 @@ CompilationStatus BraceLexemeAction(TokenLabel label);
 CompilationStatus SemicolonLexemeAction();
 CompilationStatus CommaLexemeAction();
 CompilationStatus ColonLexemeAction();
+CompilationStatus DotLexemeAction();
 
 #endif

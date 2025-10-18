@@ -1,0 +1,22 @@
+scene InvalidValues {
+    draw rectangle casa {
+        at (100, 100);
+        size -200x150;
+        fill #FF0000;
+       
+    }
+    
+    draw circle sol {
+        at (300, 100);
+        radius -50;
+        fill #FFD700;
+      
+    }
+    
+    draw rectangle casa2 {
+        at (100, 200);
+        size 200x150;
+        fill color(300, 100, 50);
+        
+    }
+}

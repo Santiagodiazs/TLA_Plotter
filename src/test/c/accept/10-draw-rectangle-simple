@@ -1,3 +1,0 @@
-scene MiEscena {
-    draw rectangle casa {}
-}

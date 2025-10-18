@@ -10,16 +10,20 @@
 
 %{
 
+
+
 extern CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
-extern CompilationStatus EnterImportExpressionLexemeAction(FlexContext context);
 extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus EnterOnelineCommentLexemeAction(FlexContext context);
 extern CompilationStatus EOFLexemeAction();
 extern CompilationStatus IgnoredLexemeAction();
 extern CompilationStatus IntegerLexemeAction();
-extern CompilationStatus LeaveImportExpressionLexemeAction();
 extern CompilationStatus LeaveMultilineCommentLexemeAction();
+extern CompilationStatus LeaveOnelineCommentLexemeAction();
+extern CompilationStatus EnterStringContextLexemeAction(FlexContext context);
+extern CompilationStatus LeaveStringContextLexemeAction();
+extern CompilationStatus SemicolonAndLeaveStringContextLexemeAction();
 extern CompilationStatus ParenthesisLexemeAction(TokenLabel label);
-extern CompilationStatus SubexpressionLexemeAction();
 extern CompilationStatus UnknownLexemeAction();
 
 // Acciones específicas del DSL 
@@ -34,47 +38,66 @@ extern CompilationStatus BraceLexemeAction(TokenLabel label);
 extern CompilationStatus SemicolonLexemeAction();
 extern CompilationStatus CommaLexemeAction();
 extern CompilationStatus ColonLexemeAction();
+extern CompilationStatus DotLexemeAction();
 
 %}
 
-/* Habilitar funciones de manipulación de condiciones de inicio */
-%option stack
-
-%x IMPORT_EXPRESSION
+/**
+ * Flex contexts (a.k.a. start conditions).
+ *
+ * @see https://westes.github.io/flex/manual/Start-Conditions.html
+ */
 %x MULTILINE_COMMENT
+%x ONELINE_COMMENT
+%s STRING
 
-/* Patrones reutilizables para el DSL */ 
+/**
+ * Reusable patterns.
+ *
+ * @see https://westes.github.io/flex/manual/Matching.html
+ * @see https://westes.github.io/flex/manual/Patterns.html
+ */
 whitespace			[[:space:]]+
-identifier			[a-zA-Z_][a-zA-Z0-9_]*
-integer				[0-9]+
-decimal				[0-9]+(\.[0-9]+)?
-dimensions			[0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 
-WS					[ \t\r\n\f\v]*
-INT					[0-9]+
-FLOAT				([0-9]+(\.[0-9]+)?|\.[0-9]+)
-hex_color			#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
-rgb_color			rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-rgba_color			rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
-color_func			color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-coordinates			\({WS}{INT}{WS},{WS}{INT}{WS}\)
-string				\"[^\"]*\"
+/* Patrones específicos del DSL */ 
+identifier          [a-zA-Z_][a-zA-Z0-9_]*
+integer             [0-9]+
+decimal             [0-9]+\.[0-9]+
+dimensions          [0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
+
+WS                  [ \t\r\n\f\v]*
+INT                 [0-9]+
+FLOAT               ([0-9]+(\.[0-9]+)?|\.[0-9]+)
+hex_color           #([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
+rgb_color           rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+rgba_color          rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
+color_func          color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
+coordinates         \({WS}{INT}{WS},{WS}{INT}{WS}\)
+string              \"[^\"]*\"
+NUM                 ({decimal}|{integer})
+UNIT                (px|rem|em|vw|vh|%)
 
 %%
 
 %{
 
-%}
+/**
+ * @see https://westes.github.io/flex/manual/Rules-Section.html#Rules-Section
+ */
 
-"import"							{ return EnterImportExpressionLexemeAction(IMPORT_EXPRESSION); }
-<IMPORT_EXPRESSION>"from"			{ return SubexpressionLexemeAction(); }
-<IMPORT_EXPRESSION>";"				{ return LeaveImportExpressionLexemeAction(); }
-<IMPORT_EXPRESSION>[^;]+			{ return SubexpressionLexemeAction(); }
+%}
 
 "/*"								{ return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
 <MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+
+"//"								{ return EnterOnelineCommentLexemeAction(ONELINE_COMMENT); }
+<ONELINE_COMMENT>"\n"				{ return LeaveOnelineCommentLexemeAction(); }
+<ONELINE_COMMENT>[^\n]+			{ return IgnoredLexemeAction(); }
+<ONELINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+
+<STRING>";"							{ return SemicolonAndLeaveStringContextLexemeAction(); }
 
 "-"									{ return ArithmeticOperatorLexemeAction(SUB); }
 "*"									{ return ArithmeticOperatorLexemeAction(MUL); }
@@ -130,7 +153,7 @@ string				\"[^\"]*\"
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
 {coordinates}						{ return CoordinatesLexemeAction(); }
-{dimensions}						{ return DimensionsLexemeAction(); }
+{dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
@@ -140,7 +163,8 @@ string				\"[^\"]*\"
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
 ";"									{ return SemicolonLexemeAction(); }
 ","									{ return CommaLexemeAction(); }
-":"									{ return ColonLexemeAction(); }
+":"									{ return EnterStringContextLexemeAction(STRING); }
+"."									{ return DotLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 
@@ -149,3 +173,10 @@ string				\"[^\"]*\"
 .									{ return UnknownLexemeAction(); }
 
 %%
+
+/**
+ * @see https://westes.github.io/flex/manual/User-Code-Section.html#User-Code-Section
+ */
+
+#include "FlexActions.h"
+#include "FlexExport.h"

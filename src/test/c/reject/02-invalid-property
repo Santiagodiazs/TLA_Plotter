@@ -1,0 +1,8 @@
+scene InvalidKeyword {
+    draw rectangle casa {
+        at (100, 100);
+        size 200x150;
+        fill #FF0000;
+        invalid_property #000000;
+    }
+}

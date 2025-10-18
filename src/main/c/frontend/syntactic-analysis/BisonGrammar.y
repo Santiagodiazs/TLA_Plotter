@@ -3,9 +3,26 @@
 #include "../../support/type/TokenLabel.h"
 #include "AbstractSyntaxTree.h"
 #include "BisonActions.h"
+#include <stdio.h>
+#include <string.h>
 
-// Declarar logger externo para usar en la gramática
 extern Logger * _logger;
+
+static void disable_buffering() {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+}
+
+static UnitType parseUnit(const char* s) {
+    if (!s) return UNIT_PX; /* default razonable */
+    if (strcmp(s,"px")==0)  return UNIT_PX;
+    if (strcmp(s,"rem")==0) return UNIT_REM;
+    if (strcmp(s,"em")==0)  return UNIT_EM;
+    if (strcmp(s,"vw")==0)  return UNIT_VW;
+    if (strcmp(s,"vh")==0)  return UNIT_VH;
+    /* fallback: px */
+    return UNIT_PX;
+}
 
 /**
  * The error reporting function for Bison parser.
@@ -16,6 +33,8 @@ extern Logger * _logger;
  * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
  */
 void yyerror(const YYLTYPE * location, const char * message) {
+    fprintf(stderr, "SYNTAX ERROR: %s\n", message);
+    exit(1);
 }
 
 %}
@@ -39,7 +58,10 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	struct {
 		int width;
 		int height;
+		UnitType widthUnit;
+        UnitType heightUnit;
 	} dimensions;
+
 	struct {
 		int x;
 		int y;
@@ -55,6 +77,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	Figure * figure;
 	Property * property;
 	Color * color;
+	PaletteEntry * palette_entry;
+	GroupContent * group_content;
+	Group * group;
 }
 
 /**
@@ -65,9 +90,6 @@ void yyerror(const YYLTYPE * location, const char * message) {
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
-%destructor { destroyConstant($$); } <constant>
-%destructor { destroyExpression($$); } <expression>
-%destructor { destroyFactor($$); } <factor>
 %destructor { destroyColor($$); } <color>
 
 /** Terminals. */
@@ -142,30 +164,32 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> SEMICOLON
 %token <token> COMMA
 %token <token> COLON
+%token <token> DOT
 
 /** Non-terminals. */
-%type <constant> constant
-%type <expression> expression
-%type <factor> factor
 %type <program> program
 %type <scene> scene_declaration
 
 // Figure-related non-terminals
+%type <palette_entry> palette_item
+%type <palette_entry> palette_list
 %type <scene> scene_content
 %type <scene> scene_item
+%type <scene> symbol_declaration
+%type <scene> use_statement
+%type <scene> group_statement
+%type <property> use_properties
+%type <property> use_property
+%type <group_content> group_content
+%type <group_content> group_item
 %type <figure> draw_statement
+%type <figure> draw_list
 %type <string> layer_name
-%type <figure> figure_declaration
-%type <figure> figure_with_id
 %type <coordinates> coordinates_value
 %type <dimensions> dimensions_value
-%type <string> color_value
 %type <color> parsed_color_value
-%type <figure> figure_anonymous
 %type <integer> figure_type
 %type <property> figure_properties
-%type <property> external_property_list
-%type <property> external_property_item
 %type <property> property_list
 %type <property> property_item
 %type <property> size_property
@@ -182,10 +206,12 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> draw_tail
 %type <property> draw_tail_after_external
 %type <property> external_items
-%type <property> external_items_more
 %type <property> external_item
 %type <property> position_item
 %type <property> size_item
+%type <property> translate_property
+%type <property> width_property
+%type <property> height_property
 
 /**
  * Precedence and associativity.
@@ -197,424 +223,227 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %left MUL DIV
 %left SEMICOLON
 
+// Precedencia para transformaciones
+%left SCALE
+%left ROTATE
+%left TRANSLATE
+
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
-program: scene_declaration									{ 
-		$$ = SceneProgramSemanticAction($1); 
-	}
-	| INTEGER													{ 
-		$$ = NULL; 
-	}
-	| error													{ 
-		yyerrok; 
-		$$ = NULL; 
-	}
-	;
-
-expression: expression[left] ADD expression[right]			{ $$ = ArithmeticExpressionSemanticAction($left, $right, ADDITION); }
-	| expression[left] DIV expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, DIVISION); }
-	| expression[left] MUL expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, MULTIPLICATION); }
-	| expression[left] SUB expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, SUBTRACTION); }
-	| factor												{ $$ = FactorExpressionSemanticAction($1); }
-	;
-
-factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSemanticAction($2); }
-	| constant												{ $$ = ConstantFactorSemanticAction($1); }
-	;
-
-constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
+program: scene_declaration	{ disable_buffering(); $$ = SceneProgramSemanticAction($1); }
+	| INTEGER	{ $$ = NULL; }
+	| error	{ yyerrok; $$ = NULL; }
 	;
 
 
-scene_declaration: SCENE IDENTIFIER	{ 
-		$$ = BasicSceneSemanticAction($2); 
-	}
-	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
-		$$ = BasicSceneSemanticAction($2);
-		if ($4 != NULL) {
-			$$ = $4;  // Use the scene with figures
-			if ($$ != NULL && $$->name == NULL) {
-				$$->name = malloc(strlen($2) + 1);
-				if ($$->name != NULL) {
-					strcpy($$->name, $2);
-				}
-			}
-		}
-	}
-	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
-		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
-		$$ = BasicSceneSemanticAction($2);
-		if ($6 != NULL) {
-			$$ = $6;  // Use the scene with figures  
-			if ($$ != NULL && $$->name == NULL) {
-				$$->name = malloc(strlen($2) + 1);
-				if ($$->name != NULL) {
-					strcpy($$->name, $2);
-				}
-			}
-		}
-		// TODO: Agregar acción semántica para tamaño de escena
-	}
+scene_declaration: SCENE IDENTIFIER	{ $$ = BasicSceneSemanticAction($2); }
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($4 != NULL) { $$ = $4; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
+	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($6 != NULL) { $$ = $6; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
 	;
 
-scene_content: /* empty */				{ 
-		printf("[DEBUG] scene_content: empty\n");
-		$$ = NULL; 
-	}
-	| scene_content scene_item		{ 
-		printf("[DEBUG] scene_content: merging scene_item\n");
-		$$ = MergeSceneContent($1, $2); 
-	}
+scene_content: /* empty */	{ $$ = NULL; }
+	| scene_content scene_item	{ $$ = MergeSceneContent($1, $2); }
 	;
 
-scene_item: draw_statement		{ 
-		printf("[DEBUG] scene_item: draw_statement\n");
-		$$ = SceneFromFigure($1); 
-	}
-	| BACKGROUND parsed_color_value SEMICOLON {
-		printf("[DEBUG] scene_item: background\n");
-		$$ = SceneWithBackground($2);
-	}
-	| LAYER layer_name Z INTEGER SEMICOLON {
-		printf("[DEBUG] scene_item: layer declaration\n");
-		$$ = SceneWithLayerDecl($2, $4);
-		free($2); // Liberar el string del layer_name
-	}
-	| LAYER layer_name OPEN_BRACE scene_content CLOSE_BRACE {
-		printf("[DEBUG] scene_item: layer block\n");
-		$$ = SceneWithLayerBlock($2, $4);
-		free($2); // Liberar el nombre
-	}
+scene_item: draw_statement	{ $$ = SceneFromFigure($1); }
+	| BACKGROUND parsed_color_value SEMICOLON	{ $$ = SceneWithBackground($2); }
+	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = SceneWithLayerBlock($2, $4, $6); }
+    | PALETTE OPEN_BRACE palette_list CLOSE_BRACE	{ $$ = SceneWithPaletteBlock($3); }
+    | PALETTE IDENTIFIER OPEN_BRACE palette_list CLOSE_BRACE	{ $$ = SceneWithNamedPaletteBlock($2, $4); }
+	| symbol_declaration	{ $$ = $1; }
+	| use_statement	{ $$ = $1; }
+	| group_statement	{ $$ = $1; }
 	;
 
-layer_name: IDENTIFIER { $$ = $1; }
-	| BACKGROUND { $$ = strdup("background"); }
+symbol_declaration: SYMBOL IDENTIFIER OPEN_BRACE draw_list CLOSE_BRACE	{ Symbol *sym = CreateSymbolMove($2, $4); $$ = BasicSceneSemanticAction(NULL); $$ = AddSymbolToSceneSemanticAction($$, sym); }
+  ;
+
+use_statement: USE IDENTIFIER SEMICOLON	{ UseInstance *u = CreateUseInstance($2); $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
+	| USE IDENTIFIER AT coordinates_value SEMICOLON	{ UseInstance *u = CreateUseInstance($2); u->hasPosition = 1; u->posX = $4.x; u->posY = $4.y; $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
+	| USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE	{ UseInstance *u = CreateUseInstance($2); u->properties = $4; $$ = BasicSceneSemanticAction(NULL); $$ = AddUseToSceneSemanticAction($$, u); }
+  ;
+
+use_properties: /* empty */	{ $$ = NULL; }
+	| use_properties use_property	{ $$ = MergeProperties($1, $2); }
+  ;
+
+use_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
+  ;
+
+group_statement: GROUP IDENTIFIER OPEN_BRACE group_content CLOSE_BRACE	{ Group *g = CreateGroup($2, $4); $$ = BasicSceneSemanticAction(NULL); $$ = AddGroupToSceneSemanticAction($$, g); }
+  ;
+
+group_content: /* empty */	{ $$ = NULL; }
+	| group_content group_item	{ $$ = MergeGroupContent($1, $2); }
+  ;
+
+group_item: draw_statement	{ $$ = GroupFromFigure($1); }
+	| scale_property	{ $$ = GroupFromProperty($1); }
+	| rotate_property	{ $$ = GroupFromProperty($1); }
+	| translate_property	{ $$ = GroupFromProperty($1); }
+  ;
+
+layer_name: IDENTIFIER	{ $$ = $1; }
+	| BACKGROUND	{ $$ = strdup("background"); }
 	;
 
-figure_declaration: figure_with_id		{ $$ = $1; }
-	| figure_anonymous				{ $$ = $1; }
+
+
+draw_statement: DRAW figure_type IDENTIFIER draw_tail	{ $$ = CreateFigureSemanticAction($2, $3, $4); }
+	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = CreateFigureSemanticAction($2, NULL, $4); }
 	;
 
-draw_statement: DRAW figure_type IDENTIFIER draw_tail	{
-		printf("DEBUG: Draw statement with ID '%s'\n", $3);
-		printf("[DEBUG] draw_statement: About to call CreateFigureSemanticAction\n");
-		printf("[DEBUG] draw_statement: type=%d, id='%s', tail=%p\n", $2, $3, $4);
-		$$ = CreateFigureSemanticAction($2, $3, $4);
-		printf("[DEBUG] draw_statement: CreateFigureSemanticAction completed\n");
-		printf("[DEBUG] draw_statement: Figure created successfully\n");
-	}
-	| DRAW figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Draw statement anonymous figure\n");
-		$$ = CreateFigureSemanticAction($2, NULL, $4);
-	}
+draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $2; }
+	| external_items draw_tail_after_external	{ if ($1 && $2) { Property *last = $1; while (last && last->next) last = last->next; if (last) last->next = $2; $$ = $1; } else if ($1) { $$ = $1; } else { $$ = $2; } }
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $3; }
 	;
 
-draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail: internal properties only\n");
-		$$ = $2;
-	}
-	| external_items draw_tail_after_external	{
-		printf("[DEBUG] draw_tail: external + tail\n");
-		$$ = $2;
-	}
-	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail: WITH syntax\n");
-		$$ = $3;
-	}
+draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $2; }
+	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{ $$ = $3; }
 	;
 
-draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail_after_external: external + internal properties\n");
-		$$ = $2;
-	}
-	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail_after_external: external + WITH syntax\n");
-		$$ = $3;
-	}
+draw_list: draw_statement	{ $$ = $1; }
+	| draw_list draw_statement	{ if ($1) { Figure *tail = $1; while (tail->next) tail = tail->next; tail->next = $2; $$ = $1; } else { $$ = $2; } }
+  ;
+
+external_items: external_item	{ $$ = $1; }
+	| external_items external_item	{ Property *last = $1; while (last->next) last = last->next; last->next = $2; $$ = $1; }
 	;
 
-external_items: external_item external_items_more	{
-		printf("[DEBUG] external_items: head + more\n");
-		printf("[DBG] link head %p -> %p\n", (void*)$1, (void*)$2);
-		$1->next = $2;
-		$$ = $1;
-	}
+external_item: position_item	{ $$ = $1; }
+	| size_item	{ $$ = $1; }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
 	;
 
-external_items_more: SEMICOLON external_item external_items_more	{
-		printf("[DEBUG] external_items_more: semicolon + item + more\n");
-		printf("[DBG] link mid %p -> %p\n", (void*)$2, (void*)$3);
-		$2->next = $3;
-		$$ = $2;
-	}
-	| /* empty */	{
-		printf("[DEBUG] external_items_more: empty\n");
-		$$ = NULL;
-	}
+position_item: AT coordinates_value	{ Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y); }
 	;
 
-external_item: position_item				{
-		printf("[DEBUG] external_item: position_item\n");
-		$$ = $1;
-	}
-	| size_item						{
-		printf("[DEBUG] external_item: size_item\n");
-		$$ = $1;
-	}
+size_item: SIZE dimensions_value	{ Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction(prop, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
 	;
 
-position_item: AT coordinates_value			{
-		printf("[DEBUG] position_item: AT coordinates\n");
-		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y);
-	}
-	;
 
-size_item: SIZE dimensions_value				{
-		printf("[DEBUG] size_item: SIZE dimensions\n");
-		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
-		$$ = SetPropertyDimensionsSemanticAction(prop, $2.width, $2.height);
-	}
-	;
-
-figure_with_id: figure_type IDENTIFIER OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Creating figure with ID '%s' of type %d\n", $2, $1);
-		$$ = CreateFigureSemanticAction($1, $2, $4);
-	}
-	;
-
-figure_anonymous: figure_type OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("DEBUG: Creating anonymous figure of type %d\n", $1);
-		$$ = CreateFigureSemanticAction($1, NULL, $3);
-	}
-	;
 
 figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
-	| CIRCLE		{ $$ = CIRCLE_FIGURE; }
-	| LINE			{ $$ = LINE_FIGURE; }
-	| ELLIPSE		{ $$ = ELLIPSE_FIGURE; }
-	| POLYLINE		{ $$ = POLYLINE_FIGURE; }
-	| POLYGON		{ $$ = POLYGON_FIGURE; }
+	| CIRCLE	{ $$ = CIRCLE_FIGURE; }
+	| LINE	{ $$ = LINE_FIGURE; }
+	| ELLIPSE	{ $$ = ELLIPSE_FIGURE; }
+	| POLYLINE	{ $$ = POLYLINE_FIGURE; }
+	| POLYGON	{ $$ = POLYGON_FIGURE; }
 	;
 
-figure_properties: /* empty */				{ 
-		printf("[DEBUG] figure_properties: empty\n");
-		$$ = NULL; 
-	}
-	| property_list						{ 
-		printf("[DEBUG] figure_properties: property_list=%p\n", $1);
-		$$ = $1; 
-	}
+figure_properties: /* empty */	{ $$ = NULL; }
+	| property_list	{ $$ = $1; }
+	;
+
+palette_item: IDENTIFIER parsed_color_value SEMICOLON	{ $$ = CreatePaletteEntrySemanticAction($1, $2); }
+        ;
+
+palette_list: palette_item	{ $$ = $1; }
+	| palette_item palette_list	{ $1->next = $2; $$ = $1; }
+        ;
+
+
+
+
+property_list: property_item	{ $$ = $1; }
+	| property_item property_list	{ $1->next = $2; $$ = $1; }
 	;
 
 
-external_property_list: external_property_item		{ 
-		printf("[DEBUG] external_property_list: single property\n");
-		$$ = $1; 
-	}
-	| external_property_item external_property_list	{ 
-		printf("[DEBUG] external_property_list: linking property to list\n");
-		$1->next = $2;
-		$$ = $1; 
-	}
+
+property_item: size_property	{ $$ = $1; }
+	| position_property	{ $$ = $1; }
+	| fill_property	{ $$ = $1; }
+	| stroke_property	{ $$ = $1; }
+	| radius_property	{ $$ = $1; }
+	| from_property	{ $$ = $1; }
+	| to_property	{ $$ = $1; }
+	| stroke_width_property	{ $$ = $1; }
+	| opacity_property	{ $$ = $1; }
+	| scale_property	{ $$ = $1; }
+	| rotate_property	{ $$ = $1; }
+	| translate_property	{ $$ = $1; }
+	/* nuevo: width */
+	| width_property	{ $$ = $1; }
+	| height_property	{ $$ = $1; }
 	;
 
-external_property_item: position_property		{ 
-		printf("[DEBUG] external_property_item: position_property\n");
-		$$ = $1; 
-	}
-	| size_property					{ 
-		printf("[DEBUG] external_property_item: size_property\n");
-		$$ = $1; 
-	}
+size_property: SIZE dimensions_value SEMICOLON	{ $$ = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
+    ;
+
+width_property: WIDTH DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, 0, $2.widthUnit); }
+	| WIDTH INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2, u, 0, u); }
+	| WIDTH DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, (int)$2, u, 0, u); }
+    ;
+
+height_property: HEIGHT DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $2.heightUnit, $2.height, $2.heightUnit); }
+	| HEIGHT INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, $2, u); }
+	| HEIGHT DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, (int)$2, u); }
+    ;
+
+position_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-property_list: property_item				{ 
-		printf("[DEBUG] property_list: single property\n");
-		$$ = $1; 
-	}
-	| property_item property_list			{ 
-		printf("[DEBUG] property_list: linking property to list\n");
-		$1->next = $2; 
-		$$ = $1; 
-	}
+fill_property: FILL parsed_color_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FILL_PROPERTY); $$ = SetPropertyColorSemanticAction($$, $2); }
 	;
 
-property_item: size_property				{ 
-		printf("[DEBUG] property_item: size_property\n");
-		$$ = $1; 
-	}
-	| position_property					{ 
-		printf("[DEBUG] property_item: position_property\n");
-		$$ = $1; 
-	}
-	| fill_property						{ 
-		printf("[DEBUG] property_item: fill_property\n");
-		$$ = $1; 
-	}
-	| stroke_property					{ 
-		printf("[DEBUG] property_item: stroke_property\n");
-		$$ = $1; 
-	}
-	| radius_property					{ 
-		printf("[DEBUG] property_item: radius_property\n");
-		$$ = $1; 
-	}
-	| from_property					{ 
-		printf("[DEBUG] property_item: from_property\n");
-		$$ = $1; 
-	}
-	| to_property					{ 
-		printf("[DEBUG] property_item: to_property\n");
-		$$ = $1; 
-	}
-	| stroke_width_property				{ 
-		printf("[DEBUG] property_item: stroke_width_property\n");
-		$$ = $1; 
-	}
-	| opacity_property					{ 
-		printf("[DEBUG] property_item: opacity_property\n");
-		$$ = $1; 
-	}
-	| scale_property					{ 
-		printf("[DEBUG] property_item: scale_property\n");
-		$$ = $1; 
-	}
-	| rotate_property					{ 
-		printf("[DEBUG] property_item: rotate_property\n");
-		$$ = $1; 
-	}
+stroke_property: STROKE parsed_color_value SEMICOLON	{ $$ = CreatePropertySemanticAction(STROKE_PROPERTY); $$ = SetPropertyColorSemanticAction($$, $2); }
+	| STROKE SEMICOLON	{ $$ = CreatePropertySemanticAction(STROKE_PROPERTY); Color * defaultColor = ParseNamedColor("black"); $$ = SetPropertyColorSemanticAction($$, defaultColor); }
 	;
 
-size_property: SIZE dimensions_value SEMICOLON {
-		printf("DEBUG: size_property with dimensions parsed\n");
-		$$ = CreatePropertySemanticAction(SIZE_PROPERTY);
-		$$ = SetPropertyDimensionsSemanticAction($$, $2.width, $2.height);
-	}
+	radius_property: RADIUS INTEGER SEMICOLON	{ $$ = CreatePropertySemanticAction(RADIUS_PROPERTY); $$ = SetPropertyIntValueSemanticAction($$, $2); }
 	;
 
-position_property: AT coordinates_value SEMICOLON {
-		printf("DEBUG: position_property with coordinates parsed\n");
-		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+	from_property: FROM coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FROM_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-fill_property: FILL parsed_color_value SEMICOLON {
-		printf("DEBUG: fill_property with parsed color\n");
-		$$ = CreatePropertySemanticAction(FILL_PROPERTY);
-		$$ = SetPropertyColorSemanticAction($$, $2);
-	}
+	to_property: TO coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TO_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-stroke_property: STROKE parsed_color_value SEMICOLON	{
-		printf("DEBUG: stroke_property with parsed color\n");
-		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		$$ = SetPropertyColorSemanticAction($$, $2);
-	}
-	| STROKE SEMICOLON	{
-		printf("DEBUG: stroke_property without color parsed\n");
-		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
-		Color * defaultColor = ParseNamedColor("black");
-		$$ = SetPropertyColorSemanticAction($$, defaultColor);
-	}
+stroke_width_property
+    : STROKE_WIDTH INTEGER IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+        $$ = SetPropertyIntValueSemanticAction($$, $2);
+    }
+    | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
+        UnitType u = parseUnit($3);
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+        $$ = SetPropertyIntValueSemanticAction($$, (int)$2);
+    }
+    ;
+
+	opacity_property: OPACITY DECIMAL SEMICOLON	{ $$ = CreatePropertySemanticAction(OPACITY_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, $2); }
 	;
 
-radius_property: RADIUS INTEGER SEMICOLON	{
-		printf("DEBUG: radius_property parsed: radius(%d)\n", $2);
-		$$ = CreatePropertySemanticAction(RADIUS_PROPERTY);
-		$$ = SetPropertyIntValueSemanticAction($$, $2);
-	}
+	scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(SCALE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
 	;
 
-from_property: FROM coordinates_value SEMICOLON	{
-		printf("DEBUG: from_property parsed\n");
-		$$ = CreatePropertySemanticAction(FROM_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+
+	rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(ROTATE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
 	;
 
-to_property: TO coordinates_value SEMICOLON	{
-		printf("DEBUG: to_property parsed\n");
-		$$ = CreatePropertySemanticAction(TO_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
-	}
+	dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.widthUnit = $1.widthUnit; $$.heightUnit = $1.heightUnit; }
 	;
 
-stroke_width_property: STROKE_WIDTH INTEGER SEMICOLON	{
-		printf("DEBUG: stroke_width_property parsed: stroke-width(%d)\n", $2);
-		$$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-		$$ = SetPropertyIntValueSemanticAction($$, $2);
-	}
+	coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
 	;
 
-opacity_property: OPACITY DECIMAL SEMICOLON	{
-		printf("DEBUG: opacity_property parsed: opacity(%f)\n", $2);
-		$$ = CreatePropertySemanticAction(OPACITY_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, $2);
-	}
+	translate_property: TRANSLATE coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY); $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y); }
 	;
 
-scale_property: SCALE OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		printf("DEBUG: scale_property parsed: scale(%d, %d)\n", $3, $5);
-		$$ = CreatePropertySemanticAction(SCALE_PROPERTY);
-		$$ = SetPropertyScaleSemanticAction($$, (float)$3, (float)$5);
-	}
-	;
-
-rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
-		printf("DEBUG: rotate_property parsed: rotate(%d)\n", $3);
-		$$ = CreatePropertySemanticAction(ROTATE_PROPERTY);
-		$$ = SetPropertyFloatValueSemanticAction($$, (float)$3);
-	}
-	;
-
-dimensions_value: DIMENSIONS {
-		printf("DEBUG: dimensions_value parsed successfully\n");
-		$$.width = $1.width;
-		$$.height = $1.height;
-	}
-	;
-
-coordinates_value: COORDINATES {
-		printf("DEBUG: coordinates_value parsed successfully: (%d,%d)\n", $1.x, $1.y);
-		$$.x = $1.x;
-		$$.y = $1.y;
-	}
-	;
-
-color_value: IDENTIFIER {
-		$$ = $1;
-	}
-	| RGB_COLOR {
-		$$ = $1;
-	}
-	| HEX_COLOR {
-		$$ = $1;
-	}
-	| RGBA_COLOR {
-		$$ = $1;
-	}
-	;
-
-parsed_color_value: IDENTIFIER {
-		printf("DEBUG: parsing named color: %s\n", $1);
-		$$ = ParseNamedColor($1);
-	}
-	| RGB_COLOR {
-		printf("DEBUG: parsing RGB color: %s\n", $1);
-		$$ = ParseRgbColor($1);
-	}
-	| HEX_COLOR {
-		printf("DEBUG: parsing HEX color: %s\n", $1);
-		$$ = ParseHexColor($1);
-	}
-	| RGBA_COLOR {
-		printf("DEBUG: parsing RGBA color: %s\n", $1);
-		$$ = ParseRgbaColor($1);
-	}
+	parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }
+	| IDENTIFIER DOT IDENTIFIER	{ $$ = ParsePaletteColor($1, $3); }
+	| RGB_COLOR	{ $$ = ParseRgbColor($1); }
+	| HEX_COLOR	{ $$ = ParseHexColor($1); }
+	| RGBA_COLOR	{ $$ = ParseRgbaColor($1); }
 	;
 
 %%
