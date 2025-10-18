@@ -6,15 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 
-
 extern Logger * _logger;
-
 
 static void disable_buffering() {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 }
-
 
 static UnitType parseUnit(const char* s) {
     if (!s) return UNIT_PX; /* default razonable */
@@ -398,7 +395,6 @@ draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
 		$$ = $2;
 	}
 	| external_items draw_tail_after_external	{
-		printf("[DEBUG] draw_tail: external + tail\n");
 		if ($1 && $2) {
 			Property *last = $1;
 			while (last && last->next) last = last->next;
@@ -411,17 +407,14 @@ draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
 		}
 	}
 	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail: WITH syntax\n");
 		$$ = $3;
 	}
 	;
 
 draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail_after_external: external + internal properties\n");
 		$$ = $2;
 	}
 	| WITH OPEN_BRACE figure_properties CLOSE_BRACE	{
-		printf("[DEBUG] draw_tail_after_external: external + WITH syntax\n");
 		$$ = $3;
 	}
 	;
@@ -429,7 +422,6 @@ draw_tail_after_external: OPEN_BRACE figure_properties CLOSE_BRACE	{
 draw_list
   : draw_statement                          { $$ = $1; }
   | draw_list draw_statement                {
-      printf("[DEBUG] draw_list: linking %p -> %p\n", (void*)$1, (void*)$2);
       if ($1) {
         Figure *tail = $1;
         while (tail->next) tail = tail->next;
@@ -442,11 +434,9 @@ draw_list
   ;
 
 external_items: external_item	{
-		printf("[DEBUG] external_items: single item\n");
 		$$ = $1;
 	}
 	| external_items external_item	{
-		printf("[DEBUG] external_items: adding item to list\n");
 		Property *last = $1;
 		while (last->next) last = last->next;
 		last->next = $2;
@@ -455,36 +445,29 @@ external_items: external_item	{
 	;
 
 external_item: position_item				{
-		printf("[DEBUG] external_item: position_item\n");
 		$$ = $1;
 	}
 	| size_item						{
-		printf("[DEBUG] external_item: size_item\n");
 		$$ = $1;
 	}
 	| scale_property					{
-		printf("[DEBUG] external_item: scale_property\n");
 		$$ = $1;
 	}
 	| rotate_property					{
-		printf("[DEBUG] external_item: rotate_property\n");
 		$$ = $1;
 	}
 	| translate_property					{
-		printf("[DEBUG] external_item: translate_property\n");
 		$$ = $1;
 	}
 	;
 
 position_item: AT coordinates_value			{
-		printf("[DEBUG] position_item: AT coordinates\n");
 		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y);
 	}
 	;
 
 size_item: SIZE dimensions_value				{
-		printf("[DEBUG] size_item: SIZE dimensions\n");
 		Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY);
 		$$ = SetPropertyDimensionsWithUnitSemanticAction(prop,
                  $2.width,  $2.widthUnit,
@@ -503,18 +486,15 @@ figure_type: RECTANGLE	{ $$ = RECTANGLE_FIGURE; }
 	;
 
 figure_properties: /* empty */				{
-		printf("[DEBUG] figure_properties: empty\n");
 		$$ = NULL;
 	}
 	| property_list						{
-		printf("[DEBUG] figure_properties: property_list=%p\n", $1);
 		$$ = $1;
 	}
 	;
 
 	palette_item
         : IDENTIFIER parsed_color_value SEMICOLON {
-            printf("DEBUG: palette_item %s\n", $1);
             $$ = CreatePaletteEntrySemanticAction($1, $2);
         }
         ;
@@ -528,11 +508,9 @@ figure_properties: /* empty */				{
 
 
 property_list: property_item				{
-		printf("[DEBUG] property_list: single property\n");
 		$$ = $1;
 	}
 	| property_item property_list			{
-		printf("[DEBUG] property_list: linking property to list\n");
 		$1->next = $2;
 		$$ = $1;
 	}
@@ -541,51 +519,39 @@ property_list: property_item				{
 
 
 property_item: size_property				{
-		printf("[DEBUG] property_item: size_property\n");
 		$$ = $1;
 	}
 	| position_property					{
-		printf("[DEBUG] property_item: position_property\n");
 		$$ = $1;
 	}
 	| fill_property						{
-		printf("[DEBUG] property_item: fill_property\n");
 		$$ = $1;
 	}
 	| stroke_property					{
-		printf("[DEBUG] property_item: stroke_property\n");
 		$$ = $1;
 	}
 	| radius_property					{
-		printf("[DEBUG] property_item: radius_property\n");
 		$$ = $1;
 	}
 	| from_property					{
-		printf("[DEBUG] property_item: from_property\n");
 		$$ = $1;
 	}
 	| to_property					{
-		printf("[DEBUG] property_item: to_property\n");
 		$$ = $1;
 	}
 	| stroke_width_property				{
-		printf("[DEBUG] property_item: stroke_width_property\n");
 		$$ = $1;
 	}
 	| opacity_property					{
-		printf("[DEBUG] property_item: opacity_property\n");
 		$$ = $1;
 	}
 	| scale_property					{ 
-		printf("[DEBUG] property_item: scale_property\n");
 		$$ = $1; 
 	}
 	| rotate_property					{ 
-		printf("[DEBUG] property_item: rotate_property\n");
 		$$ = $1; 
 	}
     | translate_property					{ 
-		printf("[DEBUG] property_item: translate_property\n");
 		$$ = $1; 
 	}
 	/* nuevo: width */
@@ -594,7 +560,6 @@ property_item: size_property				{
 	;
 
 size_property: SIZE dimensions_value SEMICOLON {
-        printf("DEBUG: size_property with dimensions+units parsed\n");
         $$ = CreatePropertySemanticAction(SIZE_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  $2.width,  $2.widthUnit,
@@ -604,7 +569,6 @@ size_property: SIZE dimensions_value SEMICOLON {
 
 width_property
     : WIDTH DIMENSIONS SEMICOLON {
-        printf("DEBUG: width_property via DIMENSIONS: %d (unit=%d)\n", $2.width, (int)$2.widthUnit);
         $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  $2.width,  $2.widthUnit,
@@ -612,7 +576,6 @@ width_property
     }
     | WIDTH INTEGER IDENTIFIER SEMICOLON {
         UnitType u = parseUnit($3);
-        printf("DEBUG: width_property: %d %s (unit=%d)\n", $2, $3, (int)u);
         $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  $2, u,
@@ -621,7 +584,6 @@ width_property
     }
     | WIDTH DECIMAL IDENTIFIER SEMICOLON {
         UnitType u = parseUnit($3);
-        printf("DEBUG: width_property: %f %s (unit=%d)\n", $2, $3, (int)u);
         $$ = CreatePropertySemanticAction(WIDTH_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  (int)$2, u,   /* si necesitás preservar decimales, cambiá a un setter float */
@@ -631,26 +593,23 @@ width_property
     ;
 
 height_property
-    : HEIGHT DIMENSIONS SEMICOLON {
-        printf("DEBUG: height_property via DIMENSIONS: %d (unit=%d)\n", $2.height, (int)$2.heightUnit);
-        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+      : HEIGHT DIMENSIONS SEMICOLON {
+          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  0,         $2.heightUnit, /* ancho ignorado */
                  $2.height, $2.heightUnit);
     }
     | HEIGHT INTEGER IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        printf("DEBUG: height_property: %d %s (unit=%d)\n", $2, $3, (int)u);
-        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+          UnitType u = parseUnit($3);
+          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  0,  u,  
                  $2, u);
         free($3);
     }
     | HEIGHT DECIMAL IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        printf("DEBUG: height_property: %f %s (unit=%d)\n", $2, $3, (int)u);
-        $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
+          UnitType u = parseUnit($3);
+          $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY);
         $$ = SetPropertyDimensionsWithUnitSemanticAction($$,
                  0,      u,   /* ancho ignorado */
                  (int)$2, u);
@@ -659,26 +618,22 @@ height_property
     ;
 
 position_property: AT coordinates_value SEMICOLON {
-		printf("DEBUG: position_property with coordinates parsed\n");
 		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
 		$$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y);
 	}
 	;
 
 fill_property: FILL parsed_color_value SEMICOLON {
-		printf("DEBUG: fill_property with parsed color\n");
 		$$ = CreatePropertySemanticAction(FILL_PROPERTY);
 		$$ = SetPropertyColorSemanticAction($$, $2);
 	}
 	;
 
 stroke_property: STROKE parsed_color_value SEMICOLON	{
-		printf("DEBUG: stroke_property with parsed color\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
 		$$ = SetPropertyColorSemanticAction($$, $2);
 	}
 	| STROKE SEMICOLON	{
-		printf("DEBUG: stroke_property without color parsed\n");
 		$$ = CreatePropertySemanticAction(STROKE_PROPERTY);
 		Color * defaultColor = ParseNamedColor("black");
 		$$ = SetPropertyColorSemanticAction($$, defaultColor);
@@ -686,7 +641,6 @@ stroke_property: STROKE parsed_color_value SEMICOLON	{
 	;
 
 radius_property: RADIUS INTEGER SEMICOLON	{
-		printf("DEBUG: radius_property parsed: radius(%d)\n", $2);
 		$$ = CreatePropertySemanticAction(RADIUS_PROPERTY);
 		$$ = SetPropertyIntValueSemanticAction($$, $2);
 	}
@@ -707,22 +661,19 @@ to_property: TO coordinates_value SEMICOLON	{
 stroke_width_property
     : STROKE_WIDTH INTEGER IDENTIFIER SEMICOLON {
         UnitType u = parseUnit($3);
-        printf("DEBUG: stroke_width_property: %d %s (unit=%d)\n", $2, $3, (int)u);
         $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
         $$ = SetPropertyIntValueSemanticAction($$, $2);
         free($3);
     }
-    | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        printf("DEBUG: stroke_width_property: %f %s (unit=%d)\n", $2, $3, (int)u);
-        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+      | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
+          UnitType u = parseUnit($3);
+          $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
         $$ = SetPropertyIntValueSemanticAction($$, (int)$2);
         free($3);
     }
     ;
 
 opacity_property: OPACITY DECIMAL SEMICOLON	{
-		printf("DEBUG: opacity_property parsed: opacity(%f)\n", $2);
 		$$ = CreatePropertySemanticAction(OPACITY_PROPERTY);
 		$$ = SetPropertyFloatValueSemanticAction($$, $2);
 	}
@@ -742,7 +693,6 @@ rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON {
 	;
 
 dimensions_value: DIMENSIONS {
-		printf("DEBUG: dimensions_value parsed successfully\n");
 		$$.width = $1.width;
 		$$.height = $1.height;
 		$$.widthUnit  = $1.widthUnit;
@@ -751,7 +701,6 @@ dimensions_value: DIMENSIONS {
 	;
 
 coordinates_value: COORDINATES {
-		printf("DEBUG: coordinates_value parsed successfully: (%d,%d)\n", $1.x, $1.y);
 		$$.x = $1.x;
 		$$.y = $1.y;
 	}
@@ -766,23 +715,20 @@ translate_property: TRANSLATE coordinates_value SEMICOLON {
 
 
 parsed_color_value: IDENTIFIER {
-		printf("DEBUG: parsing named color: %s\n", $1);
 		$$ = ParseNamedColor($1);
 	}
 	| IDENTIFIER DOT IDENTIFIER {
-		printf("DEBUG: parsing palette color: %s.%s\n", $1, $3);
+		
 		$$ = ParsePaletteColor($1, $3);
 	}
 	| RGB_COLOR {
-		printf("DEBUG: parsing RGB color: %s\n", $1);
 		$$ = ParseRgbColor($1);
 	}
 	| HEX_COLOR {
-		printf("DEBUG: parsing HEX color: %s\n", $1);
+	
 		$$ = ParseHexColor($1);
 	}
 	| RGBA_COLOR {
-		printf("DEBUG: parsing RGBA color: %s\n", $1);
 		$$ = ParseRgbaColor($1);
 	}
 	;
