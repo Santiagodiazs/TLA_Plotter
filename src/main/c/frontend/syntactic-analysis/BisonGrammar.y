@@ -350,7 +350,7 @@ use_statement
   | USE IDENTIFIER OPEN_BRACE use_properties CLOSE_BRACE {
       printf("[DEBUG] use_statement: use '%s' with properties\n", $2);
       UseInstance *u = CreateUseInstance($2);
-      u->properties = $3;
+      u->properties = $4;
       $$ = BasicSceneSemanticAction(NULL);
       $$ = AddUseToSceneSemanticAction($$, u);
       printf("[DEBUG] use_statement: attached with properties (use=%p)\n", (void*)u);
