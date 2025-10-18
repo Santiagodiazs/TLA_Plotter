@@ -201,7 +201,6 @@ Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
 		return found_color;
 	}
 	
-	// Si no se encuentra, crear un color con nombre como fallback
 	Color * color = createColor(NAMED_COLOR);
 	if (color != NULL && color_name != NULL) {
 		color->value.name = malloc(strlen(color_name) + 1);
@@ -230,7 +229,6 @@ Color * ParseRgbColor(const char * rgb) {
 	
 	Color * color = createColor(RGB_COLOR_TYPE);
 	if (color != NULL && rgb != NULL) {
-		// Parsear "rgb(255,0,0)" -> r=255, g=0, b=0
 		int r, g, b;
 		if (sscanf(rgb, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
 			color->value.rgb.r = r;
@@ -246,7 +244,6 @@ Color * ParseRgbaColor(const char * rgba) {
 	
 	Color * color = createColor(RGBA_COLOR_TYPE);
 	if (color != NULL && rgba != NULL) {
-		// Parsear "rgba(255,0,0,1.0)" -> r=255, g=0, b=0, a=1.0
 		int r, g, b;
 		float a;
 		if (sscanf(rgba, "rgba(%d,%d,%d,%f)", &r, &g, &b, &a) == 4) {
@@ -455,7 +452,7 @@ void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead)
             cur = cur->next;
 
             toFree->next = NULL;
-            destroyProperty(toFree);  // ya no es propiedad "visible"
+            destroyProperty(toFree);  
         } else {
             prev = cur;
             cur = cur->next;
@@ -513,8 +510,6 @@ Scene * SceneFromFigure(Figure * figure) {
 Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     if (!_currentScene) {
-        // Si no hay escena actual, podés crear una básica o retornar NULL.
-        // _currentScene = BasicSceneSemanticAction(NULL);
         return NULL;
     }
     if (!entries) return _currentScene;
@@ -549,7 +544,6 @@ Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
     
     Scene * result = SceneWithPaletteBlock(entries);
     
-    // Limpia el nombre ya que se copió como string
     if (name) {
         free((char *)name);
     }
@@ -560,7 +554,6 @@ Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
 Color * LookupPaletteColor(const char *name) {
     if (!name) return NULL;
     
-    // Usar SOLO palette global para evitar problemas de memoria
     PaletteEntry *palette = _globalPalette;
     if (!palette) return NULL;
     
@@ -572,7 +565,6 @@ Color * LookupPaletteColor(const char *name) {
     }
     if (!found) return NULL;
 
-    // copia profunda de Color
     Color *copy = createColor(found->type);
     if (!copy) return NULL;
     switch (found->type) {
@@ -598,7 +590,6 @@ Scene * SceneWithBackground(Color * color) {
 	
 	Scene * scene = BasicSceneSemanticAction(NULL);
 	if (scene && color) {
-		// Convertir Color a string para mantener compatibilidad con backgroundColor
 		char * colorStr = NULL;
 		switch (color->type) {
 			case NAMED_COLOR:
@@ -654,7 +645,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 	
 	logDebugging(_logger, "Merging scene content - simplified version");
 	
-	// Versión simplificada: solo merge básico
 	if (item->backgroundColor) {
 		if (acc->backgroundColor) {
 			free(acc->backgroundColor);
@@ -667,7 +657,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		if (!acc->figures) {
 			acc->figures = item->figures;
 		} else {
-			// Concatenar al final
 			Figure * last = acc->figures;
 			while (last->next) last = last->next;
 			last->next = item->figures;
@@ -679,7 +668,6 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		if (!acc->layers) {
 			acc->layers = item->layers;
 		} else {
-			// Concatenar al final
 			Layer * last = acc->layers;
 			while (last->next) last = last->next;
 			last->next = item->layers;
@@ -711,24 +699,21 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
     item->uses = NULL;
 }	
 
-	// Preservar la palette - no debe ser liberada prematuramente
 	if (item->palette) {
 		if (!acc->palette) {
 			acc->palette = item->palette;
 		} else {
-			// Concatenar palettes al final 
 			PaletteEntry * last = acc->palette;
 			while (last->next) last = last->next;
 			last->next = item->palette;
 		}
-		item->palette = NULL; // Evitar doble liberación
+		item->palette = NULL; 
 	}
 
 	destroyScene(item);
 	return acc;
 }
 
-// Funciones para Group
 Group * CreateGroup(const char *name, GroupContent *content) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Group *group = calloc(1, sizeof(Group));
@@ -739,7 +724,6 @@ Group * CreateGroup(const char *name, GroupContent *content) {
     group->properties = NULL;
     group->next = NULL;
     
-    // Procesar el contenido del grupo
     if (content) {
         group->figures = content->figures;
         group->properties = content->properties;
@@ -774,7 +758,6 @@ GroupContent * MergeGroupContent(GroupContent *acc, GroupContent *item) {
     if (!acc) return item;
     if (!item) return acc;
     
-    // Concatenar figuras
     if (item->figures) {
         Figure *last = acc->figures;
         if (last) {
@@ -786,7 +769,6 @@ GroupContent * MergeGroupContent(GroupContent *acc, GroupContent *item) {
         item->figures = NULL;
     }
     
-    // Concatenar propiedades
     if (item->properties) {
         Property *last = acc->properties;
         if (last) {
@@ -810,7 +792,6 @@ Scene * AddGroupToSceneSemanticAction(Scene *scene, Group *group) {
     return scene;
 }
 
-// Funciones para propiedades de Use
 Property * MergeProperties(Property *acc, Property *item) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     if (!acc) return item;

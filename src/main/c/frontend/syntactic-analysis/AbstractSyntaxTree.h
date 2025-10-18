@@ -123,8 +123,8 @@ struct Transform {
 };
 
 struct PaletteEntry {
-    char *name;        // nombre lógico (ej. "trunk")
-    Color *color;      // color resuelto asociado
+    char *name;        
+    Color *color;      
     struct PaletteEntry *next;
 };
 
@@ -160,8 +160,8 @@ struct Color {
 struct Layer {
 	char * name;
 	int zLevel;
-	Figure * figures;  // Lista de figuras en este layer
-	struct Layer * next; // Lista enlazada de layers
+	Figure * figures;  
+	struct Layer * next; 
 };
 
 struct Factor {
@@ -195,12 +195,12 @@ struct Scene {
 	char * name;
 	SceneType type;
 	Figure * figures;  
-	char * backgroundColor; // opcional
-	Layer * layers; // Lista de layers
-	Symbol * symbols;          // lista de símbolos declarados
-	PaletteEntry *palette;   // lista de entradas de paleta
-  UseInstance * uses; 			// lista de uses en esta escena
-  Group * groups;              // lista de grupos en esta escena
+	char * backgroundColor; 
+	Layer * layers; 
+	Symbol * symbols;        
+	PaletteEntry *palette;   
+  UseInstance * uses; 		
+  Group * groups;           
 };
 
 struct Figure {
@@ -208,7 +208,7 @@ struct Figure {
 	FigureType type;
 	Property * properties;    
 	struct Figure * next;
-	Transform *transforms;   // lista de transforms (scale/rotate/translate)
+	Transform *transforms;   
 };
 
 struct Property {
@@ -217,22 +217,22 @@ struct Property {
 		struct {
 			int x;
 			int y;
-		} coordinates;        // Para AT, FROM, TO
+		} coordinates;       
 		struct {
 			int width;
 			int height;
 			UnitType widthUnit;
             UnitType heightUnit;
-		} dimensions;         // Para SIZE
+		} dimensions;        
 		struct {
 			float x;
 			float y;
-		} scale;              // Para SCALE
-		int intValue;         // Para RADIUS, STROKE_WIDTH
-		float floatValue;     // Para OPACITY, ROTATE (angle)
-		Color * colorValue;   // Para FILL, STROKE (colores)
+		} scale;            
+		int intValue;        
+		float floatValue;    
+		Color * colorValue;   
 	} value;
-	struct Property * next;   // Para lista enlazada
+	struct Property * next;   
 };
 
 struct Symbol {

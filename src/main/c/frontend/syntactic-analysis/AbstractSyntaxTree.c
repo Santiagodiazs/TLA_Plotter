@@ -72,7 +72,7 @@ void destroyScene(Scene * scene) {
 			free(scene->backgroundColor);
 		}
 		destroyFigure(scene->figures);
-		destroyLayer(scene->layers); // Destruir layers
+		destroyLayer(scene->layers); 
 		if (scene->symbols) destroySymbol(scene->symbols);
 		if (scene->uses) destroyUseInstance(scene->uses);
 		if (scene->groups) destroyGroup(scene->groups);
@@ -88,7 +88,6 @@ void destroySymbol(Symbol * symbol){
 
         if (symbol->name) free(symbol->name);
 
-        // limpiar Figure embebido
         if (symbol->figure.id) {
             free(symbol->figure.id);
             symbol->figure.id = NULL;
@@ -179,7 +178,6 @@ void destroyProperty(Property * property) {
 		while (current != NULL) {
 			Property * next = current->next;
 			
-			// Liberar valores color si es necesario
 			if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
 				if (current->value.colorValue != NULL) {
 					destroyColor(current->value.colorValue);
@@ -245,12 +243,10 @@ void destroyLayer(Layer * layer) {
 		while (current != NULL) {
 			Layer * next = current->next;
 			
-			// Liberar nombre
 			if (current->name != NULL) {
 				free(current->name);
 			}
 			
-			// Liberar figuras
 			if (current->figures != NULL) {
 				destroyFigure(current->figures);
 			}
@@ -300,7 +296,7 @@ PaletteEntry * createPaletteEntry(const char *name, Color *color) {
     PaletteEntry *e = calloc(1, sizeof(PaletteEntry));
     if (!e) return NULL;
     e->name = name ? strdup(name) : NULL;
-    e->color = color;   // toma propiedad (ownership) del Color*
+    e->color = color;   
     e->next = NULL;
     return e;
 }

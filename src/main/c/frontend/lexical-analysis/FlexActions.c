@@ -164,11 +164,9 @@ CompilationStatus DecimalLexemeAction() {
 }
 
 // Funciones específicas del DSL para tokens complejos
-
 CompilationStatus DimensionsLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, DIMENSIONS);
 	if (token && token->semanticValue) {
-		// Parsear dimensiones como "200x150" o "200 x 150"
 		int width = 0, height = 0;
 		if (sscanf(token->lexeme, "%dx%d", &width, &height) == 2 ||
 			sscanf(token->lexeme, "%d x %d", &width, &height) == 2) {

@@ -148,7 +148,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> TRANSLATE
 %token <token> ROTATE
 %token <token> SCALE
-%token <token> SCALING  // Token temporal para testing
+%token <token> SCALING
 
 // DSL Tokens - Colors
 %token <token> COLOR
@@ -236,7 +236,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
 
 program: scene_declaration									{ 
-		disable_buffering();  // Deshabilitar buffering al inicio
+		disable_buffering();  
 		$$ = SceneProgramSemanticAction($1); 
 	}
 	| INTEGER													{
@@ -253,12 +253,12 @@ program: scene_declaration									{
 
 scene_declaration: SCENE IDENTIFIER	{ 
 		$$ = BasicSceneSemanticAction($2); 
-		free($2); // Liberar el string del IDENTIFIER
+		free($2); 
 	}
 	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ 
 		$$ = BasicSceneSemanticAction($2);
 		if ($4 != NULL) {
-			$$ = $4;  // Use the scene with figures
+			$$ = $4;  
 			if ($$ != NULL && $$->name == NULL) {
 				$$->name = malloc(strlen($2) + 1);
 				if ($$->name != NULL) {
@@ -266,13 +266,13 @@ scene_declaration: SCENE IDENTIFIER	{
 				}
 			}
 		}
-		free($2); // Liberar el string del IDENTIFIER
+		free($2); 
 	}
 	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE {
 		printf("DEBUG: scene with size parsed - %s size %dx%d\n", $2, $4.width, $4.height);
 		$$ = BasicSceneSemanticAction($2);
 		if ($6 != NULL) {
-			$$ = $6;  // Use the scene with figures
+			$$ = $6;  
 			if ($$ != NULL && $$->name == NULL) {
 				$$->name = malloc(strlen($2) + 1);
 				if ($$->name != NULL) {
@@ -417,7 +417,6 @@ draw_tail: OPEN_BRACE figure_properties CLOSE_BRACE	{
 	}
 	| external_items draw_tail_after_external	{
 		printf("[DEBUG] draw_tail: external + tail\n");
-		// Combine external_items ($1) with draw_tail_after_external ($2)
 		if ($1 && $2) {
 			Property *last = $1;
 			while (last && last->next) last = last->next;
