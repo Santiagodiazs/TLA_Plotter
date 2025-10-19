@@ -95,7 +95,7 @@ UNIT                (px|rem|em|vw|vh|%)
 "//"								{ return EnterOnelineCommentLexemeAction(ONELINE_COMMENT); }
 <ONELINE_COMMENT>"\n"				{ return LeaveOnelineCommentLexemeAction(); }
 <ONELINE_COMMENT>[^\n]+			{ return IgnoredLexemeAction(); }
-<ONELINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+
 <STRING>";"							{ return SemicolonAndLeaveStringContextLexemeAction(); }
 <STRING>[^;]							{ return IgnoredLexemeAction(); }
 "-"									{ return ArithmeticOperatorLexemeAction(SUB); }
@@ -105,8 +105,6 @@ UNIT                (px|rem|em|vw|vh|%)
 
 "("									{ return ParenthesisLexemeAction(OPEN_PARENTHESIS); }
 ")"									{ return ParenthesisLexemeAction(CLOSE_PARENTHESIS); }
-
-[[:digit:]]+						{ return IntegerLexemeAction(); }
 
 "scene"								{ return KeywordLexemeAction(SCENE); }
 "draw"								{ return KeywordLexemeAction(DRAW); }
