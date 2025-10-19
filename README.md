@@ -64,6 +64,28 @@ Executes every available unit-test under `src/test/c` folder:
 src/main/bash/test.sh
 ```
 
+#### Test Status and Scope
+
+**Current Stage: Frontend (Lexical and Syntactic Analysis)**
+
+All tests in this repository are designed for the current frontend stage of the compiler, which includes:
+- Lexical analysis (token recognition)
+- Syntactic analysis (grammar parsing)
+
+**Test Categories:**
+- **Accept tests** (`src/test/c/accept/`): Programs that should be successfully parsed by the current grammar
+- **Reject tests** (`src/test/c/reject/`): Programs that should be rejected due to syntax errors
+
+**Important Notes:**
+- Some tests that would normally be rejected in a complete compiler (e.g., type incompatibility, semantic errors) are currently accepted as "false positives" since semantic analysis is not yet implemented
+- Tests requiring semantic validation (such as variable type checking, scene boundary validation) will be implemented in Stage 3 (Semantic Analysis)
+- The current test suite focuses on ensuring the grammar correctly recognizes valid syntax and rejects malformed programs at the syntactic level
+
+**Future Tests (Stage 3):**
+- Variable type compatibility validation
+- Scene boundary checking for drawn objects
+- Semantic constraint validation
+
 ### Stop
 
 Logout, destroy the ephemeral containers and shutdowns the cluster:
