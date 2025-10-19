@@ -96,9 +96,8 @@ UNIT                (px|rem|em|vw|vh|%)
 <ONELINE_COMMENT>"\n"				{ return LeaveOnelineCommentLexemeAction(); }
 <ONELINE_COMMENT>[^\n]+			{ return IgnoredLexemeAction(); }
 <ONELINE_COMMENT>.				{ return IgnoredLexemeAction(); }
-
 <STRING>";"							{ return SemicolonAndLeaveStringContextLexemeAction(); }
-
+<STRING>[^;]							{ return IgnoredLexemeAction(); }
 "-"									{ return ArithmeticOperatorLexemeAction(SUB); }
 "*"									{ return ArithmeticOperatorLexemeAction(MUL); }
 "/"									{ return ArithmeticOperatorLexemeAction(DIV); }
@@ -157,7 +156,6 @@ UNIT                (px|rem|em|vw|vh|%)
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
-{identifier}						{ return IdentifierLexemeAction(); }
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
@@ -167,6 +165,8 @@ UNIT                (px|rem|em|vw|vh|%)
 "."									{ return DotLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
+
+{identifier}						{ return IdentifierLexemeAction(); }
 
 <<EOF>>								{ return EOFLexemeAction(); }
 

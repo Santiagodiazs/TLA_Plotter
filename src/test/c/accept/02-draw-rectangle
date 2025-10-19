@@ -1,5 +1,5 @@
-scene MiEscena {
-    draw rectangle casa at (100, 200) size 150 x 100 {
+scene MyScene {
+    draw rectangle house at (100, 200) size 150 x 100 {
         fill #FF0000;
     }
 }

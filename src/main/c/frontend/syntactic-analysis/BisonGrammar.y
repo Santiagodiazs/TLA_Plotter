@@ -148,7 +148,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> SCALE
 
 // DSL Tokens - Colors
-%token <token> COLOR
+%token <string> COLOR
 %token <string> HEX_COLOR
 %token <string> RGB_COLOR
 %token <string> RGBA_COLOR
@@ -444,6 +444,7 @@ stroke_width_property
 	| RGB_COLOR	{ $$ = ParseRgbColor($1); }
 	| HEX_COLOR	{ $$ = ParseHexColor($1); }
 	| RGBA_COLOR	{ $$ = ParseRgbaColor($1); }
+	| COLOR	{ $$ = ParseColorFunction($1); }
 	;
 
 %%

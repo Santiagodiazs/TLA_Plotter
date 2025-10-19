@@ -213,6 +213,21 @@ Color * ParseRgbaColor(const char * rgba) {
 	return color;
 }
 
+Color * ParseColorFunction(const char * colorFunc) {
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	
+	Color * color = createColor(RGB_COLOR_TYPE);
+	if (color != NULL && colorFunc != NULL) {
+		int r, g, b;
+		if (sscanf(colorFunc, "color(%d,%d,%d)", &r, &g, &b) == 3) {
+			color->value.rgb.r = r;
+			color->value.rgb.g = g;
+			color->value.rgb.b = b;
+		}
+	}
+	return color;
+}
+
 PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     PaletteEntry *e = createPaletteEntry(name, color);

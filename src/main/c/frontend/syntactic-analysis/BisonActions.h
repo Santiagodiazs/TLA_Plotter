@@ -26,6 +26,7 @@ Color * ParsePaletteColor(const char * palette_name, const char * color_name);
 Color * ParseHexColor(const char * hex);
 Color * ParseRgbColor(const char * rgb);
 Color * ParseRgbaColor(const char * rgba);
+Color * ParseColorFunction(const char * colorFunc);
 Color * LookupPaletteColor(const char *name);
 
 // ============= DSL SEMANTIC ACTIONS =============

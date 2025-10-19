@@ -1,5 +1,5 @@
 scene EllipseTest {
-    draw ellipse elipse1 {
+    draw ellipse ellipse1 {
         at (100, 100);
         width 120 rem;
         height 80 rem;
@@ -7,7 +7,7 @@ scene EllipseTest {
         opacity 0.8;
     }
     
-    draw ellipse elipse2 {
+    draw ellipse ellipse2 {
         at (300, 100);
         width 100 em;
         height 120 em;
@@ -15,7 +15,7 @@ scene EllipseTest {
         opacity 0.6;
     }
     
-    draw ellipse elipse3 {
+    draw ellipse ellipse3 {
         at (500, 100);
         width 80 vw;
         height 80 vh;

@@ -1,29 +1,29 @@
 scene SymbolUse {
-    symbol arbol {
-        draw rectangle tronco {
+    symbol tree {
+        draw rectangle trunk {
             at (0, 0);
             size 20x60;
             fill #8B4513;
         }
         
-        draw circle copa {
+        draw circle crown {
             at (10, 40);
             radius 30;
             fill #228B22;
         }
     }
     
-    use arbol {
+    use tree {
         at (100, 100);
         scale (1);
     }
     
-    use arbol {
+    use tree {
         at (200, 100);
         scale (2);
     }
     
-    use arbol {
+    use tree {
         at (300, 100);
         scale (3);
     }

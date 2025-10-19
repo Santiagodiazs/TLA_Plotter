@@ -1,5 +1,5 @@
 scene ZOverlap {
-    layer capa_base z 0 {
+    layer base_layer z 0 {
         draw rectangle base {
             at (100, 100);
             size 200x150;
@@ -7,16 +7,16 @@ scene ZOverlap {
         }
     }
     
-    layer capa_media z 1 {
-        draw rectangle superpuesto {
+    layer middle_layer z 1 {
+        draw rectangle overlapping {
             at (150, 120);
             size 100x80;
             fill #00FF00;
         }
     }
     
-    layer capa_superior z 2 {
-        draw circle encima {
+    layer top_layer z 2 {
+        draw circle on_top {
             at (200, 150);
             radius 30;
             fill #0000FF;

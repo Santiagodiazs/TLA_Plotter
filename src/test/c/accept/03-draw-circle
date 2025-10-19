@@ -1,5 +1,5 @@
-scene MiEscena {
-    draw circle sol at (300, 100) {
+scene MyScene {
+    draw circle sun at (300, 100) {
         radius 50;
         fill #FFFF00;
     }

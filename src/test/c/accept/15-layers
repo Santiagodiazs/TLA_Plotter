@@ -1,34 +1,34 @@
 scene LayersTest {
-    layer fondo z 0 {
-        draw rectangle cielo {
+    layer background z 0 {
+        draw rectangle sky {
             at (0, 0);
             size 800x400;
             fill #87CEEB;
         }
         
-        draw rectangle suelo {
+        draw rectangle ground {
             at (0, 300);
             size 800x100;
             fill #90EE90;
         }
     }
     
-    layer objetos z 1 {
-        draw rectangle casa {
+    layer objects z 1 {
+        draw rectangle house {
             at (200, 200);
             size 150x100;
             fill #DEB887;
         }
         
-        draw circle sol {
+        draw circle sun {
             at (600, 80);
             radius 60;
             fill #FFD700;
         }
     }
     
-    layer primer_plano z 2 {
-        draw rectangle arbol {
+    layer foreground z 2 {
+        draw rectangle tree {
             at (100, 150);
             size 50x80;
             fill #228B22;

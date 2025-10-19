@@ -1,12 +1,12 @@
 scene GroupTransforms {
-    group mi_grupo {
+    group my_group {
         draw rectangle base {
             at (0, 0);
             size 100x50;
             fill #8B4513;
         }
         
-        draw circle ventana {
+        draw circle window {
             at (25, 10);
             radius 15;
             fill #87CEEB;
@@ -16,7 +16,7 @@ scene GroupTransforms {
         rotate (45);
     }
     
-    group mi_grupo2 {
+    group my_group2 {
         draw rectangle base2 {
             at (0, 0);
             size 80x40;

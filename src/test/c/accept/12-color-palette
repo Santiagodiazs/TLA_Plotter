@@ -1,0 +1,43 @@
+scene ColorPalettes {
+    palette hex_colors {
+        red #FF0000;
+        green #00FF00;
+        blue #0000FF;
+    }
+    
+    palette rgb_colors {
+        yellow rgb(255, 255, 0);
+        magenta rgb(255, 0, 255);
+        cyan rgb(0, 255, 255);
+    }
+    
+    palette rgba_colors {
+        red_transparent rgba(255, 0, 0, 0.5);
+        green_transparent rgba(0, 255, 0, 0.7);
+        blue_transparent rgba(0, 0, 255, 0.3);
+    }
+    
+    draw rectangle rect1 {
+        at (50, 50);
+        size 60x40;
+        fill hex_colors.red;
+    }
+    
+    draw circle circ1 {
+        at (150, 50);
+        radius 30;
+        fill rgb_colors.yellow;
+    }
+    
+    draw rectangle rect2 {
+        at (250, 50);
+        size 60x40;
+        fill rgba_colors.red_transparent;
+    }
+    
+    draw circle circ3 {
+        at (550, 50);
+        radius 30;
+        fill rgb_colors.magenta;
+    }
+}

@@ -1,8 +1,8 @@
-scene MiEscena {
-    draw rectangle casa {
+scene MyScene {
+    draw rectangle house {
         fill red;
     }
-    draw circle sol {
+    draw circle sun {
         fill yellow;
     }
 }

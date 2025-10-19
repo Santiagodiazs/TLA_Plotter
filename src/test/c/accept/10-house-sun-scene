@@ -1,5 +1,5 @@
-scene MiCasa {
-    draw rectangle casa {
+scene MyHouse {
+    draw rectangle house {
         at (100, 100);
         size 200x150;
         fill #8B4513;
@@ -7,7 +7,7 @@ scene MiCasa {
         stroke_width 2px;
     }
     
-    draw circle sol {
+    draw circle sun {
         at (400, 80);
         radius 50;
         fill #FFD700;
