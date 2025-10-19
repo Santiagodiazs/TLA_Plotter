@@ -388,8 +388,8 @@ static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-#define YY_NUM_RULES 68
-#define YY_END_OF_BUFFER 69
+#define YY_NUM_RULES 66
+#define YY_END_OF_BUFFER 67
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -399,36 +399,36 @@ struct yy_trans_info
 	};
 static const flex_int16_t yy_accept[276] =
     {   0,
-        0,    0,    0,    0,    0,    0,    0,    0,   69,   67,
-       66,   66,   67,   67,   14,   15,   11,   13,   63,   10,
-       65,   12,   16,   64,   62,   59,   59,   59,   59,   59,
-       59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-       59,   59,   59,   44,   61,   60,    3,    3,    4,    7,
-        6,    9,   66,    0,   56,    0,    0,    0,    1,    5,
-        0,    0,   16,    0,   59,   32,   59,   59,   59,   59,
-       59,   59,   59,   59,   59,   45,   59,   59,   59,   59,
-       59,   59,   59,   59,   59,   59,   59,   59,   59,   34,
-       59,   59,   59,    3,    2,    7,    0,    0,    0,   57,
+        0,    0,    0,    0,    0,    0,    0,    0,   67,   65,
+       64,   64,   65,   65,   13,   14,   10,   12,   61,    9,
+       63,   11,   56,   62,   60,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   42,   59,   58,    3,    3,    4,    7,
+        6,    8,   64,    0,   54,    0,    0,    0,    1,    5,
+        0,    0,   56,    0,   57,   30,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   43,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   32,
+       57,   57,   57,    3,    2,    7,    0,    0,    0,   55,
 
-        0,   55,   59,   59,   59,   59,   59,   59,   59,   59,
-       59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-       59,   59,   59,   59,   59,   59,   23,   59,   59,   50,
-        0,    0,   59,   59,   59,   18,   59,   39,   33,   59,
-       59,   59,   28,   59,   59,   59,   59,   59,    0,    0,
-       59,   59,   59,   59,   35,   59,   59,   59,   59,   19,
-        0,    0,   54,   59,   59,   49,   59,   21,   59,   20,
-       59,   59,   59,   59,   59,   59,    0,    0,    0,    0,
-       59,   48,   17,   59,   59,   59,   37,    0,   59,   27,
-        0,    0,   59,   38,   59,   59,   59,   59,   36,   59,
+        0,   53,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   21,   57,   57,   48,
+        0,    0,   57,   57,   57,   16,   57,   37,   31,   57,
+       57,   57,   26,   57,   57,   57,   57,   57,    0,    0,
+       57,   57,   57,   57,   33,   57,   57,   57,   57,   17,
+        0,    0,   52,   57,   57,   47,   57,   19,   57,   18,
+       57,   57,   57,   57,   57,   57,    0,    0,    0,    0,
+       57,   46,   15,   57,   57,   57,   35,    0,   57,   25,
+        0,    0,   57,   36,   57,   57,   57,   57,   34,   57,
 
-        0,    0,    0,    0,   47,   40,   22,   59,   50,   59,
-        0,    0,   29,   43,   24,   31,   59,   59,    0,    0,
-        0,    0,   59,   59,   59,   59,    0,    0,   30,   59,
-        0,    0,    0,    0,   59,   59,   59,   59,    0,    0,
-       26,    0,    0,    0,    0,   59,   59,   46,   25,    0,
-        0,    0,   52,    0,    0,   59,   59,    0,    0,    0,
-        0,   41,   59,    0,   53,    0,    0,    0,   42,    0,
-        0,   51,    0,    0,    0
+        0,    0,    0,    0,   45,   38,   20,   57,   48,   57,
+        0,    0,   27,   41,   22,   29,   57,   57,    0,    0,
+        0,    0,   57,   57,   57,   57,    0,    0,   28,   57,
+        0,    0,    0,    0,   57,   57,   57,   57,    0,    0,
+       24,    0,    0,    0,    0,   57,   57,   44,   23,    0,
+        0,    0,   50,    0,    0,   57,   57,    0,    0,    0,
+        0,   39,   57,    0,   51,    0,    0,    0,   40,    0,
+        0,   49,    0,    0,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -661,12 +661,12 @@ static const flex_int16_t yy_chk[494] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static const flex_int32_t yy_rule_can_match_eol[69] =
+static const flex_int32_t yy_rule_can_match_eol[67] =
     {   0,
 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 1, 0, 0,     };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 1, 0, 0,     };
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -1128,324 +1128,314 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 99 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return IgnoredLexemeAction(); }
+#line 100 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return SemicolonAndLeaveStringContextLexemeAction(); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 101 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return SemicolonAndLeaveStringContextLexemeAction(); }
+#line 102 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return ArithmeticOperatorLexemeAction(SUB); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 103 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ArithmeticOperatorLexemeAction(SUB); }
+{ return ArithmeticOperatorLexemeAction(MUL); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 104 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ArithmeticOperatorLexemeAction(MUL); }
+{ return ArithmeticOperatorLexemeAction(DIV); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 105 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ArithmeticOperatorLexemeAction(DIV); }
+{ return ArithmeticOperatorLexemeAction(ADD); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 106 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ArithmeticOperatorLexemeAction(ADD); }
+#line 107 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return ParenthesisLexemeAction(OPEN_PARENTHESIS); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 108 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ParenthesisLexemeAction(OPEN_PARENTHESIS); }
+{ return ParenthesisLexemeAction(CLOSE_PARENTHESIS); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 109 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ParenthesisLexemeAction(CLOSE_PARENTHESIS); }
+#line 110 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(SCENE); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 111 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return IntegerLexemeAction(); }
+{ return KeywordLexemeAction(DRAW); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 113 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(SCENE); }
+#line 112 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(WITH); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 114 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(DRAW); }
+#line 113 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(LAYER); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 115 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(WITH); }
+#line 114 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(GROUP); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 116 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(LAYER); }
+#line 115 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(SYMBOL); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 117 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(GROUP); }
+#line 116 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(USE); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 118 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(SYMBOL); }
+#line 117 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(PALETTE); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 119 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(USE); }
+#line 118 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(BACKGROUND); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 120 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(PALETTE); }
+{ return KeywordLexemeAction(RECTANGLE); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 121 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(BACKGROUND); }
+{ return KeywordLexemeAction(CIRCLE); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 123 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(RECTANGLE); }
+#line 122 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(LINE); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 124 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(CIRCLE); }
+#line 123 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(ELLIPSE); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 125 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(LINE); }
+#line 124 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(POLYLINE); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 126 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(ELLIPSE); }
+#line 125 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(POLYGON); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 127 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(POLYLINE); }
+{ return KeywordLexemeAction(AT); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 128 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(POLYGON); }
+{ return KeywordLexemeAction(FROM); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 130 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(AT); }
+#line 129 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(TO); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 131 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(FROM); }
+#line 130 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(SIZE); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 132 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(TO); }
+#line 131 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(RADIUS); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 133 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(SIZE); }
+#line 132 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(WIDTH); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 134 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(RADIUS); }
+#line 133 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(HEIGHT); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 135 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(WIDTH); }
+#line 134 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(FILL); }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 136 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(HEIGHT); }
+#line 135 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(STROKE); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 137 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(FILL); }
+#line 136 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(STROKE_WIDTH); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 138 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(STROKE); }
+#line 137 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(STROKE_WIDTH); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 139 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(STROKE_WIDTH); }
+#line 138 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(OPACITY); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 140 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(STROKE_WIDTH); }
+#line 139 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(Z); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 141 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(OPACITY); }
+#line 140 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(ID); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 142 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(Z); }
+{ return KeywordLexemeAction(TRANSLATE); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 143 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(ID); }
+{ return KeywordLexemeAction(ROTATE); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 145 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(TRANSLATE); }
+#line 144 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return KeywordLexemeAction(SCALE); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 146 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(ROTATE); }
+{ return KeywordLexemeAction(COLOR); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 147 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(SCALE); }
+#line 148 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return ColorLexemeAction(HEX_COLOR); }
 	YY_BREAK
 case 49:
+/* rule 49 can match eol */
 YY_RULE_SETUP
 #line 149 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return KeywordLexemeAction(COLOR); }
+{ return ColorLexemeAction(RGBA_COLOR); }
 	YY_BREAK
 case 50:
+/* rule 50 can match eol */
 YY_RULE_SETUP
-#line 151 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ColorLexemeAction(HEX_COLOR); }
+#line 150 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return ColorLexemeAction(RGB_COLOR); }
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 152 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ColorLexemeAction(RGBA_COLOR); }
+#line 151 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return ColorLexemeAction(COLOR); }
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
 #line 153 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ColorLexemeAction(RGB_COLOR); }
+{ return CoordinatesLexemeAction(); }
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
 #line 154 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return ColorLexemeAction(COLOR); }
+{ return DimensionsLexemeAction(); }
 	YY_BREAK
 case 54:
 /* rule 54 can match eol */
 YY_RULE_SETUP
-#line 156 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return CoordinatesLexemeAction(); }
+#line 155 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return StringLexemeAction(); }
 	YY_BREAK
 case 55:
-/* rule 55 can match eol */
 YY_RULE_SETUP
-#line 157 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return DimensionsLexemeAction(); }
+#line 156 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return DecimalLexemeAction(); }
 	YY_BREAK
 case 56:
-/* rule 56 can match eol */
 YY_RULE_SETUP
-#line 158 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return StringLexemeAction(); }
+#line 157 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return IntegerLexemeAction(); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 159 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return DecimalLexemeAction(); }
+#line 158 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return IdentifierLexemeAction(); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
 #line 160 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return IntegerLexemeAction(); }
+{ return BraceLexemeAction(CLOSE_BRACE); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 161 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return IdentifierLexemeAction(); }
+{ return BraceLexemeAction(OPEN_BRACE); }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 163 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return BraceLexemeAction(CLOSE_BRACE); }
+#line 162 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return SemicolonLexemeAction(); }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 164 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return BraceLexemeAction(OPEN_BRACE); }
+#line 163 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return CommaLexemeAction(); }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 165 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return SemicolonLexemeAction(); }
+#line 164 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+{ return EnterStringContextLexemeAction(STRING); }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 166 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return CommaLexemeAction(); }
-	YY_BREAK
-case 64:
-YY_RULE_SETUP
-#line 167 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
-{ return EnterStringContextLexemeAction(STRING); }
-	YY_BREAK
-case 65:
-YY_RULE_SETUP
-#line 168 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 165 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 { return DotLexemeAction(); }
 	YY_BREAK
-case 66:
-/* rule 66 can match eol */
+case 64:
+/* rule 64 can match eol */
 YY_RULE_SETUP
-#line 170 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 167 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 { return IgnoredLexemeAction(); }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(MULTILINE_COMMENT):
 case YY_STATE_EOF(ONELINE_COMMENT):
 case YY_STATE_EOF(STRING):
-#line 172 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 169 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 { return EOFLexemeAction(); }
 	YY_BREAK
-case 67:
+case 65:
 YY_RULE_SETUP
-#line 174 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 171 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 { return UnknownLexemeAction(); }
 	YY_BREAK
-case 68:
+case 66:
 YY_RULE_SETUP
-#line 176 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 173 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 ECHO;
 	YY_BREAK
-#line 1449 "src/main/c/frontend/lexical-analysis/FlexScanner.c"
+#line 1439 "src/main/c/frontend/lexical-analysis/FlexScanner.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2688,7 +2678,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 176 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
+#line 173 "src/main/c/frontend/lexical-analysis/FlexPatterns.l"
 
 
 /**
