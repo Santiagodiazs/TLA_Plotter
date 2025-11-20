@@ -63,12 +63,7 @@ static void _generateConstant(const unsigned int indentationLevel, Constant * co
  * completes a valid Latex document.
  */
 static void _generateEpilogue(const int value) {
-	_output(0, "%s%d%s",
-		"            [ $", value, "$, circle, draw, blue ]\n"
-		"        ]\n"
-		"    \\end{forest}\n"
-		"\\end{document}\n\n"
-	);
+	fprintf(f, "</svg>\n");
 }
 
 /**
@@ -130,18 +125,8 @@ static void _generateProgram(Program * program) {
  * @see https://ctan.dcc.uchile.cl/graphics/pgf/contrib/forest/forest-doc.pdf
  */
 static void _generatePrologue(void) {
-	_output(0, "%s",
-		"\\documentclass{standalone}\n\n"
-		"\\usepackage[utf8]{inputenc}\n"
-		"\\usepackage[T1]{fontenc}\n"
-		"\\usepackage{amsmath}\n"
-		"\\usepackage{forest}\n"
-		"\\usepackage{microtype}\n\n"
-		"\\begin{document}\n"
-		"    \\centering\n"
-		"    \\begin{forest}\n"
-		"        [ \\text{$=$}, circle, draw, purple\n"
-	);
+		fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    fprintf(f, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\">\n");
 }
 
 /**
@@ -182,9 +167,9 @@ void executeGenerator(CompilerState * compilerState) {
     return;
   }
 
-	f = fopen("scene.html", "w");
+	f = fopen("scene.sgv", "w");
   if (!f) {
-    logError(_logger, "Cannot open scene.html for writing.");
+    logError(_logger, "Cannot open scene.sgv for writing.");
     return;
   }
 
@@ -196,6 +181,6 @@ void executeGenerator(CompilerState * compilerState) {
 
 	//Generate the epilogue of the output
 	_generateEpilogue(compilerState->value);
-
+	fclose(f);
 	logDebugging(_logger, "Generation is done. File scene.html created successfully.");
 }
