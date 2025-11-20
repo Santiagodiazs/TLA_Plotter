@@ -5,6 +5,7 @@
 const char _indentationCharacter = ' ';
 const char _indentationSize = 4;
 static Logger * _logger = NULL;
+static FILE *f = NULL;
 
 /** Shutdown module's internal state. */
 void _shutdownGeneratorModule() {
@@ -170,9 +171,31 @@ static void _output(const unsigned int indentationLevel, const char * const form
 /** PUBLIC FUNCTIONS */
 
 void executeGenerator(CompilerState * compilerState) {
+	if (!_logger) {
+    _logger = createLogger("Generator");
+  }
+
 	logDebugging(_logger, "Generating final output...");
+
+	if (!compilerState || !compilerState->abstractSyntaxtTree) {
+    logError(_logger, "No abstract syntax tree available in compiler state.");
+    return;
+  }
+
+	f = fopen("scene.html", "w");
+  if (!f) {
+    logError(_logger, "Cannot open scene.html for writing.");
+    return;
+  }
+
+	//Generate the prologue of the output
 	_generatePrologue();
+
+	//Generate the main content of the output
 	_generateProgram(compilerState->abstractSyntaxtTree);
+
+	//Generate the epilogue of the output
 	_generateEpilogue(compilerState->value);
-	logDebugging(_logger, "Generation is done.");
+
+	logDebugging(_logger, "Generation is done. File scene.html created successfully.");
 }
