@@ -24,13 +24,22 @@ ModuleDestructor initializeGeneratorModule() {
 /** PRIVATE FUNCTIONS */
 
 static char * _indentation(const unsigned int indentationLevel);
-static const char _expressionTypeToCharacter(const ExpressionType type);
-static void _generateConstant(const unsigned int indentationLevel, Constant * constant);
 static void _generateEpilogue(const int value);
-static void _generateExpression(const unsigned int indentationLevel, Expression * expression);
-static void _generateFactor(const unsigned int indentationLevel, Factor * factor);
+static void _generateScene(const unsigned int indentationLevel, Scene * scene);
+static void _generateLayers(const unsigned int indentationLevel, Layer * layers);
+static void _generateFigures(const unsigned int indentationLevel, Figure * figures);
+static void _generateProperties(const unsigned int indentationLevel, Property * properties);
+static void _generateSymbols(const unsigned int indentationLevel, Scene * scene);
+static void _generateUseInstances(const unsigned int indentationLevel, Scene * scene);
+static void _generateTransforms(const unsigned int indentationLevel, Transform * transforms);
 static void _generateProgram(Program * program);
 static void _generatePrologue(void);
+
+
+static const char _expressionTypeToCharacter(const ExpressionType type);
+static void _generateConstant(const unsigned int indentationLevel, Constant * constant);
+static void _generateExpression(const unsigned int indentationLevel, Expression * expression);
+static void _generateFactor(const unsigned int indentationLevel, Factor * factor);
 static void _output(const unsigned int indentationLevel, const char * const format, ...);
 
 /**
@@ -56,14 +65,6 @@ static void _generateConstant(const unsigned int indentationLevel, Constant * co
 	_output(indentationLevel, "%s", "[ $C$, circle, draw, black!20\n");
 	_output(1 + indentationLevel, "%s%d%s", "[ $", constant->value, "$, circle, draw ]\n");
 	_output(indentationLevel, "%s", "]\n");
-}
-
-/**
- * Creates the epilogue of the generated output, that is, the final lines that
- * completes a valid Latex document.
- */
-static void _generateEpilogue(const int value) {
-	fprintf(f, "</svg>\n");
 }
 
 /**
@@ -109,6 +110,62 @@ static void _generateFactor(const unsigned int indentationLevel, Factor * factor
 			break;
 	}
 	_output(indentationLevel, "%s", "]\n");
+}
+
+/**
+ * Creates the epilogue of the generated output, that is, the final lines that
+ * completes a valid Latex document.
+ */
+static void _generateEpilogue(const int value) {
+	fprintf(f, "</svg>\n");
+}
+
+/**
+ * Generates the scene of the program.
+ */
+static void _generateScene(const unsigned int indentationLevel, Scene * scene){
+	//TODO: Implement scene generation
+	return;
+}
+
+/**
+ * Generates the layers of the program.
+ */
+static void _generateLayers(const unsigned int indentationLevel, Layer * layers){
+	//TODO: Implement layers generation
+	return;
+}
+
+/**
+ * Generates the figures of the program.
+ */
+static void _generateFigures(const unsigned int indentationLevel, Figure * figures){
+	//TODO: Implement figures generation
+	return;
+}
+
+/**
+ * Generates the properties of the program.
+ */
+static void _generateProperties(const unsigned int indentationLevel, Property * properties){
+	//TODO: Implement properties generation
+	return;
+}
+
+/**
+ * Generates the symbols of the program.
+ */
+static void _generateSymbols(const unsigned int indentationLevel, Scene * scene){
+	//TODO: Implement symbols generation
+	return;
+}
+
+/**
+ * Generates the use instances of the program.
+ */
+static void _generateUseInstances(const unsigned int indentationLevel, Scene * scene){
+	//TODO: Implement use instances generation
+	return;
 }
 
 /**
