@@ -1,4 +1,5 @@
 BisonParser*
 FlexScanner*
 .build
+build
 run_all_tests.sh
