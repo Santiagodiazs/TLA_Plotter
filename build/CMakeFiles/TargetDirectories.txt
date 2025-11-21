@@ -1,0 +1,3 @@
+/home/santi/Desktop/facultad/TLA/TLA_Plotter/build/CMakeFiles/Flex-Bison-Compiler.dir
+/home/santi/Desktop/facultad/TLA/TLA_Plotter/build/CMakeFiles/edit_cache.dir
+/home/santi/Desktop/facultad/TLA/TLA_Plotter/build/CMakeFiles/rebuild_cache.dir

@@ -390,7 +390,8 @@ void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead)
 
         switch (cur->type) {
             case SCALE_PROPERTY: {
-                Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.y);
+                // Enforce uniform scaling as per requirement
+                Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.x);
                 if (t) AppendTransform(figure, t);
                 removeNode = 1;
                 break;
@@ -672,6 +673,17 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
 		}
 		item->palette = NULL; 
 	}
+
+    if (item->groups) {
+        if (!acc->groups) {
+            acc->groups = item->groups;
+        } else {
+            Group * last = acc->groups;
+            while (last->next) last = last->next;
+            last->next = item->groups;
+        }
+        item->groups = NULL;
+    }
 
 	destroyScene(item);
 	return acc;

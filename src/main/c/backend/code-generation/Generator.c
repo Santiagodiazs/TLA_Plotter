@@ -1,4 +1,6 @@
 #include "Generator.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* MODULE INTERNAL STATE */
 
@@ -24,99 +26,40 @@ ModuleDestructor initializeGeneratorModule() {
 /** PRIVATE FUNCTIONS */
 
 static char * _indentation(const unsigned int indentationLevel);
-static void _generateEpilogue(const int value);
+static void _generateEpilogue(void);
 static void _generateScene(const unsigned int indentationLevel, Scene * scene);
 static void _generateLayers(const unsigned int indentationLevel, Layer * layers);
+static void _generateFigure(const unsigned int indentationLevel, Figure * figure);
 static void _generateFigures(const unsigned int indentationLevel, Figure * figures);
-static void _generateProperties(const unsigned int indentationLevel, Property * properties);
+static void _generateProperties(const unsigned int indentationLevel, Property * properties, FigureType figureType);
 static void _generateSymbols(const unsigned int indentationLevel, Scene * scene);
 static void _generateUseInstances(const unsigned int indentationLevel, Scene * scene);
 static void _generateTransforms(const unsigned int indentationLevel, Transform * transforms);
 static void _generateProgram(Program * program);
 static void _generatePrologue(void);
-
-
-static const char _expressionTypeToCharacter(const ExpressionType type);
-static void _generateConstant(const unsigned int indentationLevel, Constant * constant);
-static void _generateExpression(const unsigned int indentationLevel, Expression * expression);
-static void _generateFactor(const unsigned int indentationLevel, Factor * factor);
 static void _output(const unsigned int indentationLevel, const char * const format, ...);
 
-/**
- * Converts and expression type to the proper character of the operation
- * involved, or returns '\0' if that's not possible.
- */
-static const char _expressionTypeToCharacter(const ExpressionType type) {
-	switch (type) {
-		case ADDITION: return '+';
-		case DIVISION: return '/';
-		case MULTIPLICATION: return '*';
-		case SUBTRACTION: return '-';
-		default:
-			logError(_logger, "The specified expression type cannot be converted into character: %d", type);
-			return '\0';
-	}
+// Helper for Z-Index Sorting
+typedef enum { ITEM_FIGURE, ITEM_USE, ITEM_GROUP } RenderableType;
+typedef struct {
+    int zIndex;
+    RenderableType type;
+    void * item;
+} RenderableItem;
+
+static int _compareRenderables(const void * a, const void * b) {
+    RenderableItem * itemA = (RenderableItem *)a;
+    RenderableItem * itemB = (RenderableItem *)b;
+    return itemA->zIndex - itemB->zIndex;
 }
 
-/**
- * Generates the output of a constant.
- */
-static void _generateConstant(const unsigned int indentationLevel, Constant * constant) {
-	_output(indentationLevel, "%s", "[ $C$, circle, draw, black!20\n");
-	_output(1 + indentationLevel, "%s%d%s", "[ $", constant->value, "$, circle, draw ]\n");
-	_output(indentationLevel, "%s", "]\n");
-}
+static void _generateGroupProperties(const unsigned int indentationLevel, Property * properties);
+static void _generateGroup(const unsigned int indentationLevel, Group * group);
 
 /**
- * Generates the output of an expression.
+ * Creates the epilogue of the generated output.
  */
-static void _generateExpression(const unsigned int indentationLevel, Expression * expression) {
-	_output(indentationLevel, "%s", "[ $E$, circle, draw, black!20\n");
-	switch (expression->type) {
-		case ADDITION:
-		case DIVISION:
-		case MULTIPLICATION:
-		case SUBTRACTION:
-			_generateExpression(1 + indentationLevel, expression->leftExpression);
-			_output(1 + indentationLevel, "%s%c%s", "[ $", _expressionTypeToCharacter(expression->type), "$, circle, draw, purple ]\n");
-			_generateExpression(1 + indentationLevel, expression->rightExpression);
-			break;
-		case FACTOR:
-			_generateFactor(1 + indentationLevel, expression->factor);
-			break;
-		default:
-			logError(_logger, "The specified expression type is unknown: %d", expression->type);
-			break;
-	}
-	_output(indentationLevel, "%s", "]\n");
-}
-
-/**
- * Generates the output of a factor.
- */
-static void _generateFactor(const unsigned int indentationLevel, Factor * factor) {
-	_output(indentationLevel, "%s", "[ $F$, circle, draw, black!20\n");
-	switch (factor->type) {
-		case CONSTANT:
-			_generateConstant(1 + indentationLevel, factor->constant);
-			break;
-		case EXPRESSION_FACTOR:
-			_output(1 + indentationLevel, "%s", "[ $($, circle, draw, purple ]\n");
-			_generateExpression(1 + indentationLevel, factor->expression);
-			_output(1 + indentationLevel, "%s", "[ $)$, circle, draw, purple ]\n");
-			break;
-		default:
-			logError(_logger, "The specified factor type is unknown: %d", factor->type);
-			break;
-	}
-	_output(indentationLevel, "%s", "]\n");
-}
-
-/**
- * Creates the epilogue of the generated output, that is, the final lines that
- * completes a valid Latex document.
- */
-static void _generateEpilogue(const int value) {
+static void _generateEpilogue(void) {
 	fprintf(f, "</svg>\n");
 }
 
@@ -124,65 +67,353 @@ static void _generateEpilogue(const int value) {
  * Generates the scene of the program.
  */
 static void _generateScene(const unsigned int indentationLevel, Scene * scene){
-	//TODO: Implement scene generation
-	return;
+    if (scene == NULL) return;
+
+    // 1. Generate Definitions (Symbols)
+    _generateSymbols(indentationLevel, scene);
+
+    // 2. Collect all renderable items
+    int count = 0;
+    
+    // Count figures in scene (default Z=0)
+    Figure * fig = scene->figures;
+    while(fig) { count++; fig = fig->next; }
+    
+    // Count uses in scene (default Z=0)
+    UseInstance * use = scene->uses;
+    while(use) { count++; use = use->next; }
+    
+    // Count groups in scene (default Z=0)
+    Group * group = scene->groups;
+    while(group) { count++; group = group->next; }
+    
+    // Count figures in layers
+    Layer * layer = scene->layers;
+    while(layer) {
+        fig = layer->figures;
+        while(fig) { count++; fig = fig->next; }
+        layer = layer->next;
+    }
+
+    if (count == 0) return;
+
+    RenderableItem * items = (RenderableItem *)malloc(sizeof(RenderableItem) * count);
+    int idx = 0;
+
+    // Populate items
+    // Scene figures (Z=0)
+    fig = scene->figures;
+    while(fig) {
+        items[idx].zIndex = 0;
+        items[idx].type = ITEM_FIGURE;
+        items[idx].item = fig;
+        idx++;
+        fig = fig->next;
+    }
+
+    // Scene uses (Z=0)
+    use = scene->uses;
+    while(use) {
+        items[idx].zIndex = 0;
+        items[idx].type = ITEM_USE;
+        items[idx].item = use;
+        idx++;
+        use = use->next;
+    }
+    
+    // Scene groups (Z=0)
+    group = scene->groups;
+    while(group) {
+        items[idx].zIndex = 0;
+        items[idx].type = ITEM_GROUP;
+        items[idx].item = group;
+        idx++;
+        group = group->next;
+    }
+
+    // Layer figures
+    layer = scene->layers;
+    while(layer) {
+        fig = layer->figures;
+        while(fig) {
+            items[idx].zIndex = layer->zLevel;
+            items[idx].type = ITEM_FIGURE;
+            items[idx].item = fig;
+            idx++;
+            fig = fig->next;
+        }
+        layer = layer->next;
+    }
+
+    // 3. Sort by Z-Index
+    qsort(items, count, sizeof(RenderableItem), _compareRenderables);
+
+    // 4. Generate sorted items
+    for (int i = 0; i < count; ++i) {
+        if (items[i].type == ITEM_FIGURE) {
+            _generateFigure(indentationLevel, (Figure *)items[i].item);
+        } else if (items[i].type == ITEM_USE) {
+             UseInstance * u = (UseInstance *)items[i].item;
+             _output(indentationLevel, "<use href=\"#%s\"", u->symbolName);
+             if (u->hasPosition) {
+                 _output(0, " x=\"%d\" y=\"%d\"", u->posX, u->posY);
+             }
+             // UseInstance behaves like a Rectangle (x, y, width, height) for properties
+             _generateProperties(indentationLevel, u->properties, RECTANGLE_FIGURE);
+             _output(0, " />\n");
+         } else if (items[i].type == ITEM_GROUP) {
+             _generateGroup(indentationLevel, (Group *)items[i].item);
+         }
+    }
+
+    free(items);
 }
 
 /**
  * Generates the layers of the program.
  */
 static void _generateLayers(const unsigned int indentationLevel, Layer * layers){
-	//TODO: Implement layers generation
+	// Not used directly as we flatten layers in _generateScene
 	return;
+}
+
+static void _generateGroup(const unsigned int indentationLevel, Group * group) {
+    if (!group) return;
+    _output(indentationLevel, "<g");
+    if (group->name) {
+        _output(0, " id=\"%s\"", group->name);
+    }
+    _generateGroupProperties(indentationLevel, group->properties);
+    _output(0, ">\n");
+    
+    _generateFigures(indentationLevel + 1, group->figures);
+    
+    _output(indentationLevel, "</g>\n");
+}
+
+static void _generateGroupProperties(const unsigned int indentationLevel, Property * properties) {
+    // 1. Handle Transforms
+    Property * prop = properties;
+    bool hasTransform = false;
+    while(prop) {
+        if (prop->type == SCALE_PROPERTY || prop->type == ROTATE_PROPERTY || prop->type == TRANSLATE_PROPERTY) {
+            hasTransform = true;
+            break;
+        }
+        prop = prop->next;
+    }
+    
+    if (hasTransform) {
+        _output(0, " transform=\"");
+        prop = properties;
+        while(prop) {
+            switch(prop->type) {
+                case TRANSLATE_PROPERTY:
+                    _output(0, "translate(%d, %d) ", prop->value.coordinates.x, prop->value.coordinates.y);
+                    break;
+                case ROTATE_PROPERTY:
+                     _output(0, "rotate(%.2f) ", prop->value.floatValue);
+                     break;
+                case SCALE_PROPERTY:
+                     // Enforce single parameter scale output
+                     _output(0, "scale(%.2f) ", prop->value.scale.x);
+                     break;
+                default: break;
+            }
+            prop = prop->next;
+        }
+        _output(0, "\"");
+    }
+    
+    // 2. Handle other properties (Opacity, etc.)
+    prop = properties;
+    while(prop) {
+        switch(prop->type) {
+            case OPACITY_PROPERTY:
+                _output(0, " opacity=\"%.2f\"", prop->value.floatValue);
+                break;
+            // Add other group applicable properties if any
+            default: break;
+        }
+        prop = prop->next;
+    }
+}
+
+/**
+ * Generates a single figure.
+ */
+static void _generateFigure(const unsigned int indentationLevel, Figure * figure){
+    if (!figure) return;
+    _output(indentationLevel, "<");
+    switch(figure->type) {
+        case RECTANGLE_FIGURE: _output(0, "rect"); break;
+        case CIRCLE_FIGURE: _output(0, "circle"); break;
+        case LINE_FIGURE: _output(0, "line"); break;
+        case ELLIPSE_FIGURE: _output(0, "ellipse"); break;
+        case POLYLINE_FIGURE: _output(0, "polyline"); break;
+        case POLYGON_FIGURE: _output(0, "polygon"); break;
+    }
+    
+    _generateProperties(indentationLevel, figure->properties, figure->type);
+    _generateTransforms(indentationLevel, figure->transforms);
+    
+    _output(0, " />\n");
 }
 
 /**
  * Generates the figures of the program.
  */
 static void _generateFigures(const unsigned int indentationLevel, Figure * figures){
-	//TODO: Implement figures generation
-	return;
+    while(figures) {
+         _generateFigure(indentationLevel, figures);
+         figures = figures->next;
+    }
 }
 
 /**
  * Generates the properties of the program.
  */
-static void _generateProperties(const unsigned int indentationLevel, Property * properties){
-	//TODO: Implement properties generation
-	return;
+static void _generateProperties(const unsigned int indentationLevel, Property * properties, FigureType figureType){
+    while(properties) {
+        switch(properties->type) {
+            case POSITION_PROPERTY:
+                if (figureType == LINE_FIGURE) {
+                    // Skip x/y for lines as they use x1,y1,x2,y2
+                    break;
+                }
+                if (figureType == CIRCLE_FIGURE || figureType == ELLIPSE_FIGURE) {
+                    _output(0, " cx=\"%d\" cy=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                } else {
+                    _output(0, " x=\"%d\" y=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                }
+                break;
+            case SIZE_PROPERTY:
+                 if (figureType == ELLIPSE_FIGURE) {
+                     _output(0, " rx=\"%d\" ry=\"%d\"", properties->value.dimensions.width / 2, properties->value.dimensions.height / 2);
+                 } else {
+                     _output(0, " width=\"%d\" height=\"%d\"", properties->value.dimensions.width, properties->value.dimensions.height);
+                 }
+                 break;
+            case WIDTH_PROPERTY:
+                // Use dimensions.width as it overlaps with intValue but is safer if struct is used
+                if (figureType == ELLIPSE_FIGURE) {
+                    _output(0, " rx=\"%d\"", properties->value.dimensions.width / 2);
+                } else {
+                    _output(0, " width=\"%d\"", properties->value.dimensions.width);
+                }
+                break;
+            case HEIGHT_PROPERTY:
+                if (figureType == ELLIPSE_FIGURE) {
+                    _output(0, " ry=\"%d\"", properties->value.dimensions.height / 2);
+                } else {
+                    _output(0, " height=\"%d\"", properties->value.dimensions.height);
+                }
+                break;
+            case FROM_PROPERTY:
+                _output(0, " x1=\"%d\" y1=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                break;
+            case TO_PROPERTY:
+                _output(0, " x2=\"%d\" y2=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                break;
+            case RADIUS_PROPERTY:
+                _output(0, " r=\"%d\"", properties->value.intValue);
+                break;
+            case FILL_PROPERTY:
+                _output(0, " fill=\"");
+                if (properties->value.colorValue->type == NAMED_COLOR) {
+                     _output(0, "%s", properties->value.colorValue->value.name);
+                } else if (properties->value.colorValue->type == HEX_COLOR_TYPE) {
+                    _output(0, "%s", properties->value.colorValue->value.hex);
+                } else if (properties->value.colorValue->type == RGB_COLOR_TYPE) {
+                    _output(0, "rgb(%d,%d,%d)", properties->value.colorValue->value.rgb.r, properties->value.colorValue->value.rgb.g, properties->value.colorValue->value.rgb.b);
+                }
+                _output(0, "\"");
+                break;
+            case STROKE_PROPERTY:
+                _output(0, " stroke=\"");
+                if (properties->value.colorValue->type == NAMED_COLOR) {
+                     _output(0, "%s", properties->value.colorValue->value.name);
+                } else if (properties->value.colorValue->type == HEX_COLOR_TYPE) {
+                    _output(0, "%s", properties->value.colorValue->value.hex);
+                } else if (properties->value.colorValue->type == RGB_COLOR_TYPE) {
+                    _output(0, "rgb(%d,%d,%d)", properties->value.colorValue->value.rgb.r, properties->value.colorValue->value.rgb.g, properties->value.colorValue->value.rgb.b);
+                }
+                _output(0, "\"");
+                 break;
+            case STROKE_WIDTH_PROPERTY:
+                 _output(0, " stroke-width=\"%d\"", properties->value.intValue);
+                 break;
+            case OPACITY_PROPERTY:
+                _output(0, " opacity=\"%.2f\"", properties->value.floatValue);
+                break;
+            default: break;
+        }
+        properties = properties->next;
+    }
 }
 
 /**
  * Generates the symbols of the program.
  */
 static void _generateSymbols(const unsigned int indentationLevel, Scene * scene){
-	//TODO: Implement symbols generation
-	return;
+    if (!scene->symbols) return;
+    
+    _output(indentationLevel, "<defs>\n");
+    Symbol * sym = scene->symbols;
+    while(sym) {
+        _output(indentationLevel + 1, "<symbol id=\"%s\">\n", sym->name);
+        // Generate figures inside symbol
+        _generateFigures(indentationLevel + 2, &sym->figure);
+        _output(indentationLevel + 1, "</symbol>\n");
+        sym = sym->next;
+    }
+    _output(indentationLevel, "</defs>\n");
 }
 
 /**
  * Generates the use instances of the program.
  */
 static void _generateUseInstances(const unsigned int indentationLevel, Scene * scene){
-	//TODO: Implement use instances generation
+	// Handled in _generateScene
 	return;
+}
+
+/**
+ * Generates the transforms of the program.
+ */
+static void _generateTransforms(const unsigned int indentationLevel, Transform * transforms){
+    if (!transforms) return;
+    _output(0, " transform=\"");
+    while(transforms) {
+        switch(transforms->type) {
+            case TRANSFORM_TRANSLATE:
+                _output(0, "translate(%.2f, %.2f) ", transforms->value.translate.tx, transforms->value.translate.ty);
+                break;
+            case TRANSFORM_ROTATE:
+                _output(0, "rotate(%.2f) ", transforms->value.rotate.degrees);
+                break;
+            case TRANSFORM_SCALE:
+                _output(0, "scale(%.2f) ", transforms->value.scale.sx);
+                break;
+        }
+        transforms = transforms->next;
+    }
+    _output(0, "\"");
 }
 
 /**
  * Generates the output of the program.
  */
 static void _generateProgram(Program * program) {
-	_generateExpression(3, program->expression);
+    if (program == NULL || program->scene == NULL) return;
+    _generateScene(1, program->scene);
 }
 
 /**
- * Creates the prologue of the generated output, a Latex document that renders
- * a tree thanks to the Forest package.
- *
- * @see https://ctan.dcc.uchile.cl/graphics/pgf/contrib/forest/forest-doc.pdf
+ * Creates the prologue of the generated output.
  */
 static void _generatePrologue(void) {
-		fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(f, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\">\n");
 }
 
@@ -194,17 +425,15 @@ static char * _indentation(const unsigned int level) {
 }
 
 /**
- * Outputs a formatted string to standard output. The "fflush" instruction
- * allows to see the output even close to a failure, because it drops the
- * buffering.
+ * Outputs a formatted string to standard output.
  */
 static void _output(const unsigned int indentationLevel, const char * const format, ...) {
 	va_list arguments;
 	va_start(arguments, format);
 	char * indentation = _indentation(indentationLevel);
 	char * effectiveFormat = concatenate(2, indentation, format);
-	vfprintf(stdout, effectiveFormat, arguments);
-	fflush(stdout);
+	vfprintf(f, effectiveFormat, arguments); // Write to file 'f' instead of stdout
+	fflush(f);
 	free(effectiveFormat);
 	free(indentation);
 	va_end(arguments);
@@ -224,9 +453,9 @@ void executeGenerator(CompilerState * compilerState) {
     return;
   }
 
-	f = fopen("scene.sgv", "w");
+	f = fopen("scene.svg", "w"); // Changed extension to .svg
   if (!f) {
-    logError(_logger, "Cannot open scene.sgv for writing.");
+    logError(_logger, "Cannot open scene.svg for writing.");
     return;
   }
 
@@ -237,7 +466,9 @@ void executeGenerator(CompilerState * compilerState) {
 	_generateProgram(compilerState->abstractSyntaxtTree);
 
 	//Generate the epilogue of the output
-	_generateEpilogue(compilerState->value);
+	_generateEpilogue();
 	fclose(f);
-	logDebugging(_logger, "Generation is done. File scene.html created successfully.");
+	logDebugging(_logger, "Generation is done. File scene.svg created successfully.");
 }
+
+
