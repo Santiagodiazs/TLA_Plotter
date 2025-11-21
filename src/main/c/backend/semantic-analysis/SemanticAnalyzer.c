@@ -212,8 +212,7 @@ static void _validateColor(Color * color, CompilerState * state) {
                  state->errorMessage = "Undefined palette color reference.";
                  return;
             }
-        } else {
-            
+        }
     } else if (color->type == RGB_COLOR_TYPE) {
         if (color->value.rgb.r < 0 || color->value.rgb.r > 255 ||
             color->value.rgb.g < 0 || color->value.rgb.g > 255 ||

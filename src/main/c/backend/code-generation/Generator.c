@@ -326,6 +326,8 @@ static void _generateProperties(const unsigned int indentationLevel, Property * 
                     _output(0, "%s", properties->value.colorValue->value.hex);
                 } else if (properties->value.colorValue->type == RGB_COLOR_TYPE) {
                     _output(0, "rgb(%d,%d,%d)", properties->value.colorValue->value.rgb.r, properties->value.colorValue->value.rgb.g, properties->value.colorValue->value.rgb.b);
+                } else if (properties->value.colorValue->type == RGBA_COLOR_TYPE) {
+                    _output(0, "rgba(%d,%d,%d,%.2f)", properties->value.colorValue->value.rgba.r, properties->value.colorValue->value.rgba.g, properties->value.colorValue->value.rgba.b, properties->value.colorValue->value.rgba.a);
                 }
                 _output(0, "\"");
                 break;
@@ -337,6 +339,8 @@ static void _generateProperties(const unsigned int indentationLevel, Property * 
                     _output(0, "%s", properties->value.colorValue->value.hex);
                 } else if (properties->value.colorValue->type == RGB_COLOR_TYPE) {
                     _output(0, "rgb(%d,%d,%d)", properties->value.colorValue->value.rgb.r, properties->value.colorValue->value.rgb.g, properties->value.colorValue->value.rgb.b);
+                } else if (properties->value.colorValue->type == RGBA_COLOR_TYPE) {
+                    _output(0, "rgba(%d,%d,%d,%.2f)", properties->value.colorValue->value.rgba.r, properties->value.colorValue->value.rgba.g, properties->value.colorValue->value.rgba.b, properties->value.colorValue->value.rgba.a);
                 }
                 _output(0, "\"");
                  break;

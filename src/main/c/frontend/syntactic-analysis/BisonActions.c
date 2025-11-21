@@ -148,11 +148,6 @@ Color * ParseNamedColor(const char * name) {
 Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	
-	printf("DEBUG: Looking up color '%s' from palette '%s'\n", 
-	       color_name ? color_name : "NULL", 
-	       palette_name ? palette_name : "NULL");
-	
 	Color *found_color = LookupPaletteColor(color_name);
 	if (found_color) {
 		return found_color;
@@ -476,12 +471,12 @@ Scene * SceneFromFigure(Figure * figure) {
 
 Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    if (!_currentScene) {
-        return NULL;
+    
+    if (!entries) {
+        return BasicSceneSemanticAction(NULL);
     }
-    if (!entries) return _currentScene;
 
-   
+    // Add to _globalPalette immediately
     PaletteEntry *globalCopy = duplicatePalette(entries);
     if (_globalPalette == NULL) {
         _globalPalette = globalCopy;
@@ -491,22 +486,17 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
         tail->next = globalCopy;
     }
 
-  
-    if (_currentScene->palette == NULL) {
-        _currentScene->palette = entries;
-    } else {
-        PaletteEntry *tail = _currentScene->palette;
-        while (tail->next) tail = tail->next;
-        tail->next = entries;
+    // Create a new scene with the palette
+    Scene *scene = BasicSceneSemanticAction(NULL);
+    if (scene) {
+        scene->palette = entries;
     }
-    return _currentScene;
+    
+    return scene;
 }
 
 Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
-    
-   
-    printf("DEBUG: Creating named palette '%s'\n", name ? name : "NULL");
     
     Scene * result = SceneWithPaletteBlock(entries);
     
@@ -521,7 +511,9 @@ Color * LookupPaletteColor(const char *name) {
     if (!name) return NULL;
     
     PaletteEntry *palette = _globalPalette;
-    if (!palette) return NULL;
+    if (!palette) {
+        return NULL;
+    }
     
     Color *found = NULL;
     for (PaletteEntry *it = palette; it; it = it->next) {
@@ -529,7 +521,9 @@ Color * LookupPaletteColor(const char *name) {
             found = it->color; 
         }
     }
-    if (!found) return NULL;
+    if (!found) {
+        return NULL;
+    }
 
     Color *copy = createColor(found->type);
     if (!copy) return NULL;
