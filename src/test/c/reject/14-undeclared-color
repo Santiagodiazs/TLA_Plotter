@@ -1,0 +1,18 @@
+scene UndefinedPalette {
+    palette myColors {
+        primary: #FF0000;
+        secondary: #00FF00;
+    }
+    
+    draw rectangle rect1 {
+        at (100, 100);
+        size 200x150;
+        fill myColors.primary;
+    }
+    
+    draw circle circ1 {
+        at (400, 300);
+        radius 50;
+        fill myColors.tertiary;
+    }
+}

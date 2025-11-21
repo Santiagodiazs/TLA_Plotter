@@ -1,0 +1,19 @@
+// Test case: Duplicate layer z-index
+// Two layers with the same z-level should be rejected
+scene DuplicateZIndex {
+    layer background z 1 {
+        draw rectangle bg {
+            at (0, 0);
+            size 800x600;
+            fill #F0F0F0;
+        }
+    }
+    
+    layer foreground z 1 {
+        draw circle sun {
+            at (400, 300);
+            radius 50;
+            fill #FFD700;
+        }
+    }
+}

@@ -1,0 +1,13 @@
+scene InvalidRGB {
+    draw rectangle rect1 {
+        at (100, 100);
+        size 200x150;
+        fill rgb(300, 50, 100);
+    }
+    
+    draw circle circ1 {
+        at (400, 300);
+        radius 50;
+        stroke rgba(100, 50, 500, 0.8);
+    }
+}

@@ -1,0 +1,12 @@
+scene Duplicates {
+
+    symbol tree {
+        draw circle c { at(0,0); radius 10; }
+    }
+
+
+    symbol tree {
+        draw rectangle r { at(0,0); size 10x10; }
+    }
+
+}
