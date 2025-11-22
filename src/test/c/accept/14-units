@@ -1,0 +1,8 @@
+scene unitsScene {
+    draw rectangle r1 {
+        width 100 px;
+        height 50 %;
+        at (10, 10);
+        fill red;
+    }
+}

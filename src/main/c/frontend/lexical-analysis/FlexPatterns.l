@@ -164,6 +164,8 @@ UNIT                (px|rem|em|vw|vh|%)
 
 {whitespace}						{ return IgnoredLexemeAction(); }
 
+{UNIT}							{ return IdentifierLexemeAction(); }
+
 {identifier}						{ return IdentifierLexemeAction(); }
 
 <<EOF>>								{ return EOFLexemeAction(); }

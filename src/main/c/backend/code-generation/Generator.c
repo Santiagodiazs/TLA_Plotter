@@ -270,6 +270,18 @@ static void _generateFigures(const unsigned int indentationLevel, Figure * figur
     }
 }
 
+static const char* _unitToString(UnitType unit) {
+    switch(unit) {
+        case UNIT_PX: return "px";
+        case UNIT_REM: return "rem";
+        case UNIT_EM: return "em";
+        case UNIT_VW: return "vw";
+        case UNIT_VH: return "vh";
+        case UNIT_PERCENT: return "%";
+        default: return "px";
+    }
+}
+
 /**
  * Generates the properties of the program.
  */
@@ -289,24 +301,31 @@ static void _generateProperties(const unsigned int indentationLevel, Property * 
                 break;
             case SIZE_PROPERTY:
                  if (figureType == ELLIPSE_FIGURE) {
-                     _output(0, " rx=\"%d\" ry=\"%d\"", properties->value.dimensions.width / 2, properties->value.dimensions.height / 2);
+                    _output(0, " rx=\"%d%s\" ry=\"%d%s\"", 
+                        properties->value.dimensions.width / 2, _unitToString(properties->value.dimensions.widthUnit),
+                        properties->value.dimensions.height / 2, _unitToString(properties->value.dimensions.heightUnit));
                  } else {
-                     _output(0, " width=\"%d\" height=\"%d\"", properties->value.dimensions.width, properties->value.dimensions.height);
+                     _output(0, " width=\"%d%s\" height=\"%d%s\"", 
+                        properties->value.dimensions.width, _unitToString(properties->value.dimensions.widthUnit),
+                        properties->value.dimensions.height, _unitToString(properties->value.dimensions.heightUnit));
                  }
                  break;
             case WIDTH_PROPERTY:
-                // Use dimensions.width as it overlaps with intValue but is safer if struct is used
                 if (figureType == ELLIPSE_FIGURE) {
-                    _output(0, " rx=\"%d\"", properties->value.dimensions.width / 2);
+                    _output(0, " rx=\"%d%s\"", 
+                        properties->value.dimensions.width / 2, _unitToString(properties->value.dimensions.widthUnit));
                 } else {
-                    _output(0, " width=\"%d\"", properties->value.dimensions.width);
+                    _output(0, " width=\"%d%s\"", 
+                        properties->value.dimensions.width, _unitToString(properties->value.dimensions.widthUnit));
                 }
                 break;
             case HEIGHT_PROPERTY:
                 if (figureType == ELLIPSE_FIGURE) {
-                    _output(0, " ry=\"%d\"", properties->value.dimensions.height / 2);
+                    _output(0, " ry=\"%d%s\"", 
+                        properties->value.dimensions.height / 2, _unitToString(properties->value.dimensions.heightUnit));
                 } else {
-                    _output(0, " height=\"%d\"", properties->value.dimensions.height);
+                    _output(0, " height=\"%d%s\"", 
+                        properties->value.dimensions.height, _unitToString(properties->value.dimensions.heightUnit));
                 }
                 break;
             case FROM_PROPERTY:

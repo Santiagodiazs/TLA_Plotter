@@ -1,8 +1,0 @@
-scene MyScene {
-    draw rectangle house {
-        fill red;
-    }
-    draw circle sun {
-        fill yellow;
-    }
-}

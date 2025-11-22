@@ -1,0 +1,13 @@
+scene mathScene {
+    draw rectangle r {
+        at (10, 10);
+        width 100 + 50 px;
+        height 20 * 5 px;
+        fill red;
+    }
+    draw circle c {
+        at (200, 200);
+        radius (10 + 5) * 2;
+        fill blue;
+    }
+}

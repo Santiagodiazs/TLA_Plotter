@@ -148,17 +148,26 @@ Color * ParseNamedColor(const char * name) {
 Color * ParsePaletteColor(const char * palette_name, const char * color_name) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
-	Color *found_color = LookupPaletteColor(color_name);
-	if (found_color) {
-		return found_color;
-	}
-	
-	Color * color = createColor(NAMED_COLOR);
-	if (color != NULL && color_name != NULL) {
-		color->value.name = malloc(strlen(color_name) + 1);
-		if (color->value.name != NULL) {
-			strcpy(color->value.name, color_name);
+	// Iterate _globalPalette to find match with paletteName AND colorName
+	PaletteEntry *it = _globalPalette;
+	while (it) {
+		if (it->name && strcmp(it->name, color_name) == 0) {
+			// Check palette name
+			if (it->paletteName && palette_name) {
+				if (strcmp(it->paletteName, palette_name) == 0) {
+					return duplicateColor(it->color);
+				}
+			}
 		}
+		it = it->next;
+	}
+
+	// If not found, return NAMED_COLOR with "Palette.Color" for SemanticAnalyzer to catch
+	Color * color = createColor(NAMED_COLOR);
+	if (color != NULL && palette_name && color_name) {
+		char * fullName = malloc(strlen(palette_name) + 1 + strlen(color_name) + 1);
+		sprintf(fullName, "%s.%s", palette_name, color_name);
+		color->value.name = fullName;
 	}
 	return color;
 }
@@ -498,6 +507,13 @@ Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
 Scene * SceneWithNamedPaletteBlock(const char *name, PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     
+    if (name && entries) {
+        for (PaletteEntry *it = entries; it; it = it->next) {
+            if (it->paletteName) free(it->paletteName);
+            it->paletteName = strdup(name);
+        }
+    }
+    
     Scene * result = SceneWithPaletteBlock(entries);
     
     if (name) {
@@ -770,4 +786,57 @@ Property * MergeProperties(Property *acc, Property *item) {
     while (last->next) last = last->next;
     last->next = item;
     return acc;
+}
+
+// ============= EXPRESSION SEMANTIC ACTIONS =============
+
+Constant * CreateConstantSemanticAction(int value) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    return createConstant(value);
+}
+
+Factor * CreateConstantFactorSemanticAction(Constant * constant) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Factor * factor = createFactor(CONSTANT);
+    if (factor) {
+        factor->constant = constant;
+    }
+    return factor;
+}
+
+Factor * CreateExpressionFactorSemanticAction(Expression * expression) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Factor * factor = createFactor(EXPRESSION_FACTOR);
+    if (factor) {
+        factor->expression = expression;
+    }
+    return factor;
+}
+
+Expression * CreateArithmeticExpressionSemanticAction(ExpressionType type, Expression * left, Expression * right) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Expression * expression = createExpression(type);
+    if (expression) {
+        expression->leftExpression = left;
+        expression->rightExpression = right;
+    }
+    return expression;
+}
+
+Expression * CreateFactorExpressionSemanticAction(Factor * factor) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Expression * expression = createExpression(FACTOR);
+    if (expression) {
+        expression->factor = factor;
+    }
+    return expression;
+}
+
+Property * SetPropertyExpressionSemanticAction(Property * property, Expression * expression) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (property) {
+        property->isExpression = true;
+        property->value.expressionValue = expression;
+    }
+    return property;
 }

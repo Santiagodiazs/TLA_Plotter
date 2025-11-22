@@ -177,7 +177,9 @@ void destroyProperty(Property * property) {
 		while (current != NULL) {
 			Property * next = current->next;
 			
-			if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
+			if (current->isExpression && current->value.expressionValue) {
+				destroyExpression(current->value.expressionValue);
+			} else if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
 				if (current->value.colorValue != NULL) {
 					destroyColor(current->value.colorValue);
 				}
@@ -196,6 +198,33 @@ Color * createColor(ColorType type) {
 		color->type = type;
 	}
 	return color;
+}
+
+Constant * createConstant(int value) {
+    logDebugging(_logger, "Creating constant with value %d", value);
+    Constant * constant = calloc(1, sizeof(Constant));
+    if (constant != NULL) {
+        constant->value = value;
+    }
+    return constant;
+}
+
+Factor * createFactor(FactorType type) {
+    logDebugging(_logger, "Creating factor of type %d", type);
+    Factor * factor = calloc(1, sizeof(Factor));
+    if (factor != NULL) {
+        factor->type = type;
+    }
+    return factor;
+}
+
+Expression * createExpression(ExpressionType type) {
+    logDebugging(_logger, "Creating expression of type %d", type);
+    Expression * expression = calloc(1, sizeof(Expression));
+    if (expression != NULL) {
+        expression->type = type;
+    }
+    return expression;
 }
 
 void destroyColor(Color * color) {
@@ -294,6 +323,7 @@ PaletteEntry * createPaletteEntry(const char *name, Color *color) {
     PaletteEntry *e = calloc(1, sizeof(PaletteEntry));
     if (!e) return NULL;
     e->name = name ? strdup(name) : NULL;
+    e->paletteName = NULL;
     e->color = color;   
     e->next = NULL;
     return e;
@@ -304,6 +334,7 @@ void destroyPalette(PaletteEntry *head) {
     while (head) {
         PaletteEntry *next = head->next;
         if (head->name) free(head->name);
+        if (head->paletteName) free(head->paletteName);
         if (head->color) destroyColor(head->color);
         free(head);
         head = next;
@@ -348,6 +379,7 @@ PaletteEntry * duplicatePalette(PaletteEntry *original) {
     for (PaletteEntry *it = original; it; it = it->next) {
         Color *colorCopy = duplicateColor(it->color);
         PaletteEntry *entryCopy = createPaletteEntry(it->name, colorCopy);
+        if (it->paletteName) entryCopy->paletteName = strdup(it->paletteName);
         
         if (!head) {
             head = tail = entryCopy;

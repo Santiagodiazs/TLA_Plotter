@@ -20,6 +20,7 @@ static UnitType parseUnit(const char* s) {
     if (strcmp(s,"em")==0)  return UNIT_EM;
     if (strcmp(s,"vw")==0)  return UNIT_VW;
     if (strcmp(s,"vh")==0)  return UNIT_VH;
+    if (strcmp(s,"%")==0)   return UNIT_PERCENT;
     /* fallback: px */
     return UNIT_PX;
 }
@@ -212,6 +213,9 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <property> translate_property
 %type <property> width_property
 %type <property> height_property
+%type <constant> constant
+%type <factor> factor
+%type <expression> expression
 
 /**
  * Precedence and associativity.
@@ -378,13 +382,29 @@ property_item: size_property	{ $$ = $1; }
 size_property: SIZE dimensions_value SEMICOLON	{ $$ = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
     ;
 
+constant: INTEGER { $$ = CreateConstantSemanticAction($1); }
+	;
+
+factor: constant { $$ = CreateConstantFactorSemanticAction($1); }
+	| OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { $$ = CreateExpressionFactorSemanticAction($2); }
+	;
+
+expression: factor { $$ = CreateFactorExpressionSemanticAction($1); }
+	| expression ADD expression { $$ = CreateArithmeticExpressionSemanticAction(ADDITION, $1, $3); }
+	| expression SUB expression { $$ = CreateArithmeticExpressionSemanticAction(SUBTRACTION, $1, $3); }
+	| expression MUL expression { $$ = CreateArithmeticExpressionSemanticAction(MULTIPLICATION, $1, $3); }
+	| expression DIV expression { $$ = CreateArithmeticExpressionSemanticAction(DIVISION, $1, $3); }
+	;
+
 width_property: WIDTH DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, 0, $2.widthUnit); }
-	| WIDTH INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2, u, 0, u); }
+	| WIDTH expression IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, 0, u); $$ = SetPropertyExpressionSemanticAction($$, $2); }
+	| WIDTH expression SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, UNIT_PX, 0, UNIT_PX); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	| WIDTH DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, (int)$2, u, 0, u); }
     ;
 
 height_property: HEIGHT DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $2.heightUnit, $2.height, $2.heightUnit); }
-	| HEIGHT INTEGER IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, $2, u); }
+	| HEIGHT expression IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, 0, u); $$ = SetPropertyExpressionSemanticAction($$, $2); }
+	| HEIGHT expression SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, UNIT_PX, 0, UNIT_PX); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	| HEIGHT DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, (int)$2, u); }
     ;
 
@@ -398,20 +418,24 @@ stroke_property: STROKE parsed_color_value SEMICOLON	{ $$ = CreatePropertySemant
 	| STROKE SEMICOLON	{ $$ = CreatePropertySemanticAction(STROKE_PROPERTY); Color * defaultColor = ParseNamedColor("black"); $$ = SetPropertyColorSemanticAction($$, defaultColor); }
 	;
 
-	radius_property: RADIUS INTEGER SEMICOLON	{ $$ = CreatePropertySemanticAction(RADIUS_PROPERTY); $$ = SetPropertyIntValueSemanticAction($$, $2); }
+radius_property: RADIUS expression SEMICOLON	{ $$ = CreatePropertySemanticAction(RADIUS_PROPERTY); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	;
 
-	from_property: FROM coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FROM_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+from_property: FROM coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FROM_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
-	to_property: TO coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TO_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+to_property: TO coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TO_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
 	;
 
 stroke_width_property
-    : STROKE_WIDTH INTEGER IDENTIFIER SEMICOLON {
+    : STROKE_WIDTH expression IDENTIFIER SEMICOLON {
         UnitType u = parseUnit($3);
         $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-        $$ = SetPropertyIntValueSemanticAction($$, $2);
+        $$ = SetPropertyExpressionSemanticAction($$, $2);
+    }
+    | STROKE_WIDTH expression SEMICOLON {
+        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
+        $$ = SetPropertyExpressionSemanticAction($$, $2);
     }
     | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
         UnitType u = parseUnit($3);
@@ -420,26 +444,26 @@ stroke_width_property
     }
     ;
 
-	opacity_property: OPACITY DECIMAL SEMICOLON	{ $$ = CreatePropertySemanticAction(OPACITY_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, $2); }
+opacity_property: OPACITY DECIMAL SEMICOLON	{ $$ = CreatePropertySemanticAction(OPACITY_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, $2); }
 	;
 
-	scale_property: SCALE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(SCALE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
+scale_property: SCALE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(SCALE_PROPERTY); $$ = SetPropertyExpressionSemanticAction($$, $3); }
 	;
 
 
-	rotate_property: ROTATE OPEN_PARENTHESIS INTEGER CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(ROTATE_PROPERTY); $$ = SetPropertyFloatValueSemanticAction($$, (float)$3); }
+rotate_property: ROTATE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(ROTATE_PROPERTY); $$ = SetPropertyExpressionSemanticAction($$, $3); }
 	;
 
-	dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.widthUnit = $1.widthUnit; $$.heightUnit = $1.heightUnit; }
+dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.widthUnit = $1.widthUnit; $$.heightUnit = $1.heightUnit; }
 	;
 
-	coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
+coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
 	;
 
-	translate_property: TRANSLATE coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY); $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y); }
+translate_property: TRANSLATE coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY); $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y); }
 	;
 
-	parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }
+parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }
 	| IDENTIFIER DOT IDENTIFIER	{ $$ = ParsePaletteColor($1, $3); }
 	| RGB_COLOR	{ $$ = ParseRgbColor($1); }
 	| HEX_COLOR	{ $$ = ParseHexColor($1); }

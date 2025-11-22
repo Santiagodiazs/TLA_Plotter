@@ -5,9 +5,15 @@
 
 /* Internal Structures */
 
+typedef struct PaletteColorNode {
+    char * name;
+    Color * color;
+    struct PaletteColorNode * next;
+} PaletteColorNode;
+
 typedef struct PaletteNode {
     char * name;
-    int color;
+    PaletteColorNode * colors;
     struct PaletteNode * next;
 } PaletteNode;
 
@@ -49,6 +55,17 @@ void destroySymbolTable(SymbolTable * symbolTable) {
     while (currentPalette) {
         PaletteNode * next = currentPalette->next;
         free(currentPalette->name);
+        
+        // Free Colors
+        PaletteColorNode * currentColor = currentPalette->colors;
+        while (currentColor) {
+            PaletteColorNode * nextColor = currentColor->next;
+            free(currentColor->name);
+            destroyColor(currentColor->color);
+            free(currentColor);
+            currentColor = nextColor;
+        }
+        
         free(currentPalette);
         currentPalette = next;
     }
@@ -58,7 +75,6 @@ void destroySymbolTable(SymbolTable * symbolTable) {
     while (currentSymbol) {
         SymbolNode * next = currentSymbol->next;
         free(currentSymbol->name);
-        // Note: We do not free the Symbol AST node here, as it belongs to the AST
         free(currentSymbol);
         currentSymbol = next;
     }
@@ -75,7 +91,7 @@ void destroySymbolTable(SymbolTable * symbolTable) {
     free(symbolTable);
 }
 
-bool addPalette(SymbolTable * symbolTable, char * name, int color) {
+bool addPalette(SymbolTable * symbolTable, char * name) {
     if (!symbolTable || !name) return false;
 
     // Check for duplicates
@@ -90,23 +106,63 @@ bool addPalette(SymbolTable * symbolTable, char * name, int color) {
     // Add new palette
     PaletteNode * newNode = (PaletteNode *)malloc(sizeof(PaletteNode));
     newNode->name = strdup(name);
-    newNode->color = color;
+    newNode->colors = NULL;
     newNode->next = symbolTable->palettes;
     symbolTable->palettes = newNode;
     return true;
 }
 
-int getPalette(SymbolTable * symbolTable, char * name) {
-    if (!symbolTable || !name) return -1;
+bool addPaletteColor(SymbolTable * symbolTable, char * paletteName, char * colorName, Color * color) {
+    if (!symbolTable || !paletteName || !colorName || !color) return false;
 
-    PaletteNode * current = symbolTable->palettes;
-    while (current) {
-        if (strcmp(current->name, name) == 0) {
-            return current->color;
+    // Find palette
+    PaletteNode * palette = symbolTable->palettes;
+    while (palette) {
+        if (strcmp(palette->name, paletteName) == 0) {
+            break;
         }
-        current = current->next;
+        palette = palette->next;
     }
-    return -1;
+    
+    if (!palette) return false; // Palette not found
+
+    // Check for duplicate color in palette
+    PaletteColorNode * currentColor = palette->colors;
+    while (currentColor) {
+        if (strcmp(currentColor->name, colorName) == 0) {
+            return false; // Already exists
+        }
+        currentColor = currentColor->next;
+    }
+
+    // Add new color
+    PaletteColorNode * newColor = (PaletteColorNode *)malloc(sizeof(PaletteColorNode));
+    newColor->name = strdup(colorName);
+    newColor->color = duplicateColor(color); // Store a copy
+    newColor->next = palette->colors;
+    palette->colors = newColor;
+    return true;
+}
+
+Color * getPaletteColor(SymbolTable * symbolTable, char * paletteName, char * colorName) {
+    if (!symbolTable || !paletteName || !colorName) return NULL;
+
+    PaletteNode * palette = symbolTable->palettes;
+    while (palette) {
+        if (strcmp(palette->name, paletteName) == 0) {
+            // Find color
+            PaletteColorNode * colorNode = palette->colors;
+            while (colorNode) {
+                if (strcmp(colorNode->name, colorName) == 0) {
+                    return colorNode->color;
+                }
+                colorNode = colorNode->next;
+            }
+            return NULL; // Color not found in palette
+        }
+        palette = palette->next;
+    }
+    return NULL; // Palette not found
 }
 
 bool addSymbol(SymbolTable * symbolTable, char * name, Symbol * symbolNode) {

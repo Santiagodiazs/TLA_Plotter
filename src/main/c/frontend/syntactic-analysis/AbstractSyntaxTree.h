@@ -8,11 +8,7 @@
 /** Initialize module's internal state. */
 ModuleDestructor initializeAbstractSyntaxTreeModule();
 
-/**
- * This type definitions allows self-referencing types (e.g., an expression
- * that is made of another expressions, such as talking about you in 3rd
- * person, but without the madness).
- */
+
 
 typedef enum ExpressionType ExpressionType;
 typedef enum FactorType FactorType;
@@ -123,7 +119,8 @@ struct Transform {
 };
 
 struct PaletteEntry {
-    char *name;        
+    char *name;
+    char *paletteName;
     Color *color;      
     struct PaletteEntry *next;
 };
@@ -213,6 +210,7 @@ struct Figure {
 
 struct Property {
 	PropertyType type;
+    bool isExpression;
 	union {
 		struct {
 			int x;
@@ -230,7 +228,8 @@ struct Property {
 		} scale;            
 		int intValue;        
 		float floatValue;    
-		Color * colorValue;   
+		Color * colorValue;
+        Expression * expressionValue;
 	} value;
 	struct Property * next;   
 };
@@ -274,6 +273,9 @@ void destroySymbol(Symbol * symbol);
 void destroyUseInstance(UseInstance * useInstance);
 void destroyGroup(Group * group);
 Color * createColor(ColorType type);
+Constant * createConstant(int value);
+Factor * createFactor(FactorType type);
+Expression * createExpression(ExpressionType type);
 
 
 Layer * createLayer(const char * name, int zLevel);

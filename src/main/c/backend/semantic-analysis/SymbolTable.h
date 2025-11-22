@@ -20,7 +20,9 @@ void destroySymbolTable(SymbolTable * symbolTable);
  * Adds a palette to the symbol table.
  * Returns true if successful, false if the palette already exists.
  */
-bool addPalette(SymbolTable * symbolTable, char * name, int color);
+bool addPalette(SymbolTable * symbolTable, char * name);
+bool addPaletteColor(SymbolTable * symbolTable, char * paletteName, char * colorName, Color * color);
+Color * getPaletteColor(SymbolTable * symbolTable, char * paletteName, char * colorName);
 
 /**
  * Gets a palette color by name.

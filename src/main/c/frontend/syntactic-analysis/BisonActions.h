@@ -42,7 +42,6 @@ Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y)
 void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead);
 void AppendTransform(Figure *figure, Transform *t);
 PaletteEntry * CreatePaletteEntrySemanticAction(char *name, Color *color);
-// REMOVED: AddPropertyToListSemanticAction - No longer needed with right recursion
 
 // ============= SCENE SEMANTIC ACTIONS =============
 Scene * BasicSceneSemanticAction(const char * name);
@@ -73,5 +72,13 @@ Scene * AddGroupToSceneSemanticAction(Scene *scene, Group *group);
 
 // ============= USE PROPERTIES FUNCTIONS =============
 Property * MergeProperties(Property *acc, Property *item);
+
+// ============= EXPRESSION SEMANTIC ACTIONS =============
+Constant * CreateConstantSemanticAction(int value);
+Factor * CreateConstantFactorSemanticAction(Constant * constant);
+Factor * CreateExpressionFactorSemanticAction(Expression * expression);
+Expression * CreateArithmeticExpressionSemanticAction(ExpressionType type, Expression * left, Expression * right);
+Expression * CreateFactorExpressionSemanticAction(Factor * factor);
+Property * SetPropertyExpressionSemanticAction(Property * property, Expression * expression);
 
 #endif

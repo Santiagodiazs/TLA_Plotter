@@ -1,0 +1,10 @@
+scene missingPropsScene {
+    draw circle c {
+        at (10, 10);
+        fill red;
+    }
+    draw rectangle r {
+        at (50, 50);
+        fill blue;
+    }
+}

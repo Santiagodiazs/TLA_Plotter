@@ -1,0 +1,7 @@
+scene WidthHeightNoUnits {
+    draw rectangle rect1 {
+        at (100, 100);
+        width 100;
+        fill #FF0000;
+    }
+}
