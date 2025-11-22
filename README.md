@@ -1,124 +1,203 @@
-[![✗](https://img.shields.io/badge/Release-v2.0.0-ffb600.svg?style=for-the-badge)](https://github.com/agustin-golmar/Flex-Bison-Compiler/releases)
+[![Release](https://img.shields.io/badge/Release-v2.0.0-ffb600.svg?style=for-the-badge)](https://github.com/Santiagodiazs/TLA_Plotter/releases)
 
-[![✗](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml/badge.svg?branch=production)](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml)
+# 🎨 TLA Plotter
 
-# Flex-Bison-Compiler
+A powerful Domain-Specific Language (DSL) compiler that transforms declarative scene descriptions into beautiful SVG graphics. Write simple, intuitive code and generate production-ready vector graphics.
 
-A base compiler example, developed with Flex and Bison.
-
-* [Requirements](#requirements)
-* [Configuration](#configuration)
-* [Commands](#commands)
-* [CI/CD](#cicd)
-* [Recommended Extensions](#recommended-extensions)
-
-## Requirements
-
-* [Docker v28.3.2](https://www.docker.com/)
-
-## Configuration
-
-Set the following environment variables to control and configure the behaviour of the application:
-
-| Name                  | Default | Description                                                                                                                                                           |
-| :-------------------- | :-----: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENVIRONMENT`         | `Local` | The active environment name. The available environments are: `Local`, `Development` and `Production`.                                                                 |
-| `LOG_IGNORED_LEXEMES` | `true`  | When `true`, logs all of the ignored lexemes found with Flex at `DEBUGGING` level. To remove those logs from the console output set it to `false`.                    |
-| `LOGGING_LEVEL`       | `ALL`   | The minimum level to log in the console output. From lower to higher, the available levels are: `ALL`, `DEBUGGING`, `INFORMATION`, `WARNING`, `ERROR` and `CRITICAL`. |
-
-_Docker Compose_ can read the variables from an `.env` file too (see `compose.yaml` file).
-
-## Commands
-
-### Start
-
-Rises an ephemeral container, ready to start development:
-
-```bash
-docker compose run --rm compiler
+```plot
+scene MyScene {
+    draw circle sun {
+        at (400, 100);
+        radius 50;
+        fill yellow;
+    }
+    
+    draw rectangle house {
+        at (300, 300);
+        size 200x150;
+        fill #8B4513;
+    }
+}
 ```
 
+## ✨ Features
+
+### 🎯 Core Graphics
+- **Primitive Shapes**: Rectangles, circles, ellipses, and lines
+- **Flexible Sizing**: Use `size`, `width`/`height`, or `radius` with full unit support
+- **Rich Colors**: Named colors, hex (`#FF0000`), RGB (`rgb(255,0,0)`), and RGBA (`rgba(255,0,0,0.5)`)
+
+### 🎨 Advanced Styling
+- **Color Palettes**: Define reusable color schemes and reference them across your scene
+- **Units**: Support for `px`, `rem`, `em`, `vw`, `vh`, and `%`
+- **Opacity & Strokes**: Fine-grained control over fill, stroke, and transparency
+
+### 🔧 Smart Features
+- **Math Expressions**: Dynamic values with compile-time evaluation
+  ```plot
+  width 100 + 50 px;      // Evaluates to 150px
+  radius (10 + 5) * 2;    // Evaluates to 30
+  ```
+- **Transformations**: Translate, rotate, and scale with ease
+- **Layers & Symbols**: Organize complex scenes with reusable components
+- **Z-index Control**: Layer management for overlapping elements
+
+### 🛡️ Robust Validation
+- **Semantic Analysis**: Catches invalid property combinations and missing requirements
+- **Type Safety**: Ensures properties match their respective figure types
+- **Conflict Detection**: Prevents duplicate or contradictory declarations
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose
+
 ### Build
-
-Builds or rebuilds the entire compiler:
-
 ```bash
-src/main/bash/build.sh
+sudo docker compose run --rm compiler src/main/bash/build.sh
 ```
 
 ### Run
-
-Compiles a program:
-
 ```bash
-src/main/bash/run.sh <program>
+sudo docker compose run --rm compiler src/main/bash/run.sh <input-file>
 ```
 
-where `<program>` is the path to the file that represents its entry-point.
+The compiler generates `scene.svg` in the current directory.
 
-### Test
-
-Executes every available unit-test under `src/test/c` folder:
-
+### Example
 ```bash
-src/main/bash/test.sh
+sudo docker compose run --rm compiler src/main/bash/run.sh src/test/c/accept/18-math-expressions
 ```
 
-#### Test Status and Scope
+## 📖 Language Syntax
 
-**Current Stage: Frontend (Lexical and Syntactic Analysis)**
-
-All tests in this repository are designed for the current frontend stage of the compiler, which includes:
-- Lexical analysis (token recognition)
-- Syntactic analysis (grammar parsing)
-
-**Test Categories:**
-- **Accept tests** (`src/test/c/accept/`): Programs that should be successfully parsed by the current grammar
-- **Reject tests** (`src/test/c/reject/`): Programs that should be rejected due to syntax errors
-
-**Important Notes:**
-- Some tests that would normally be rejected in a complete compiler (e.g., type incompatibility, semantic errors) are currently accepted as "false positives" since semantic analysis is not yet implemented
-- Tests requiring semantic validation (such as variable type checking, scene boundary validation) will be implemented in Stage 3 (Semantic Analysis)
-- The current test suite focuses on ensuring the grammar correctly recognizes valid syntax and rejects malformed programs at the syntactic level
-
-**Future Tests (Stage 3):**
-- Variable type compatibility validation
-- Scene boundary checking for drawn objects
-- Semantic constraint validation
-
-### Stop
-
-Logout, destroy the ephemeral containers and shutdowns the cluster:
-
-```bash
-exit
-docker compose down
+### Basic Scene
+```plot
+scene SceneName {
+    draw rectangle myRect {
+        at (x, y);
+        size 100x50;
+        fill red;
+    }
+}
 ```
 
-### Docker
+### Color Palettes
+```plot
+scene StyledScene {
+    palette theme {
+        primary #3498db;
+        accent rgb(231, 76, 60);
+        transparent rgba(52, 152, 219, 0.5);
+    }
+    
+    draw circle c {
+        at (100, 100);
+        radius 50;
+        fill theme.primary;
+    }
+}
+```
 
-| Command                                 | Description                                             |
-| :-------------------------------------- | :------------------------------------------------------ |
-| `docker builder prune --all`            | Removes all builds and complete build cache.            |
-| `docker compose --progress=plain build` | Forces a build or rebuild of the images in the cluster. |
-| `docker image prune`                    | Removes all of the dangling images from Docker.         |
-| `docker network prune`                  | Removes unused networks from Docker.                    |
-| `docker volume prune`                   | Removes unused volumes from Docker.                     |
+### Transformations
+```plot
+draw rectangle box {
+    at (100, 100);
+    size 50x50;
+    fill blue;
+    translate (20, 30);
+    rotate 45;
+    scale 1.5;
+}
+```
 
-## CI/CD
+### Math Expressions
+```plot
+draw rectangle dynamic {
+    at (0, 0);
+    width (100 + 50) * 2 px;        // 300px
+    height 20 * (5 + 3) px;          // 160px
+    fill green;
+}
+```
 
-To trigger an automatic integration on every push or PR (_Pull Request_), you must activate _GitHub Actions_ in the _Settings_ tab. Use the following configuration:
+### Units
+```plot
+draw rectangle responsive {
+    at (10, 10);
+    width 50 vw;      // 50% of viewport width
+    height 30 vh;     // 30% of viewport height
+    fill purple;
+}
+```
 
-| Key                                                        | Value                                               |
-| :--------------------------------------------------------- | :-------------------------------------------------- |
-| `Actions permissions`                                      | `Allow all actions and reusable workflows`          |
-| `Allow GitHub Actions to create and approve pull requests` | `false`                                             |
-| `Artifact and log retention`                               | `30 days`                                           |
-| `Fork pull request workflows from outside collaborators`   | `Require approval for all outside collaborators`    |
-| `Workflow permissions`                                     | `Read repository contents and packages permissions` |
+## 🧪 Testing
 
-## Recommended Extensions
+Run the complete test suite:
+```bash
+sudo docker compose run --rm compiler src/main/bash/test
+```
 
-* [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
-* [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
-* [Yash](https://marketplace.visualstudio.com/items?itemName=daohong-emilio.yash)
+The test suite includes:
+- ✅ **18 acceptance tests** - Valid scenes that should compile
+- ❌ **16 rejection tests** - Invalid scenes that should fail validation
+
+## 🏗️ Architecture
+
+```
+TLA_Plotter/
+├── src/main/c/
+│   ├── frontend/
+│   │   ├── lexical-analysis/     # Flex-based tokenizer
+│   │   └── syntactic-analysis/   # Bison parser & AST
+│   ├── backend/
+│   │   ├── semantic-analysis/    # Validation & type checking
+│   │   ├── code-generation/      # SVG generator
+│   │   └── domain-specific/      # Math expression evaluator
+│   └── EntryPoint.c              # Compiler driver
+└── src/test/c/
+    ├── accept/                   # Valid test cases
+    └── reject/                   # Invalid test cases
+```
+
+## 🔍 Semantic Validation
+
+The compiler performs comprehensive validation:
+
+✅ **Required Properties**: Ensures figures have mandatory properties
+```plot
+// ❌ Error: Circle must have 'radius'
+draw circle c { at (0, 0); }
+```
+
+✅ **Property-Figure Compatibility**: Validates property types
+```plot
+// ❌ Error: Property 'radius' is not valid for rectangle figures
+draw rectangle r { radius 50; }
+```
+
+✅ **Size Declaration Conflicts**: Prevents contradictory sizing
+```plot
+// ❌ Error: Cannot use both 'size' and 'width'/'height'
+draw rectangle r { size 100x50; width 200; }
+```
+
+✅ **Palette Validation**: Checks color existence in palettes
+```plot
+// ❌ Error: Color 'invalid' not found in palette 'theme'
+fill theme.invalid;
+```
+
+## 🛠️ Built With
+
+- **[Flex](https://github.com/westes/flex)** - Lexical analyzer generator
+- **[Bison](https://www.gnu.org/software/bison/)** - Parser generator
+- **[CMake](https://cmake.org/)** - Build system
+- **[Docker](https://www.docker.com/)** - Containerization
+
+
+
+
+---
+
+<p align="center">Made with ❤️ for vector graphics enthusiasts</p>
