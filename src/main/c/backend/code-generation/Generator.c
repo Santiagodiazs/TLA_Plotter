@@ -1,4 +1,5 @@
 #include "Generator.h"
+#include "../domain-specific/Calculator.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -8,6 +9,8 @@ const char _indentationCharacter = ' ';
 const char _indentationSize = 4;
 static Logger * _logger = NULL;
 static FILE *f = NULL;
+static Variable * _currentVariables = NULL;
+
 
 /** Shutdown module's internal state. */
 void _shutdownGeneratorModule() {
@@ -68,6 +71,8 @@ static void _generateEpilogue(void) {
  */
 static void _generateScene(const unsigned int indentationLevel, Scene * scene){
     if (scene == NULL) return;
+
+    _currentVariables = scene->variables;
 
     // 1. Generate Definitions (Symbols)
     _generateSymbols(indentationLevel, scene);
@@ -167,6 +172,7 @@ static void _generateScene(const unsigned int indentationLevel, Scene * scene){
     }
 
     free(items);
+    _currentVariables = NULL;
 }
 
 /**
@@ -209,14 +215,36 @@ static void _generateGroupProperties(const unsigned int indentationLevel, Proper
         while(prop) {
             switch(prop->type) {
                 case TRANSLATE_PROPERTY:
-                    _output(0, "translate(%d, %d) ", prop->value.coordinates.x, prop->value.coordinates.y);
+                    if (prop->isExpression && (prop->value.coordinates.xExpression || prop->value.coordinates.yExpression)) {
+                         int tx = 0, ty = 0;
+                         if (prop->value.coordinates.xExpression) {
+                             ComputationResult r = computeExpression(prop->value.coordinates.xExpression, _currentVariables);
+                             if(r.succeeded) tx = r.value;
+                         }
+                         if (prop->value.coordinates.yExpression) {
+                             ComputationResult r = computeExpression(prop->value.coordinates.yExpression, _currentVariables);
+                             if(r.succeeded) ty = r.value;
+                         }
+                         _output(0, "translate(%d, %d) ", tx, ty);
+                    } else {
+                        _output(0, "translate(%d, %d) ", prop->value.coordinates.x, prop->value.coordinates.y);
+                    }
                     break;
                 case ROTATE_PROPERTY:
-                     _output(0, "rotate(%.2f) ", prop->value.floatValue);
+                     if (prop->isExpression && prop->value.expressionValue) {
+                         ComputationResult r = computeExpression(prop->value.expressionValue, _currentVariables);
+                         if (r.succeeded) _output(0, "rotate(%d) ", r.value);
+                     } else {
+                         _output(0, "rotate(%.2f) ", prop->value.floatValue);
+                     }
                      break;
                 case SCALE_PROPERTY:
-                     // Enforce single parameter scale output
-                     _output(0, "scale(%.2f) ", prop->value.scale.x);
+                     if (prop->isExpression && prop->value.expressionValue) {
+                         ComputationResult r = computeExpression(prop->value.expressionValue, _currentVariables);
+                         if (r.succeeded) _output(0, "scale(%d) ", r.value);
+                     } else {
+                         _output(0, "scale(%.2f) ", prop->value.scale.x);
+                     }
                      break;
                 default: break;
             }
@@ -288,18 +316,34 @@ static const char* _unitToString(UnitType unit) {
 static void _generateProperties(const unsigned int indentationLevel, Property * properties, FigureType figureType){
     while(properties) {
         switch(properties->type) {
-            case POSITION_PROPERTY:
+            case POSITION_PROPERTY: {
+                int x = properties->value.coordinates.x;
+                int y = properties->value.coordinates.y;
+                
+                if (properties->isExpression) {
+                    if (properties->value.coordinates.xExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.xExpression, _currentVariables);
+                         if (r.succeeded) x = r.value;
+                    }
+                    if (properties->value.coordinates.yExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.yExpression, _currentVariables);
+                         if (r.succeeded) y = r.value;
+                    }
+                }
+
                 if (figureType == LINE_FIGURE) {
-                    // Skip x/y for lines as they use x1,y1,x2,y2
+                    
                     break;
                 }
                 if (figureType == CIRCLE_FIGURE || figureType == ELLIPSE_FIGURE) {
-                    _output(0, " cx=\"%d\" cy=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                    _output(0, " cx=\"%d\" cy=\"%d\"", x, y);
                 } else {
-                    _output(0, " x=\"%d\" y=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+                    _output(0, " x=\"%d\" y=\"%d\"", x, y);
                 }
                 break;
+            }
             case SIZE_PROPERTY:
+                
                  if (figureType == ELLIPSE_FIGURE) {
                     _output(0, " rx=\"%d%s\" ry=\"%d%s\"", 
                         properties->value.dimensions.width / 2, _unitToString(properties->value.dimensions.widthUnit),
@@ -310,33 +354,77 @@ static void _generateProperties(const unsigned int indentationLevel, Property * 
                         properties->value.dimensions.height, _unitToString(properties->value.dimensions.heightUnit));
                  }
                  break;
-            case WIDTH_PROPERTY:
+            case WIDTH_PROPERTY: {
+                int w = properties->value.dimensions.width;
+                if (properties->isExpression && properties->value.expressionValue) {
+                     ComputationResult r = computeExpression(properties->value.expressionValue, _currentVariables);
+                     if (r.succeeded) w = r.value;
+                }
                 if (figureType == ELLIPSE_FIGURE) {
                     _output(0, " rx=\"%d%s\"", 
-                        properties->value.dimensions.width / 2, _unitToString(properties->value.dimensions.widthUnit));
+                        w / 2, _unitToString(properties->value.dimensions.widthUnit));
                 } else {
                     _output(0, " width=\"%d%s\"", 
-                        properties->value.dimensions.width, _unitToString(properties->value.dimensions.widthUnit));
+                        w, _unitToString(properties->value.dimensions.widthUnit));
                 }
                 break;
-            case HEIGHT_PROPERTY:
+            }
+            case HEIGHT_PROPERTY: {
+                int h = properties->value.dimensions.height;
+                if (properties->isExpression && properties->value.expressionValue) {
+                     ComputationResult r = computeExpression(properties->value.expressionValue, _currentVariables);
+                     if (r.succeeded) h = r.value;
+                }
                 if (figureType == ELLIPSE_FIGURE) {
                     _output(0, " ry=\"%d%s\"", 
-                        properties->value.dimensions.height / 2, _unitToString(properties->value.dimensions.heightUnit));
+                        h / 2, _unitToString(properties->value.dimensions.heightUnit));
                 } else {
                     _output(0, " height=\"%d%s\"", 
-                        properties->value.dimensions.height, _unitToString(properties->value.dimensions.heightUnit));
+                        h, _unitToString(properties->value.dimensions.heightUnit));
                 }
                 break;
-            case FROM_PROPERTY:
-                _output(0, " x1=\"%d\" y1=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+            }
+            case FROM_PROPERTY: {
+                int x1 = properties->value.coordinates.x;
+                int y1 = properties->value.coordinates.y;
+                if (properties->isExpression) {
+                     if (properties->value.coordinates.xExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.xExpression, _currentVariables);
+                         if (r.succeeded) x1 = r.value;
+                     }
+                     if (properties->value.coordinates.yExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.yExpression, _currentVariables);
+                         if (r.succeeded) y1 = r.value;
+                     }
+                }
+                _output(0, " x1=\"%d\" y1=\"%d\"", x1, y1);
                 break;
-            case TO_PROPERTY:
-                _output(0, " x2=\"%d\" y2=\"%d\"", properties->value.coordinates.x, properties->value.coordinates.y);
+            }
+            case TO_PROPERTY: {
+                int x2 = properties->value.coordinates.x;
+                int y2 = properties->value.coordinates.y;
+                if (properties->isExpression) {
+                     if (properties->value.coordinates.xExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.xExpression, _currentVariables);
+                         if (r.succeeded) x2 = r.value;
+                     }
+                     if (properties->value.coordinates.yExpression) {
+                         ComputationResult r = computeExpression(properties->value.coordinates.yExpression, _currentVariables);
+                         if (r.succeeded) y2 = r.value;
+                     }
+                }
+                _output(0, " x2=\"%d\" y2=\"%d\"", x2, y2);
                 break;
-            case RADIUS_PROPERTY:
-                _output(0, " r=\"%d\"", properties->value.intValue);
+            }
+            case RADIUS_PROPERTY: {
+                int r_val = properties->value.intValue;
+                if (properties->isExpression && properties->value.expressionValue) {
+                     ComputationResult r = computeExpression(properties->value.expressionValue, _currentVariables);
+                     if (r.succeeded) r_val = r.value;
+                }
+                _output(0, " r=\"%d\"", r_val);
                 break;
+            }
             case FILL_PROPERTY:
                 _output(0, " fill=\"");
                 if (properties->value.colorValue->type == NAMED_COLOR) {
@@ -363,12 +451,25 @@ static void _generateProperties(const unsigned int indentationLevel, Property * 
                 }
                 _output(0, "\"");
                  break;
-            case STROKE_WIDTH_PROPERTY:
-                 _output(0, " stroke-width=\"%d\"", properties->value.intValue);
+            case STROKE_WIDTH_PROPERTY: {
+                 int sw = properties->value.intValue;
+                 if (properties->isExpression && properties->value.expressionValue) {
+                     ComputationResult r = computeExpression(properties->value.expressionValue, _currentVariables);
+                     if (r.succeeded) sw = r.value;
+                 }
+                 _output(0, " stroke-width=\"%d\"", sw);
                  break;
-            case OPACITY_PROPERTY:
-                _output(0, " opacity=\"%.2f\"", properties->value.floatValue);
+            }
+            case OPACITY_PROPERTY: {
+                float op = properties->value.floatValue;
+                 if (properties->isExpression && properties->value.expressionValue) {
+                     ComputationResult r = computeExpression(properties->value.expressionValue, _currentVariables);
+                    
+                     if (r.succeeded) op = (float)r.value;
+                 }
+                _output(0, " opacity=\"%.2f\"", op);
                 break;
+            }
             default: break;
         }
         properties = properties->next;
@@ -410,13 +511,44 @@ static void _generateTransforms(const unsigned int indentationLevel, Transform *
     while(transforms) {
         switch(transforms->type) {
             case TRANSFORM_TRANSLATE:
-                _output(0, "translate(%.2f, %.2f) ", transforms->value.translate.tx, transforms->value.translate.ty);
+                if (transforms->isExpression) {
+                     int tx = 0, ty = 0;
+                     if (transforms->value.translate.txExp) {
+                         ComputationResult r = computeExpression(transforms->value.translate.txExp, _currentVariables);
+                         if (r.succeeded) tx = r.value;
+                     }
+                     if (transforms->value.translate.tyExp) {
+                         ComputationResult r = computeExpression(transforms->value.translate.tyExp, _currentVariables);
+                         if (r.succeeded) ty = r.value;
+                     }
+                     _output(0, "translate(%d, %d) ", tx, ty);
+                } else {
+                    _output(0, "translate(%.2f, %.2f) ", transforms->value.translate.tx, transforms->value.translate.ty);
+                }
                 break;
             case TRANSFORM_ROTATE:
-                _output(0, "rotate(%.2f) ", transforms->value.rotate.degrees);
+                if (transforms->isExpression) {
+                     int deg = 0;
+                     if (transforms->value.rotate.degreesExp) {
+                         ComputationResult r = computeExpression(transforms->value.rotate.degreesExp, _currentVariables);
+                         if (r.succeeded) deg = r.value;
+                     }
+                     _output(0, "rotate(%d) ", deg);
+                } else {
+                    _output(0, "rotate(%.2f) ", transforms->value.rotate.degrees);
+                }
                 break;
             case TRANSFORM_SCALE:
-                _output(0, "scale(%.2f) ", transforms->value.scale.sx);
+                if (transforms->isExpression) {
+                     int s = 1;
+                     if (transforms->value.scale.sxExp) {
+                         ComputationResult r = computeExpression(transforms->value.scale.sxExp, _currentVariables);
+                         if (r.succeeded) s = r.value;
+                     }
+                     _output(0, "scale(%d) ", s);
+                } else {
+                    _output(0, "scale(%.2f) ", transforms->value.scale.sx);
+                }
                 break;
         }
         transforms = transforms->next;

@@ -72,7 +72,6 @@ hex_color           #([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
 rgb_color           rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 rgba_color          rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
 color_func          color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-coordinates         \({WS}{INT}{WS},{WS}{INT}{WS}\)
 string              \"[^\"]*\"
 NUM                 ({decimal}|{integer})
 UNIT                (px|rem|em|vw|vh|%)
@@ -149,7 +148,6 @@ UNIT                (px|rem|em|vw|vh|%)
 {rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
 {color_func}						{ return ColorLexemeAction(COLOR); }
 
-{coordinates}						{ return CoordinatesLexemeAction(); }
 {dimensions}                        { return DimensionsLexemeAction(); }
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
@@ -157,6 +155,7 @@ UNIT                (px|rem|em|vw|vh|%)
 
 "}"									{ return BraceLexemeAction(CLOSE_BRACE); }
 "{"									{ return BraceLexemeAction(OPEN_BRACE); }
+"="									{ return KeywordLexemeAction(ASSIGN); }
 ";"									{ return SemicolonLexemeAction(); }
 ","									{ return CommaLexemeAction(); }
 ":"									{ return EnterStringContextLexemeAction(STRING); }

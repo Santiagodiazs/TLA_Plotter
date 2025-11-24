@@ -1,0 +1,38 @@
+scene ComplexMathScene {
+    base = 50;
+    margin = 10;
+    
+    x1 = base + margin;
+    y1 = base * 2;
+    
+    draw rectangle rect1 {
+        at (x1, y1);
+        width base * 2 px;
+        height (base + 20) / 2 px;
+        fill red;
+    }
+    
+    x2 = x1 + 150;
+    y2 = y1 + 50;
+    r = base / 2;
+    
+    draw circle circ1 {
+        at (x2, y2);
+        radius r + 5;
+        fill blue;
+    }
+    
+    angle = 45;
+    scale_factor = 2;
+    
+    draw rectangle rect2 {
+        at (x1, y2 + 100);
+        width 50 px;
+        height 50 px;
+        fill green;
+        rotate (angle);
+        scale (scale_factor);
+        translate (margin, margin * 2);
+    }
+}
+

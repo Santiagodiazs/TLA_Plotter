@@ -1,0 +1,11 @@
+scene UndefinedVarScene {
+    defined = 100;
+    
+    draw rectangle r {
+        at (defined, 10);
+        width 50 px;
+        height undefined_var px;
+        fill red;
+    }
+}
+

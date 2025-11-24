@@ -1,0 +1,70 @@
+scene AdvancedVariables {
+    grid_size = 100;
+    half_grid = grid_size / 2;
+    
+    base_x = 50;
+    base_y = 50;
+    
+    offset = (grid_size + half_grid) * 2;
+    diagonal = grid_size + grid_size;
+    
+    rect_width = grid_size - 20;
+    rect_height = half_grid + 10;
+    
+    draw rectangle box1 {
+        at (base_x, base_y);
+        width rect_width px;
+        height rect_height px;
+        fill red;
+        rotate (45);
+    }
+    
+    circle_x = base_x + offset;
+    circle_y = base_y + half_grid;
+    circle_r = (grid_size / 4) + 5;
+    
+    draw circle dot1 {
+        at (circle_x, circle_y);
+        radius circle_r;
+        fill blue;
+    }
+    
+    line_start_x = base_x;
+    line_start_y = base_y + grid_size;
+    line_end_x = line_start_x + diagonal;
+    line_end_y = line_start_y + half_grid;
+    
+    draw line connector {
+        from (line_start_x, line_start_y);
+        to (line_end_x, line_end_y);
+        stroke red;
+        stroke_width 3 px;
+    }
+    
+    rect2_x = circle_x + half_grid;
+    rect2_y = circle_y - half_grid;
+    scale_val = 2;
+    angle_val = 90;
+    trans_x = grid_size / 10;
+    trans_y = trans_x * 2;
+    
+    draw rectangle box2 {
+        at (rect2_x, rect2_y);
+        width half_grid px;
+        height half_grid px;
+        fill green;
+        scale (scale_val);
+        rotate (angle_val);
+        translate (trans_x, trans_y);
+    }
+    
+    final_x = rect2_x + offset;
+    final_y = base_y + (grid_size * 2);
+    final_r = half_grid / 2;
+    
+    draw circle dot2 {
+        at (final_x, final_y);
+        radius final_r;
+        fill yellow;
+    }
+}

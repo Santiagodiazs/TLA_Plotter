@@ -45,58 +45,70 @@ ComputationResult computeConstant(Constant * constant) {
     return (ComputationResult){.succeeded = true, .value = constant->value};
 }
 
-ComputationResult computeExpression(Expression * expression) {
+ComputationResult computeExpression(Expression * expression, Variable * variables) {
     if (!expression) return (ComputationResult){.succeeded = false, .value = 0};
 
     switch (expression->type) {
         case ADDITION: {
-            ComputationResult left = computeExpression(expression->leftExpression);
-            ComputationResult right = computeExpression(expression->rightExpression);
+            ComputationResult left = computeExpression(expression->leftExpression, variables);
+            ComputationResult right = computeExpression(expression->rightExpression, variables);
             if (left.succeeded && right.succeeded) {
                 return add(left.value, right.value);
             }
             break;
         }
         case SUBTRACTION: {
-            ComputationResult left = computeExpression(expression->leftExpression);
-            ComputationResult right = computeExpression(expression->rightExpression);
+            ComputationResult left = computeExpression(expression->leftExpression, variables);
+            ComputationResult right = computeExpression(expression->rightExpression, variables);
             if (left.succeeded && right.succeeded) {
                 return subtract(left.value, right.value);
             }
             break;
         }
         case MULTIPLICATION: {
-            ComputationResult left = computeExpression(expression->leftExpression);
-            ComputationResult right = computeExpression(expression->rightExpression);
+            ComputationResult left = computeExpression(expression->leftExpression, variables);
+            ComputationResult right = computeExpression(expression->rightExpression, variables);
             if (left.succeeded && right.succeeded) {
                 return multiply(left.value, right.value);
             }
             break;
         }
         case DIVISION: {
-            ComputationResult left = computeExpression(expression->leftExpression);
-            ComputationResult right = computeExpression(expression->rightExpression);
+            ComputationResult left = computeExpression(expression->leftExpression, variables);
+            ComputationResult right = computeExpression(expression->rightExpression, variables);
             if (left.succeeded && right.succeeded) {
                 return divide(left.value, right.value);
             }
             break;
         }
         case FACTOR:
-            return computeFactor(expression->factor);
+            return computeFactor(expression->factor, variables);
         default:
             break;
     }
     return (ComputationResult){.succeeded = false, .value = 0};
 }
 
-ComputationResult computeFactor(Factor * factor) {
+ComputationResult computeFactor(Factor * factor, Variable * variables) {
     if (!factor) return (ComputationResult){.succeeded = false, .value = 0};
 
     switch (factor->type) {
         case CONSTANT:
             return computeConstant(factor->constant);
         case EXPRESSION_FACTOR:
-            return computeExpression(factor->expression);
+            return computeExpression(factor->expression, variables);
+        case VARIABLE_FACTOR:
+            if (factor->variableName) {
+                Variable * current = variables;
+                while (current) {
+                    if (strcmp(current->name, factor->variableName) == 0) {
+                        return computeExpression(current->value, variables);
+                    }
+                    current = current->next;
+                }
+                logError(_logger, "Variable not found: %s", factor->variableName);
+            }
+            break;
         default:
             break;
     }

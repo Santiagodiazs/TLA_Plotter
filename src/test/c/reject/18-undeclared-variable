@@ -1,0 +1,17 @@
+scene UndeclaredVariable {
+    known_var = 100;
+    
+    draw circle c {
+        at (10, 10);
+        radius 50;
+        fill red;
+    }
+    
+    draw rectangle r {
+        at (known_var, 50);
+        width unknown_var px; 
+        height 50 px;
+        fill blue;
+    }
+}
+

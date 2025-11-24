@@ -276,12 +276,13 @@ Property * CreatePropertySemanticAction(PropertyType type) {
 	return new_property(type);
 }
 
-Property * SetPropertyCoordinatesSemanticAction(Property * property, int x, int y) {
+Property * SetPropertyCoordinatesSemanticAction(Property * property, Expression * x, Expression * y) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	
 	if (property != NULL) {
-		property->value.coordinates.x = x;
-		property->value.coordinates.y = y;
+        property->isExpression = true;
+		property->value.coordinates.xExpression = x;
+		property->value.coordinates.yExpression = y;
 	}
 	
 	return property;
@@ -362,11 +363,12 @@ Scene * AddUseToSceneSemanticAction(Scene *scene, UseInstance *useInstance) {
     return scene;
 }
 
-Property * SetPropertyTranslateSemanticAction(Property * property, int x, int y) {
+Property * SetPropertyTranslateSemanticAction(Property * property, Expression * x, Expression * y) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
     if (property != NULL) {
-        property->value.coordinates.x = x;
-        property->value.coordinates.y = y;
+        property->isExpression = true;
+        property->value.coordinates.xExpression = x;
+        property->value.coordinates.yExpression = y;
     }
     return property;
 }
@@ -394,24 +396,47 @@ void ApplyTransformPropertiesToFigure(Figure *figure, Property **propertiesHead)
 
         switch (cur->type) {
             case SCALE_PROPERTY: {
-                // Enforce uniform scaling as per requirement
-                Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.x);
-                if (t) AppendTransform(figure, t);
-                removeNode = 1;
+                if (cur->isExpression) {
+                   
+                     Transform *t = createTransformScaleExpression(cur->value.expressionValue, NULL); 
+                     if (t) AppendTransform(figure, t);
+                     cur->value.expressionValue = NULL; // Prevent double free
+                     removeNode = 1;
+                } else {
+                    
+                    Transform *t = createTransformScale(cur->value.scale.x, cur->value.scale.x);
+                    if (t) AppendTransform(figure, t);
+                    removeNode = 1;
+                }
                 break;
             }
             case ROTATE_PROPERTY: {
-                Transform *t = createTransformRotate(cur->value.floatValue);
-                if (t) AppendTransform(figure, t);
-                removeNode = 1;
+                if (cur->isExpression) {
+                     Transform *t = createTransformRotateExpression(cur->value.expressionValue);
+                     if (t) AppendTransform(figure, t);
+                     cur->value.expressionValue = NULL; // Prevent double free
+                     removeNode = 1;
+                } else {
+                    Transform *t = createTransformRotate(cur->value.floatValue);
+                    if (t) AppendTransform(figure, t);
+                    removeNode = 1;
+                }
                 break;
             }
             case TRANSLATE_PROPERTY: {
-                int tx = cur->value.coordinates.x;
-                int ty = cur->value.coordinates.y;
-                Transform *t = createTransformTranslate((float)tx, (float)ty);
-                if (t) AppendTransform(figure, t);
-                removeNode = 1;
+                if (cur->isExpression) {
+                     Transform *t = createTransformTranslateExpression(cur->value.coordinates.xExpression, cur->value.coordinates.yExpression);
+                     if (t) AppendTransform(figure, t);
+                     cur->value.coordinates.xExpression = NULL; // Prevent double free
+                     cur->value.coordinates.yExpression = NULL; // Prevent double free
+                     removeNode = 1;
+                } else {
+                    int tx = cur->value.coordinates.x;
+                    int ty = cur->value.coordinates.y;
+                    Transform *t = createTransformTranslate((float)tx, (float)ty);
+                    if (t) AppendTransform(figure, t);
+                    removeNode = 1;
+                }
                 break;
             }
             default:
@@ -477,6 +502,25 @@ Scene * SceneFromFigure(Figure * figure) {
 	return scene;
 }
 
+
+Scene * AddVariableToSceneSemanticAction(Scene * scene, char * name, Expression * value) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!scene || !name || !value) return scene;
+    Variable * variable = createVariable(name, value);
+    variable->next = scene->variables;
+    scene->variables = variable;
+    free(name);
+    return scene;
+}
+
+Scene * SceneWithVariable(char * name, Expression * value) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Scene * scene = BasicSceneSemanticAction(NULL);
+    if (scene) {
+        scene = AddVariableToSceneSemanticAction(scene, name, value);
+    }
+    return scene;
+}
 
 Scene * SceneWithPaletteBlock(PaletteEntry *entries) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
@@ -695,6 +739,17 @@ Scene * MergeSceneContent(Scene * acc, Scene * item) {
         item->groups = NULL;
     }
 
+    if (item->variables) {
+        if (!acc->variables) {
+            acc->variables = item->variables;
+        } else {
+            Variable * last = acc->variables;
+            while (last->next) last = last->next;
+            last->next = item->variables;
+        }
+        item->variables = NULL;
+    }
+
 	destroyScene(item);
 	return acc;
 }
@@ -810,6 +865,16 @@ Factor * CreateExpressionFactorSemanticAction(Expression * expression) {
     if (factor) {
         factor->expression = expression;
     }
+    return factor;
+}
+
+Factor * CreateVariableFactorSemanticAction(char * name) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Factor * factor = createFactor(VARIABLE_FACTOR);
+    if (factor) {
+        factor->variableName = name ? strdup(name) : NULL;
+    }
+    if (name) free(name); 
     return factor;
 }
 

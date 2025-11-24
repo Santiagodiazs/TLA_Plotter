@@ -33,6 +33,7 @@ typedef struct Group Group;
 typedef struct GroupContent GroupContent;
 typedef struct PaletteEntry PaletteEntry;
 typedef struct Transform Transform;
+typedef struct Variable Variable;
 
 /**
  * Node types for the Abstract Syntax Tree (AST).
@@ -48,7 +49,8 @@ enum ExpressionType {
 
 enum FactorType {
 	CONSTANT,
-	EXPRESSION_FACTOR
+	EXPRESSION_FACTOR,
+	VARIABLE_FACTOR
 };
 
 enum ProgramType {
@@ -110,10 +112,11 @@ typedef enum {
 
 struct Transform {
 	TransformType type;
+    bool isExpression;
 	union {
-		struct { float sx, sy; } scale;
-		struct { float degrees; } rotate;
-		struct { float tx, ty; } translate;
+		struct { float sx, sy; Expression * sxExp; Expression * syExp; } scale;
+		struct { float degrees; Expression * degreesExp; } rotate;
+		struct { float tx, ty; Expression * txExp; Expression * tyExp; } translate;
 	} value;
 	Transform *next;
 };
@@ -131,8 +134,11 @@ Color * duplicateColor(Color *original);
 PaletteEntry * duplicatePalette(PaletteEntry *original);
 
 Transform * createTransformScale(float sx, float sy);
+Transform * createTransformScaleExpression(Expression * sx, Expression * sy);
 Transform * createTransformRotate(float degrees);
+Transform * createTransformRotateExpression(Expression * degrees);
 Transform * createTransformTranslate(float tx, float ty);
+Transform * createTransformTranslateExpression(Expression * tx, Expression * ty);
 void destroyTransform(Transform *t);
 
 struct Constant {
@@ -161,10 +167,17 @@ struct Layer {
 	struct Layer * next; 
 };
 
+struct Variable {
+    char * name;
+    Expression * value;
+    struct Variable * next;
+};
+
 struct Factor {
 	union {
 		Constant * constant;
 		Expression * expression;
+		char * variableName;
 	};
 	FactorType type;
 };
@@ -197,7 +210,8 @@ struct Scene {
 	Symbol * symbols;        
 	PaletteEntry *palette;   
   UseInstance * uses; 		
-  Group * groups;           
+  Group * groups;
+  Variable * variables;
 };
 
 struct Figure {
@@ -215,6 +229,8 @@ struct Property {
 		struct {
 			int x;
 			int y;
+			Expression * xExpression;
+			Expression * yExpression;
 		} coordinates;       
 		struct {
 			int width;
@@ -272,10 +288,12 @@ void destroyColor(Color * color);
 void destroySymbol(Symbol * symbol);
 void destroyUseInstance(UseInstance * useInstance);
 void destroyGroup(Group * group);
+void destroyVariable(Variable * variable);
 Color * createColor(ColorType type);
 Constant * createConstant(int value);
 Factor * createFactor(FactorType type);
 Expression * createExpression(ExpressionType type);
+Variable * createVariable(char * name, Expression * value);
 
 
 Layer * createLayer(const char * name, int zLevel);

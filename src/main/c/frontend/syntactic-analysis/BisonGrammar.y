@@ -96,6 +96,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 /** Terminals. */
 %token <integer> INTEGER
 %token <token> ADD
+%token <token> ASSIGN
 %token <token> CLOSE_BRACE
 %token <token> CLOSE_COMMENT
 %token <token> CLOSE_PARENTHESIS
@@ -187,6 +188,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <figure> draw_list
 %type <string> layer_name
 %type <coordinates> coordinates_value
+%type <property> coordinates_property_value
 %type <dimensions> dimensions_value
 %type <color> parsed_color_value
 %type <integer> figure_type
@@ -252,6 +254,7 @@ scene_content: /* empty */	{ $$ = NULL; }
 	;
 
 scene_item: draw_statement	{ $$ = SceneFromFigure($1); }
+	| IDENTIFIER ASSIGN expression SEMICOLON	{ $$ = SceneWithVariable($1, $3); }
 	| BACKGROUND parsed_color_value SEMICOLON	{ $$ = SceneWithBackground($2); }
 	| LAYER layer_name Z INTEGER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = SceneWithLayerBlock($2, $4, $6); }
     | PALETTE OPEN_BRACE palette_list CLOSE_BRACE	{ $$ = SceneWithPaletteBlock($3); }
@@ -273,7 +276,7 @@ use_properties: /* empty */	{ $$ = NULL; }
 	| use_properties use_property	{ $$ = MergeProperties($1, $2); }
   ;
 
-use_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+use_property: AT coordinates_property_value SEMICOLON	{ $$ = $2; }
 	| scale_property	{ $$ = $1; }
 	| rotate_property	{ $$ = $1; }
 	| translate_property	{ $$ = $1; }
@@ -326,7 +329,20 @@ external_item: position_item	{ $$ = $1; }
 	| translate_property	{ $$ = $1; }
 	;
 
-position_item: AT coordinates_value	{ Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction(prop, $2.x, $2.y); }
+position_item: AT coordinates_property_value	{ $$ = $2; }
+	;
+
+// New rule for property coordinates that returns a Property*
+coordinates_property_value: coordinates_value { 
+		$$ = CreatePropertySemanticAction(POSITION_PROPERTY); 
+		Expression *x = CreateFactorExpressionSemanticAction(CreateConstantFactorSemanticAction(CreateConstantSemanticAction($1.x)));
+		Expression *y = CreateFactorExpressionSemanticAction(CreateConstantFactorSemanticAction(CreateConstantSemanticAction($1.y)));
+		$$ = SetPropertyCoordinatesSemanticAction($$, x, y); 
+	}
+	| OPEN_PARENTHESIS expression COMMA expression CLOSE_PARENTHESIS {
+		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
+		$$ = SetPropertyCoordinatesSemanticAction($$, $2, $4);
+	}
 	;
 
 size_item: SIZE dimensions_value	{ Property* prop = CreatePropertySemanticAction(SIZE_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction(prop, $2.width, $2.widthUnit, $2.height, $2.heightUnit); }
@@ -387,6 +403,7 @@ constant: INTEGER { $$ = CreateConstantSemanticAction($1); }
 
 factor: constant { $$ = CreateConstantFactorSemanticAction($1); }
 	| OPEN_PARENTHESIS expression CLOSE_PARENTHESIS { $$ = CreateExpressionFactorSemanticAction($2); }
+	| IDENTIFIER { $$ = CreateVariableFactorSemanticAction($1); }
 	;
 
 expression: factor { $$ = CreateFactorExpressionSemanticAction($1); }
@@ -408,7 +425,7 @@ height_property: HEIGHT DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction
 	| HEIGHT DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, (int)$2, u); }
     ;
 
-position_property: AT coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(POSITION_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+position_property: AT coordinates_property_value SEMICOLON	{ $$ = $2; }
 	;
 
 fill_property: FILL parsed_color_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FILL_PROPERTY); $$ = SetPropertyColorSemanticAction($$, $2); }
@@ -421,10 +438,10 @@ stroke_property: STROKE parsed_color_value SEMICOLON	{ $$ = CreatePropertySemant
 radius_property: RADIUS expression SEMICOLON	{ $$ = CreatePropertySemanticAction(RADIUS_PROPERTY); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	;
 
-from_property: FROM coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(FROM_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+from_property: FROM coordinates_property_value SEMICOLON	{ $$ = $2; $$->type = FROM_PROPERTY; }
 	;
 
-to_property: TO coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TO_PROPERTY); $$ = SetPropertyCoordinatesSemanticAction($$, $2.x, $2.y); }
+to_property: TO coordinates_property_value SEMICOLON	{ $$ = $2; $$->type = TO_PROPERTY; }
 	;
 
 stroke_width_property
@@ -460,7 +477,7 @@ dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.wi
 coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
 	;
 
-translate_property: TRANSLATE coordinates_value SEMICOLON	{ $$ = CreatePropertySemanticAction(TRANSLATE_PROPERTY); $$ = SetPropertyTranslateSemanticAction($$, $2.x, $2.y); }
+translate_property: TRANSLATE coordinates_property_value SEMICOLON	{ $$ = $2; $$->type = TRANSLATE_PROPERTY; }
 	;
 
 parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }

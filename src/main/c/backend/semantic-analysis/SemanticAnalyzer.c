@@ -7,11 +7,11 @@
 /* Private Functions */
 
 static void _validateScene(Scene * scene, CompilerState * state);
-static void _validateLayers(Layer * layers, CompilerState * state);
+static void _validateLayers(Layer * layers, CompilerState * state, Variable * variables);
 static void _validatePalettes(PaletteEntry * palette, CompilerState * state);
-static void _validateSymbols(Symbol * symbols, CompilerState * state);
-static void _validateFigures(Figure * figures, CompilerState * state);
-static void _validateProperties(Property * properties, CompilerState * state);
+static void _validateSymbols(Symbol * symbols, CompilerState * state, Variable * variables);
+static void _validateFigures(Figure * figures, CompilerState * state, Variable * variables);
+static void _validateProperties(Property * properties, CompilerState * state, Variable * variables);
 static void _validateUseInstances(UseInstance * uses, CompilerState * state);
 static void _validateColor(Color * color, CompilerState * state);
 
@@ -51,15 +51,15 @@ static void _validateScene(Scene * scene, CompilerState * state) {
     if (!state->isValid) return;
 
     // 2. Validate Layers (Check Z-Index collisions)
-    _validateLayers(scene->layers, state);
+    _validateLayers(scene->layers, state, scene->variables);
     if (!state->isValid) return;
 
     // 3. Validate Symbols (Register them)
-    _validateSymbols(scene->symbols, state);
+    _validateSymbols(scene->symbols, state, scene->variables);
     if (!state->isValid) return;
 
     // 4. Validate Figures (Check properties and colors)
-    _validateFigures(scene->figures, state);
+    _validateFigures(scene->figures, state, scene->variables);
     if (!state->isValid) return;
 
     // 5. Validate Use Instances (Check symbol existence)
@@ -69,7 +69,7 @@ static void _validateScene(Scene * scene, CompilerState * state) {
     // 6. Validate Groups (Recursively validate figures inside groups)
     Group * group = scene->groups;
     while(group) {
-        _validateFigures(group->figures, state);
+        _validateFigures(group->figures, state, scene->variables);
         if (!state->isValid) return;
         group = group->next;
     }
@@ -90,7 +90,7 @@ static void _validatePalettes(PaletteEntry * palette, CompilerState * state) {
     }
 }
 
-static void _validateLayers(Layer * layers, CompilerState * state) {
+static void _validateLayers(Layer * layers, CompilerState * state, Variable * variables) {
     while (layers) {
         if (hasLayerWithZIndex(state->symbolTable, layers->zLevel)) {
             state->isValid = false;
@@ -100,14 +100,14 @@ static void _validateLayers(Layer * layers, CompilerState * state) {
         addLayer(state->symbolTable, layers->name, layers->zLevel);
         
         // Validate figures inside the layer
-        _validateFigures(layers->figures, state);
+        _validateFigures(layers->figures, state, variables);
         if (!state->isValid) return;
 
         layers = layers->next;
     }
 }
 
-static void _validateSymbols(Symbol * symbols, CompilerState * state) {
+static void _validateSymbols(Symbol * symbols, CompilerState * state, Variable * variables) {
     while (symbols) {
         if (!addSymbol(state->symbolTable, symbols->name, symbols)) {
             state->isValid = false;
@@ -115,7 +115,7 @@ static void _validateSymbols(Symbol * symbols, CompilerState * state) {
             return;
         }
         
-        _validateFigures(&symbols->figure, state); 
+        _validateFigures(&symbols->figure, state, variables); 
         if (!state->isValid) return;
 
         symbols = symbols->next;
@@ -124,9 +124,9 @@ static void _validateSymbols(Symbol * symbols, CompilerState * state) {
 
 static void _validateFigureProperties(Figure * figure, CompilerState * state);
 
-static void _validateFigures(Figure * figures, CompilerState * state) {
+static void _validateFigures(Figure * figures, CompilerState * state, Variable * variables) {
     while (figures) {
-        _validateProperties(figures->properties, state);
+        _validateProperties(figures->properties, state, variables);
         if (!state->isValid) return;
         
         _validateFigureProperties(figures, state);
@@ -239,11 +239,11 @@ static void _validateFigureProperties(Figure * figure, CompilerState * state) {
     }
 }
 
-static void _validateProperties(Property * properties, CompilerState * state) {
+static void _validateProperties(Property * properties, CompilerState * state, Variable * variables) {
     while (properties) {
         // Evaluate expression if present
         if (properties->isExpression && properties->value.expressionValue) {
-            ComputationResult result = computeExpression(properties->value.expressionValue);
+            ComputationResult result = computeExpression(properties->value.expressionValue, variables);
             if (!result.succeeded) {
                 state->isValid = false;
                 state->errorMessage = "Failed to evaluate expression (e.g., division by zero).";

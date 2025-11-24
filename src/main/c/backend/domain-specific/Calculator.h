@@ -42,12 +42,12 @@ ComputationResult computeConstant(Constant * constant);
 /**
  * Computes the final value of a mathematical expression.
  */
-ComputationResult computeExpression(Expression * expression);
+ComputationResult computeExpression(Expression * expression, Variable * variables);
 
 /**
  * Computes the final value of a mathematical factor.
  */
-ComputationResult computeFactor(Factor * factor);
+ComputationResult computeFactor(Factor * factor, Variable * variables);
 
 /**
  * Computes the program value using the current compiler state.

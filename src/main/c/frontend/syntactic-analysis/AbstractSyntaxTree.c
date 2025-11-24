@@ -56,6 +56,11 @@ void destroyFactor(Factor * factor) {
 			case EXPRESSION_FACTOR:
 				destroyExpression(factor->expression);
 				break;
+			case VARIABLE_FACTOR:
+				if (factor->variableName != NULL) {
+					free(factor->variableName);
+				}
+				break;
 		}
 		free(factor);
 	}
@@ -76,8 +81,20 @@ void destroyScene(Scene * scene) {
 		if (scene->uses) destroyUseInstance(scene->uses);
 		if (scene->groups) destroyGroup(scene->groups);
 		if (scene->palette) destroyPalette(scene->palette);
+        if (scene->variables) destroyVariable(scene->variables);
 		free(scene);
 	}
+}
+
+void destroyVariable(Variable * variable) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    while (variable) {
+        Variable * next = variable->next;
+        if (variable->name) free(variable->name);
+        if (variable->value) destroyExpression(variable->value);
+        free(variable);
+        variable = next;
+    }
 }
 
 void destroySymbol(Symbol * symbol){
@@ -179,6 +196,9 @@ void destroyProperty(Property * property) {
 			
 			if (current->isExpression && current->value.expressionValue) {
 				destroyExpression(current->value.expressionValue);
+			} else if (current->type == POSITION_PROPERTY || current->type == FROM_PROPERTY || current->type == TO_PROPERTY) {
+				if (current->value.coordinates.xExpression) destroyExpression(current->value.coordinates.xExpression);
+				if (current->value.coordinates.yExpression) destroyExpression(current->value.coordinates.yExpression);
 			} else if (current->type == FILL_PROPERTY || current->type == STROKE_PROPERTY) {
 				if (current->value.colorValue != NULL) {
 					destroyColor(current->value.colorValue);
@@ -225,6 +245,17 @@ Expression * createExpression(ExpressionType type) {
         expression->type = type;
     }
     return expression;
+}
+
+Variable * createVariable(char * name, Expression * value) {
+    logDebugging(_logger, "Creating variable %s", name ? name : "NULL");
+    Variable * variable = calloc(1, sizeof(Variable));
+    if (variable != NULL) {
+        variable->name = name ? strdup(name) : NULL;
+        variable->value = value;
+        variable->next = NULL;
+    }
+    return variable;
 }
 
 void destroyColor(Color * color) {
@@ -293,11 +324,30 @@ Transform * createTransformScale(float sx, float sy) {
 	return t;
 }
 
+Transform * createTransformScaleExpression(Expression * sx, Expression * sy) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_SCALE;
+    t->isExpression = true;
+	t->value.scale.sxExp = sx;
+	t->value.scale.syExp = sy;
+	return t;
+}
+
 Transform * createTransformRotate(float degrees) {
 	Transform *t = calloc(1, sizeof(Transform));
 	if (!t) return NULL;
 	t->type = TRANSFORM_ROTATE;
 	t->value.rotate.degrees = degrees;
+	return t;
+}
+
+Transform * createTransformRotateExpression(Expression * degrees) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_ROTATE;
+    t->isExpression = true;
+	t->value.rotate.degreesExp = degrees;
 	return t;
 }
 
@@ -310,9 +360,34 @@ Transform * createTransformTranslate(float tx, float ty) {
 	return t;
 }
 
+Transform * createTransformTranslateExpression(Expression * tx, Expression * ty) {
+	Transform *t = calloc(1, sizeof(Transform));
+	if (!t) return NULL;
+	t->type = TRANSFORM_TRANSLATE;
+    t->isExpression = true;
+	t->value.translate.txExp = tx;
+	t->value.translate.tyExp = ty;
+	return t;
+}
+
 void destroyTransform(Transform *t) {
 	while (t) {
 		Transform *next = t->next;
+        if (t->isExpression) {
+            switch (t->type) {
+                case TRANSFORM_SCALE:
+                    if (t->value.scale.sxExp) destroyExpression(t->value.scale.sxExp);
+                    if (t->value.scale.syExp) destroyExpression(t->value.scale.syExp);
+                    break;
+                case TRANSFORM_ROTATE:
+                    if (t->value.rotate.degreesExp) destroyExpression(t->value.rotate.degreesExp);
+                    break;
+                case TRANSFORM_TRANSLATE:
+                    if (t->value.translate.txExp) destroyExpression(t->value.translate.txExp);
+                    if (t->value.translate.tyExp) destroyExpression(t->value.translate.tyExp);
+                    break;
+            }
+        }
 		free(t);
 		t = next;
 	}
