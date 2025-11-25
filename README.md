@@ -33,6 +33,13 @@ scene MyScene {
 - **Opacity & Strokes**: Fine-grained control over fill, stroke, and transparency
 
 ### 🔧 Smart Features
+- **Variables**: Define and reuse values across your scene
+  ```plot
+  baseSize = 100;
+  offset = 50;
+  width baseSize px;      // Uses variable value
+  height baseSize + offset px;  // Combine with expressions
+  ```
 - **Math Expressions**: Dynamic values with compile-time evaluation
   ```plot
   width 100 + 50 px;      // Evaluates to 150px
@@ -128,6 +135,28 @@ draw rectangle responsive {
     width 50 vw;      // 50% of viewport width
     height 30 vh;     // 30% of viewport height
     fill purple;
+}
+```
+
+### Variables
+```plot
+scene VariableDemo {
+    baseSize = 100;
+    spacing = 20;
+    scaleFactor = 1.5;
+    
+    draw rectangle box1 {
+        at (spacing, spacing);
+        width baseSize px;
+        height baseSize * scaleFactor px;
+        fill blue;
+    }
+    
+    draw circle c {
+        at (baseSize + spacing * 2, spacing);
+        radius baseSize / 2;
+        fill red;
+    }
 }
 ```
 
