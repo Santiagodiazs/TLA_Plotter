@@ -32,7 +32,7 @@ extern CompilationStatus IdentifierLexemeAction();
 extern CompilationStatus StringLexemeAction();
 extern CompilationStatus DecimalLexemeAction();
 extern CompilationStatus DimensionsLexemeAction();
-extern CompilationStatus CoordinatesLexemeAction();
+
 extern CompilationStatus ColorLexemeAction(TokenLabel label);
 extern CompilationStatus BraceLexemeAction(TokenLabel label);
 extern CompilationStatus SemicolonLexemeAction();
@@ -151,6 +151,8 @@ NUM                 ({decimal}|{integer})
 {hex_color}							{ return ColorLexemeAction(HEX_COLOR); }
 
 [0-9]+[xX][0-9]+                    { return DimensionsLexemeAction(); }
+
+
 
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }

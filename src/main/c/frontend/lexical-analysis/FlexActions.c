@@ -182,23 +182,6 @@ CompilationStatus DimensionsLexemeAction() {
   return status;
 }
 
-CompilationStatus CoordinatesLexemeAction() {
-  Token *token = createToken(_lexicalAnalyzer, COORDINATES);
-  if (token && token->semanticValue) {
-
-    int x = 0, y = 0;
-    if (sscanf(token->lexeme, "(%d,%d)", &x, &y) == 2 ||
-        sscanf(token->lexeme, "(%d, %d)", &x, &y) == 2) {
-      token->semanticValue->coordinates.x = x;
-      token->semanticValue->coordinates.y = y;
-    }
-  }
-  _logTokenAction(__FUNCTION__, token);
-  CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-  destroyToken(token);
-  return status;
-}
-
 CompilationStatus ColorLexemeAction(TokenLabel label) {
   Token *token = createToken(_lexicalAnalyzer, label);
   if (token && token->semanticValue) {

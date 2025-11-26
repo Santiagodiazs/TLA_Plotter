@@ -110,6 +110,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 // Dimensions
 %token <dimensions> DIMENSIONS
 
+
 // DSL Tokens - Scene and Structure
 %token <token> SCENE
 %token <token> DRAW
@@ -158,7 +159,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <string> STRING
 %token <decimal> DECIMAL
 // REMOVED: DIMENSIONS (now handled by rules)
-%token <coordinates> COORDINATES
+
 
 // DSL Tokens - Delimiters
 %token <token> SEMICOLON
@@ -336,15 +337,9 @@ position_item: AT coordinates_property_value	{ $$ = $2; }
 	;
 
 // New rule for property coordinates that returns a Property*
-coordinates_property_value: coordinates_value { 
-		$$ = CreatePropertySemanticAction(POSITION_PROPERTY); 
-		Expression *x = CreateFactorExpressionSemanticAction(CreateConstantFactorSemanticAction(CreateConstantSemanticAction($1.x)));
-		Expression *y = CreateFactorExpressionSemanticAction(CreateConstantFactorSemanticAction(CreateConstantSemanticAction($1.y)));
-		$$ = SetPropertyCoordinatesSemanticAction($$, x, y); 
-	}
-	| OPEN_PARENTHESIS expression COMMA expression CLOSE_PARENTHESIS {
-		$$ = CreatePropertySemanticAction(POSITION_PROPERTY);
-		$$ = SetPropertyCoordinatesSemanticAction($$, $2, $4);
+coordinates_property_value: OPEN_PARENTHESIS expression COMMA expression CLOSE_PARENTHESIS {
+		Property* prop = CreatePropertySemanticAction(POSITION_PROPERTY);
+		$$ = SetPropertyCoordinatesSemanticAction(prop, $2, $4);
 	}
 	;
 
@@ -471,11 +466,16 @@ rotate_property: ROTATE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS SEMICOLON	
 
 dimensions_value: DIMENSIONS	{ $$ = $1; }
 	| INTEGER IDENTIFIER INTEGER	{ 
+		if (strcasecmp($2, "x") != 0) {
+			yyerror(&@2, "Expected 'x' or 'X' between dimensions");
+			YYERROR;
+		}
 		$$.width = $1; $$.height = $3; $$.widthUnit = UNIT_PX; $$.heightUnit = UNIT_PX; 
+		free($2);
 	}
 	;
 
-coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
+coordinates_value: OPEN_PARENTHESIS INTEGER COMMA INTEGER CLOSE_PARENTHESIS	{ $$.x = $2; $$.y = $4; }
 	;
 
 translate_property: TRANSLATE coordinates_property_value SEMICOLON	{ $$ = $2; $$->type = TRANSLATE_PROPERTY; }

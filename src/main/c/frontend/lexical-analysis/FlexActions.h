@@ -38,9 +38,8 @@ CompilationStatus KeywordLexemeAction(TokenLabel label);
 CompilationStatus IdentifierLexemeAction();
 CompilationStatus StringLexemeAction();
 CompilationStatus DecimalLexemeAction();
-
 CompilationStatus DimensionsLexemeAction();
-CompilationStatus CoordinatesLexemeAction();
+
 CompilationStatus ColorLexemeAction(TokenLabel label);
 CompilationStatus BraceLexemeAction(TokenLabel label);
 CompilationStatus SemicolonLexemeAction();
