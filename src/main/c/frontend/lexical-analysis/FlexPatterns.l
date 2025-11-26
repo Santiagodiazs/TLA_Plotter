@@ -60,21 +60,17 @@ extern CompilationStatus DotLexemeAction();
 whitespace			[[:space:]]+
 
 /* Patrones específicos del DSL */ 
+/* Patrones específicos del DSL */ 
 identifier          [a-zA-Z_][a-zA-Z0-9_]*
 integer             [0-9]+
 decimal             [0-9]+\.[0-9]+
-dimensions          [0-9]+[[:space:]]*[xX][[:space:]]*[0-9]+
 
 WS                  [ \t\r\n\f\v]*
 INT                 [0-9]+
 FLOAT               ([0-9]+(\.[0-9]+)?|\.[0-9]+)
 hex_color           #([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})
-rgb_color           rgb{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
-rgba_color          rgba{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS},{WS}{FLOAT}{WS}\)
-color_func          color{WS}\({WS}{INT}{WS},{WS}{INT}{WS},{WS}{INT}{WS}\)
 string              \"[^\"]*\"
 NUM                 ({decimal}|{integer})
-UNIT                (px|rem|em|vw|vh|%)
 
 %%
 
@@ -141,14 +137,21 @@ UNIT                (px|rem|em|vw|vh|%)
 "rotate"							{ return KeywordLexemeAction(ROTATE); }
 "scale"								{ return KeywordLexemeAction(SCALE); }
 
-"color"								{ return KeywordLexemeAction(COLOR); }
+"color"								{ return KeywordLexemeAction(COLOR_FUNC); }
+"rgb"								{ return KeywordLexemeAction(RGB); }
+"rgba"								{ return KeywordLexemeAction(RGBA); }
+
+"px"                                { return KeywordLexemeAction(PX); }
+"rem"                               { return KeywordLexemeAction(REM); }
+"em"                                { return KeywordLexemeAction(EM); }
+"vw"                                { return KeywordLexemeAction(VW); }
+"vh"                                { return KeywordLexemeAction(VH); }
+"%"                                 { return KeywordLexemeAction(PERCENT); }
 
 {hex_color}							{ return ColorLexemeAction(HEX_COLOR); }
-{rgba_color}						{ return ColorLexemeAction(RGBA_COLOR); }
-{rgb_color}							{ return ColorLexemeAction(RGB_COLOR); }
-{color_func}						{ return ColorLexemeAction(COLOR); }
 
-{dimensions}                        { return DimensionsLexemeAction(); }
+[0-9]+[xX][0-9]+                    { return DimensionsLexemeAction(); }
+
 {string}							{ return StringLexemeAction(); }
 {decimal}							{ return DecimalLexemeAction(); }
 {integer}							{ return IntegerLexemeAction(); }
@@ -162,8 +165,6 @@ UNIT                (px|rem|em|vw|vh|%)
 "."									{ return DotLexemeAction(); }
 
 {whitespace}						{ return IgnoredLexemeAction(); }
-
-{UNIT}							{ return IdentifierLexemeAction(); }
 
 {identifier}						{ return IdentifierLexemeAction(); }
 

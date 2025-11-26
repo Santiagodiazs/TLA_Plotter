@@ -10,12 +10,11 @@
 #include "../../support/type/ModuleDestructor.h"
 #include "../../support/type/Token.h"
 #include "../../support/type/TokenLabel.h"
-#include "../syntactic-analysis/BisonParser.h"
 #include "../Frontend.h"
+#include "../syntactic-analysis/BisonParser.h"
 
 /** Initialize module's internal state. */
 ModuleDestructor initializeFlexActionsModule();
-
 
 CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
 CompilationStatus EnterImportExpressionLexemeAction(FlexContext context);
@@ -39,6 +38,7 @@ CompilationStatus KeywordLexemeAction(TokenLabel label);
 CompilationStatus IdentifierLexemeAction();
 CompilationStatus StringLexemeAction();
 CompilationStatus DecimalLexemeAction();
+
 CompilationStatus DimensionsLexemeAction();
 CompilationStatus CoordinatesLexemeAction();
 CompilationStatus ColorLexemeAction(TokenLabel label);

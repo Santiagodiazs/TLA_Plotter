@@ -3,6 +3,7 @@
 #include "../../support/type/TokenLabel.h"
 #include "AbstractSyntaxTree.h"
 #include "BisonActions.h"
+#include "BisonTypeDefinitions.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -11,18 +12,6 @@ extern Logger * _logger;
 static void disable_buffering() {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
-}
-
-static UnitType parseUnit(const char* s) {
-    if (!s) return UNIT_PX; /* default razonable */
-    if (strcmp(s,"px")==0)  return UNIT_PX;
-    if (strcmp(s,"rem")==0) return UNIT_REM;
-    if (strcmp(s,"em")==0)  return UNIT_EM;
-    if (strcmp(s,"vw")==0)  return UNIT_VW;
-    if (strcmp(s,"vh")==0)  return UNIT_VH;
-    if (strcmp(s,"%")==0)   return UNIT_PERCENT;
-    /* fallback: px */
-    return UNIT_PX;
 }
 
 /**
@@ -40,6 +29,10 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 %}
 
+%code requires {
+#include "BisonTypeDefinitions.h"
+}
+
 // You touch this, and you die.
 %define api.pure full
 %define api.push-pull push
@@ -56,17 +49,8 @@ void yyerror(const YYLTYPE * location, const char * message) {
 	TokenLabel token;
 	char * string;
 	float decimal;
-	struct {
-		int width;
-		int height;
-		UnitType widthUnit;
-        UnitType heightUnit;
-	} dimensions;
-
-	struct {
-		int x;
-		int y;
-	} coordinates;
+	Dimensions dimensions;
+	Coordinates coordinates;
 
 	/** Non-terminals. */
 
@@ -110,6 +94,22 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> IGNORED
 %token <token> UNKNOWN
 
+// Units
+%token <token> PX
+%token <token> REM
+%token <token> EM
+%token <token> VW
+%token <token> VH
+%token <token> PERCENT
+
+// Color Functions
+%token <token> RGB
+%token <token> RGBA
+%token <token> COLOR_FUNC
+
+// Dimensions
+%token <dimensions> DIMENSIONS
+
 // DSL Tokens - Scene and Structure
 %token <token> SCENE
 %token <token> DRAW
@@ -150,16 +150,14 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %token <token> SCALE
 
 // DSL Tokens - Colors
-%token <string> COLOR
 %token <string> HEX_COLOR
-%token <string> RGB_COLOR
-%token <string> RGBA_COLOR
+// REMOVED: RGB_COLOR, RGBA_COLOR, COLOR (now handled by rules)
 
 // DSL Tokens - Data Types
 %token <string> IDENTIFIER
 %token <string> STRING
 %token <decimal> DECIMAL
-%token <dimensions> DIMENSIONS
+// REMOVED: DIMENSIONS (now handled by rules)
 %token <coordinates> COORDINATES
 
 // DSL Tokens - Delimiters
@@ -218,6 +216,11 @@ void yyerror(const YYLTYPE * location, const char * message) {
 %type <constant> constant
 %type <factor> factor
 %type <expression> expression
+%type <integer> unit
+%type <color> rgb_color
+%type <color> rgba_color
+%type <color> color_func
+
 
 /**
  * Precedence and associativity.
@@ -245,8 +248,8 @@ program: scene_declaration	{ disable_buffering(); $$ = SceneProgramSemanticActio
 
 
 scene_declaration: SCENE IDENTIFIER	{ $$ = BasicSceneSemanticAction($2); }
-	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($4 != NULL) { $$ = $4; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
-	| SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = BasicSceneSemanticAction($2); if ($6 != NULL) { $$ = $6; if ($$ != NULL && $$->name == NULL) { $$->name = malloc(strlen($2) + 1); if ($$->name != NULL) { strcpy($$->name, $2); } } } }
+	| SCENE IDENTIFIER OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = CreateSceneWithContent($2, $4); }
+	| SCENE IDENTIFIER SIZE dimensions_value OPEN_BRACE scene_content CLOSE_BRACE	{ $$ = CreateSceneWithContentAndSize($2, $4.width, $4.height, $4.widthUnit, $4.heightUnit, $6); }
 	;
 
 scene_content: /* empty */	{ $$ = NULL; }
@@ -295,8 +298,8 @@ group_item: draw_statement	{ $$ = GroupFromFigure($1); }
 	| translate_property	{ $$ = GroupFromProperty($1); }
   ;
 
-layer_name: IDENTIFIER	{ $$ = $1; }
-	| BACKGROUND	{ $$ = strdup("background"); }
+layer_name: IDENTIFIER	{ $$ = CreateLayerName($1); }
+	| BACKGROUND	{ $$ = CreateBackgroundLayerName(); }
 	;
 
 
@@ -413,16 +416,16 @@ expression: factor { $$ = CreateFactorExpressionSemanticAction($1); }
 	| expression DIV expression { $$ = CreateArithmeticExpressionSemanticAction(DIVISION, $1, $3); }
 	;
 
-width_property: WIDTH DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, 0, $2.widthUnit); }
-	| WIDTH expression IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, 0, u); $$ = SetPropertyExpressionSemanticAction($$, $2); }
+width_property: WIDTH dimensions_value SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, $2.width, $2.widthUnit, 0, $2.widthUnit); }
+	| WIDTH expression unit SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $3, 0, $3); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	| WIDTH expression SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, UNIT_PX, 0, UNIT_PX); $$ = SetPropertyExpressionSemanticAction($$, $2); }
-	| WIDTH DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, (int)$2, u, 0, u); }
+	| WIDTH DECIMAL unit SEMICOLON	{ $$ = CreatePropertySemanticAction(WIDTH_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, (int)$2, $3, 0, $3); }
     ;
 
-height_property: HEIGHT DIMENSIONS SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $2.heightUnit, $2.height, $2.heightUnit); }
-	| HEIGHT expression IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, 0, u); $$ = SetPropertyExpressionSemanticAction($$, $2); }
+height_property: HEIGHT dimensions_value SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $2.heightUnit, $2.height, $2.heightUnit); }
+	| HEIGHT expression unit SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $3, 0, $3); $$ = SetPropertyExpressionSemanticAction($$, $2); }
 	| HEIGHT expression SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, UNIT_PX, 0, UNIT_PX); $$ = SetPropertyExpressionSemanticAction($$, $2); }
-	| HEIGHT DECIMAL IDENTIFIER SEMICOLON	{ UnitType u = parseUnit($3); $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, u, (int)$2, u); }
+	| HEIGHT DECIMAL unit SEMICOLON	{ $$ = CreatePropertySemanticAction(HEIGHT_PROPERTY); $$ = SetPropertyDimensionsWithUnitSemanticAction($$, 0, $3, (int)$2, $3); }
     ;
 
 position_property: AT coordinates_property_value SEMICOLON	{ $$ = $2; }
@@ -445,19 +448,14 @@ to_property: TO coordinates_property_value SEMICOLON	{ $$ = $2; $$->type = TO_PR
 	;
 
 stroke_width_property
-    : STROKE_WIDTH expression IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-        $$ = SetPropertyExpressionSemanticAction($$, $2);
+    : STROKE_WIDTH expression unit SEMICOLON {
+        $$ = CreateStrokeWidthProperty($2, $3);
     }
     | STROKE_WIDTH expression SEMICOLON {
-        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-        $$ = SetPropertyExpressionSemanticAction($$, $2);
+        $$ = CreateStrokeWidthProperty($2, UNIT_PX);
     }
-    | STROKE_WIDTH DECIMAL IDENTIFIER SEMICOLON {
-        UnitType u = parseUnit($3);
-        $$ = CreatePropertySemanticAction(STROKE_WIDTH_PROPERTY);
-        $$ = SetPropertyIntValueSemanticAction($$, (int)$2);
+    | STROKE_WIDTH DECIMAL unit SEMICOLON {
+        $$ = CreateStrokeWidthPropertyInt((int)$2, $3);
     }
     ;
 
@@ -471,7 +469,10 @@ scale_property: SCALE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS SEMICOLON	{ 
 rotate_property: ROTATE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS SEMICOLON	{ $$ = CreatePropertySemanticAction(ROTATE_PROPERTY); $$ = SetPropertyExpressionSemanticAction($$, $3); }
 	;
 
-dimensions_value: DIMENSIONS	{ $$.width = $1.width; $$.height = $1.height; $$.widthUnit = $1.widthUnit; $$.heightUnit = $1.heightUnit; }
+dimensions_value: DIMENSIONS	{ $$ = $1; }
+	| INTEGER IDENTIFIER INTEGER	{ 
+		$$.width = $1; $$.height = $3; $$.widthUnit = UNIT_PX; $$.heightUnit = UNIT_PX; 
+	}
 	;
 
 coordinates_value: COORDINATES	{ $$.x = $1.x; $$.y = $1.y; }
@@ -482,10 +483,27 @@ translate_property: TRANSLATE coordinates_property_value SEMICOLON	{ $$ = $2; $$
 
 parsed_color_value: IDENTIFIER	{ $$ = ParseNamedColor($1); }
 	| IDENTIFIER DOT IDENTIFIER	{ $$ = ParsePaletteColor($1, $3); }
-	| RGB_COLOR	{ $$ = ParseRgbColor($1); }
+	| rgb_color	{ $$ = $1; }
 	| HEX_COLOR	{ $$ = ParseHexColor($1); }
-	| RGBA_COLOR	{ $$ = ParseRgbaColor($1); }
-	| COLOR	{ $$ = ParseColorFunction($1); }
+	| rgba_color	{ $$ = $1; }
+	| color_func	{ $$ = $1; }
 	;
+
+rgb_color: RGB OPEN_PARENTHESIS INTEGER COMMA INTEGER COMMA INTEGER CLOSE_PARENTHESIS { $$ = CreateRGBColor($3, $5, $7); }
+    ;
+
+rgba_color: RGBA OPEN_PARENTHESIS INTEGER COMMA INTEGER COMMA INTEGER COMMA DECIMAL CLOSE_PARENTHESIS { $$ = CreateRGBAColor($3, $5, $7, $9); }
+    ;
+
+color_func: COLOR_FUNC OPEN_PARENTHESIS INTEGER COMMA INTEGER COMMA INTEGER CLOSE_PARENTHESIS { $$ = CreateRGBColor($3, $5, $7); }
+    ;
+
+unit: PX { $$ = UNIT_PX; }
+    | REM { $$ = UNIT_REM; }
+    | EM { $$ = UNIT_EM; }
+    | VW { $$ = UNIT_VW; }
+    | VH { $$ = UNIT_VH; }
+    | PERCENT { $$ = UNIT_PERCENT; }
+    ;
 
 %%

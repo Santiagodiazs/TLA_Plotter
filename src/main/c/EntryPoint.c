@@ -1,6 +1,7 @@
 #include "backend/code-generation/Generator.h"
 #include "backend/domain-specific/Calculator.h"
 #include "backend/semantic-analysis/SemanticAnalyzer.h"
+#include "backend/semantic-analysis/SymbolTable.h"
 #include "frontend/Frontend.h"
 #include "frontend/lexical-analysis/FlexActions.h"
 #include "frontend/syntactic-analysis/BisonActions.h"
@@ -14,56 +15,60 @@
  * parse anything inside this project instead of using Flex and Bison, I will
  * find you, and I will kill you (Bryan Mills; "Taken", 2008).
  */
-int main(const int length, const char ** arguments) {
-	// Debug de Bison desactivado temporalmente
-	extern int yydebug;
-	yydebug = 0;
-	
-	LexicalAnalyzer * lexicalAnalyzer = createLexicalAnalyzer();
-	Logger * logger = createLogger("EntryPoint");
-	for (int k = 0; k < length; ++k) {
-		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
-	}
-	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL
-	};
-	ModuleDestructor moduleDestructors[] = {
-		initializeAbstractSyntaxTreeModule(),
-		initializeFlexActionsModule(lexicalAnalyzer),
-		initializeBisonActionsModule(&compilerState),
-		initializeFrontendModule(lexicalAnalyzer),
-		initializeCalculatorModule(),
-		initializeGeneratorModule()
-	};
-	CompilationStatus compilationStatus = executeSyntacticAnalysis();
-	Program * program = compilerState.abstractSyntaxtTree;
-	if (compilationStatus == SUCCEEDED) {
-		// Beginning of the Backend... ------------------------------------------------------------
-		logDebugging(logger, "Validating AST...");
-		validateAST(&compilerState);
-		if (compilerState.isValid) {
-			logDebugging(logger, "AST is valid. Generating SVG...");
-			executeGenerator(&compilerState);
-		}
-		else {
-			logError(logger, "Semantic analysis failed: %s", compilerState.errorMessage);
-			compilationStatus = FAILED;
-		}
-		// ...end of the Backend. -----------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------
-		logDebugging(logger, "Frontend parsing completed successfully (backend commented out)");
-	}
-	else {
-		logError(logger, "The syntactic-analysis phase rejects the input program.");
-		compilationStatus = FAILED;
-	}
-	logDebugging(logger, "Releasing AST resources...");
-	destroyProgram(program);
-	for (int k = (sizeof(moduleDestructors)/sizeof(ModuleDestructor)) - 1; 0 <= k; --k) {
-		moduleDestructors[k]();
-	}
-	logDebugging(logger, "Compilation is done.");
-	destroyLogger(logger);
-	destroyLexicalAnalyzer(lexicalAnalyzer);
-	return compilationStatus;
+int main(const int length, const char **arguments) {
+  // Debug de Bison desactivado temporalmente
+  extern int yydebug;
+  yydebug = getBooleanOrDefault("YYDEBUG", false);
+
+  LexicalAnalyzer *lexicalAnalyzer = createLexicalAnalyzer();
+  Logger *logger = createLogger("EntryPoint");
+  for (int k = 0; k < length; ++k) {
+    logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
+  }
+  CompilerState compilerState = {.abstractSyntaxtTree = NULL};
+  ModuleDestructor moduleDestructors[] = {
+      initializeAbstractSyntaxTreeModule(),
+      initializeFlexActionsModule(lexicalAnalyzer),
+      initializeBisonActionsModule(&compilerState),
+      initializeFrontendModule(lexicalAnalyzer),
+      initializeCalculatorModule(),
+      initializeGeneratorModule()};
+  CompilationStatus compilationStatus = executeSyntacticAnalysis();
+  Program *program = compilerState.abstractSyntaxtTree;
+  if (compilationStatus == SUCCEEDED) {
+    // Beginning of the Backend...
+    // ------------------------------------------------------------
+    logDebugging(logger, "Validating AST...");
+    validateAST(&compilerState);
+    if (compilerState.isValid) {
+      logDebugging(logger, "AST is valid. Generating SVG...");
+      executeGenerator(&compilerState);
+    } else {
+      logError(logger, "Semantic analysis failed: %s",
+               compilerState.errorMessage);
+      compilationStatus = FAILED;
+    }
+    // ...end of the Backend.
+    // -----------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
+    logDebugging(
+        logger,
+        "Frontend parsing completed successfully (backend commented out)");
+  } else {
+    logError(logger, "The syntactic-analysis phase rejects the input program.");
+    compilationStatus = FAILED;
+  }
+  logDebugging(logger, "Releasing AST resources...");
+  destroyProgram(program);
+  if (compilerState.symbolTable) {
+    destroySymbolTable(compilerState.symbolTable);
+  }
+  for (int k = (sizeof(moduleDestructors) / sizeof(ModuleDestructor)) - 1;
+       0 <= k; --k) {
+    moduleDestructors[k]();
+  }
+  logDebugging(logger, "Compilation is done.");
+  destroyLogger(logger);
+  destroyLexicalAnalyzer(lexicalAnalyzer);
+  return compilationStatus;
 }
