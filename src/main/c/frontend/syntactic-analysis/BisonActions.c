@@ -509,12 +509,14 @@ Scene *AddFigureToSceneSemanticAction(Scene *scene, Figure *figure) {
     while (current->next != NULL) {
       if (current->next == current) {
         logError(_logger, "[BUG] Cycle detected in scene figures list");
-        exit(1);
+        _compilerState->isValid = false;
+        return scene;
       }
       current = current->next;
       if (++guard > 1000000) {
         logError(_logger, "[BUG] Infinite loop detected in scene figures list");
-        exit(1);
+        _compilerState->isValid = false;
+        return scene;
       }
     }
     current->next = figure;
