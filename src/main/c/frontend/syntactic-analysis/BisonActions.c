@@ -98,30 +98,17 @@ Scene *BasicSceneSemanticAction(char *sceneName) {
 
 Scene *CreateSceneWithContent(char *name, Scene *content) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
-  Scene *scene = BasicSceneSemanticAction(name);
+
   if (content) {
-    // Merge content into the new scene
-    // If content is just a partial scene (like from scene_content), we can just
-    // take its fields But BasicSceneSemanticAction already created a scene, so
-    // we might overwrite or merge The original grammar did: $$ = $4; if ($$ !=
-    // NULL && $$->name == NULL) ... So it basically TOOK the content scene and
-    // just set the name.
-
-    if (scene) {
-      // We want to keep the 'scene' we just created? No, the original logic
-      // replaced $$ with $4. But $4 (content) might be NULL. If content is not
-      // NULL, we use content and set its name. If content is NULL, we use the
-      // basic scene we just created.
-
-      destroyScene(
-          scene); // We don't need the basic scene if we are using content
-      scene = content;
-      if (scene->name == NULL) {
-        scene->name = name ? strdup(name) : NULL;
-      }
+    if (content->name) {
+      free(content->name);
     }
+    content->name = name;
+    _currentScene = content;
+    return content;
   }
-  return scene;
+
+  return BasicSceneSemanticAction(name);
 }
 
 Scene *CreateSceneWithContentAndSize(char *name, int width, int height,
@@ -129,12 +116,7 @@ Scene *CreateSceneWithContentAndSize(char *name, int width, int height,
                                      Scene *content) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
   Scene *scene = CreateSceneWithContent(name, content);
-  // TODO: Set size if we had a place for it in Scene struct.
-  // The original grammar didn't seem to actually USE the size for anything
-  // other than parsing it? "SCENE IDENTIFIER SIZE DIMENSIONS OPEN_BRACE
-  // scene_content CLOSE_BRACE { $$ = BasicSceneSemanticAction($2); if ($6 !=
-  // NULL) { $$ = $6; ... } }" It seems the size was ignored in the AST
-  // construction in the original code too! I will log it for now.
+
   logDebugging(_logger, "Scene size parsed: %d%d x %d%d (ignored in AST)",
                width, wUnit, height, hUnit);
   return scene;
@@ -180,7 +162,6 @@ Color *ParseNamedColor(char *name) {
 Color *ParsePaletteColor(char *palette_name, char *color_name) {
   _logSyntacticAnalyzerAction(__FUNCTION__);
 
-  // Iterate _globalPalette to find match with paletteName AND colorName
   PaletteEntry *it = _globalPalette;
   while (it) {
     if (it->name && strcmp(it->name, color_name) == 0) {
@@ -196,8 +177,6 @@ Color *ParsePaletteColor(char *palette_name, char *color_name) {
     it = it->next;
   }
 
-  // If not found, return NAMED_COLOR with "Palette.Color" for SemanticAnalyzer
-  // to catch
   Color *color = createColor(NAMED_COLOR);
   if (color != NULL && palette_name && color_name) {
     char *fullName = malloc(strlen(palette_name) + 1 + strlen(color_name) + 1);
@@ -480,8 +459,8 @@ void ApplyTransformPropertiesToFigure(Figure *figure,
             cur->value.coordinates.yExpression);
         if (t)
           AppendTransform(figure, t);
-        cur->value.coordinates.xExpression = NULL; // Prevent double free
-        cur->value.coordinates.yExpression = NULL; // Prevent double free
+        cur->value.coordinates.xExpression = NULL;
+        cur->value.coordinates.yExpression = NULL;
         removeNode = 1;
       } else {
         int tx = cur->value.coordinates.x;
@@ -718,9 +697,9 @@ Scene *SceneWithLayerBlock(char *name, int zLevel, Scene *blockContent) {
     if (blockContent) {
       destroyScene(blockContent);
     }
-    free(name);
     logDebugging(_logger, "Created scene with layer block '%s' z=%d", name,
                  zLevel);
+    free(name);
   }
   return scene;
 }

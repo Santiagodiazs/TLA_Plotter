@@ -123,7 +123,10 @@ void destroySymbol(Symbol *symbol) {
       destroyTransform(symbol->figure.transforms);
       symbol->figure.transforms = NULL;
     }
-    symbol->figure.next = NULL;
+    if (symbol->figure.next) {
+      destroyFigure(symbol->figure.next);
+      symbol->figure.next = NULL;
+    }
 
     free(symbol);
     symbol = next;
@@ -207,15 +210,15 @@ void destroyProperty(Property *property) {
     while (current != NULL) {
       Property *next = current->next;
 
-      if (current->isExpression && current->value.expressionValue) {
-        destroyExpression(current->value.expressionValue);
-      } else if (current->type == POSITION_PROPERTY ||
-                 current->type == FROM_PROPERTY ||
-                 current->type == TO_PROPERTY) {
+      if (current->type == POSITION_PROPERTY ||
+          current->type == FROM_PROPERTY || current->type == TO_PROPERTY ||
+          current->type == TRANSLATE_PROPERTY) {
         if (current->value.coordinates.xExpression)
           destroyExpression(current->value.coordinates.xExpression);
         if (current->value.coordinates.yExpression)
           destroyExpression(current->value.coordinates.yExpression);
+      } else if (current->isExpression && current->value.expressionValue) {
+        destroyExpression(current->value.expressionValue);
       } else if (current->type == FILL_PROPERTY ||
                  current->type == STROKE_PROPERTY) {
         if (current->value.colorValue != NULL) {
