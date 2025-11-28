@@ -74,7 +74,16 @@ void yyerror(const YYLTYPE * location, const char * message) {
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
+%destructor { free($$); } <string>
+%destructor { destroyConstant($$); } <constant>
+%destructor { destroyExpression($$); } <expression>
+%destructor { destroyFactor($$); } <factor>
+%destructor { destroyScene($$); } <scene>
+%destructor { destroyFigure($$); } <figure>
+%destructor { destroyProperty($$); } <property>
 %destructor { destroyColor($$); } <color>
+%destructor { destroyPalette($$); } <palette_entry>
+
 
 /** Terminals. */
 %token <integer> INTEGER
