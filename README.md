@@ -74,7 +74,8 @@ src/main/bash/run.sh <program>
 
 where `<program>` is the path to the file that represents its entry-point.
 
-The compiler generates `scene.svg` in the current directory.
+> [!NOTE]
+> The compiler generates a file named `scene.svg` in the current working directory containing the resulting vector graphics.
 
 ### Test
 
@@ -244,6 +245,8 @@ TLA_Plotter/
 │   │   ├── semantic-analysis/    # Validation & type checking
 │   │   ├── code-generation/      # SVG generator
 │   │   └── domain-specific/      # Math expression evaluator
+│   ├── shared/                   # Shared data structures (SymbolTable, etc.)
+│   ├── support/                  # Utility modules (Logger, String, etc.)
 │   └── EntryPoint.c              # Compiler driver
 └── src/test/c/
     ├── accept/                   # Valid test cases
