@@ -23,8 +23,7 @@ static void disable_buffering() {
  * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
  */
 void yyerror(const YYLTYPE * location, const char * message) {
-    fprintf(stderr, "SYNTAX ERROR: %s\n", message);
-    exit(1);
+    
 }
 
 %}
@@ -244,7 +243,7 @@ void yyerror(const YYLTYPE * location, const char * message) {
 
 program: scene_declaration	{ disable_buffering(); $$ = SceneProgramSemanticAction($1); }
 	| INTEGER	{ $$ = NULL; }
-	| error	{ yyerrok; $$ = NULL; }
+	
 	;
 
 
