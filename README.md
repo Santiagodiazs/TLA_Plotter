@@ -74,6 +74,8 @@ src/main/bash/run.sh <program>
 
 where `<program>` is the path to the file that represents its entry-point.
 
+The compiler generates `scene.svg` in the current directory.
+
 ### Test
 
 Executes every available unit-test under `src/test/c` folder:
@@ -223,30 +225,68 @@ scene VariableDemo {
 
 Run the complete test suite:
 ```bash
-src/main/bash/test.sh
+sudo docker compose run --rm compiler src/main/bash/test
 ```
 
 The test suite includes:
 - ✅ **18 acceptance tests** - Valid scenes that should compile
 - ❌ **16 rejection tests** - Invalid scenes that should fail validation
 
-## CI/CD
+## 🏗️ Architecture
 
-To trigger an automatic integration on every push or PR (_Pull Request_), you must activate _GitHub Actions_ in the _Settings_ tab. Use the following configuration:
+```
+TLA_Plotter/
+├── src/main/c/
+│   ├── frontend/
+│   │   ├── lexical-analysis/     # Flex-based tokenizer
+│   │   └── syntactic-analysis/   # Bison parser & AST
+│   ├── backend/
+│   │   ├── semantic-analysis/    # Validation & type checking
+│   │   ├── code-generation/      # SVG generator
+│   │   └── domain-specific/      # Math expression evaluator
+│   └── EntryPoint.c              # Compiler driver
+└── src/test/c/
+    ├── accept/                   # Valid test cases
+    └── reject/                   # Invalid test cases
+```
 
-| Key                                                        | Value                                               |
-| :--------------------------------------------------------- | :-------------------------------------------------- |
-| `Actions permissions`                                      | `Allow all actions and reusable workflows`          |
-| `Allow GitHub Actions to create and approve pull requests` | `false`                                             |
-| `Artifact and log retention`                               | `30 days`                                           |
-| `Fork pull request workflows from outside collaborators`   | `Require approval for all outside collaborators`    |
-| `Workflow permissions`                                     | `Read repository contents and packages permissions` |
+## 🔍 Semantic Validation
 
-## Recommended Extensions
+The compiler performs comprehensive validation:
 
-* [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
-* [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
-* [Yash](https://marketplace.visualstudio.com/items?itemName=daohong-emilio.yash)
+✅ **Required Properties**: Ensures figures have mandatory properties
+```plot
+// ❌ Error: Circle must have 'radius'
+draw circle c { at (0, 0); }
+```
+
+✅ **Property-Figure Compatibility**: Validates property types
+```plot
+// ❌ Error: Property 'radius' is not valid for rectangle figures
+draw rectangle r { radius 50; }
+```
+
+✅ **Size Declaration Conflicts**: Prevents contradictory sizing
+```plot
+// ❌ Error: Cannot use both 'size' and 'width'/'height'
+draw rectangle r { size 100x50; width 200; }
+```
+
+✅ **Palette Validation**: Checks color existence in palettes
+```plot
+// ❌ Error: Color 'invalid' not found in palette 'theme'
+fill theme.invalid;
+```
+
+## 🛠️ Built With
+
+- **[Flex](https://github.com/westes/flex)** - Lexical analyzer generator
+- **[Bison](https://www.gnu.org/software/bison/)** - Parser generator
+- **[CMake](https://cmake.org/)** - Build system
+- **[Docker](https://www.docker.com/)** - Containerization
+
+
+
 
 ---
 
