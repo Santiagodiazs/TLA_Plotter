@@ -230,8 +230,8 @@ sudo docker compose run --rm compiler src/main/bash/test
 ```
 
 The test suite includes:
-- ✅ **18 acceptance tests** - Valid scenes that should compile
-- ❌ **16 rejection tests** - Invalid scenes that should fail validation
+- ✅ **20 acceptance tests** - Valid scenes that should compile
+- ❌ **18 rejection tests** - Invalid scenes that should fail validation
 
 ## 🏗️ Architecture
 
